@@ -68,7 +68,8 @@ class Node2Vec(object):
             
     
     def word2vec(self,sg=1,size=10,window=3, min_count=1, negative=5, workers=4,sample=0):
-        """https://radimrehurek.com/gensim/models/word2vec.html
+        """source: https://radimrehurek.com/gensim/models/word2vec.html
+        Parameters
         ----------
         sentences (iterable of iterables) : The sentences iterable can be simply a list of lists of tokens, 
             but for larger corpora, consider an iterable that streams the sentences directly from disk/network.
