@@ -3,19 +3,19 @@ import random
 from gensim.models import Word2Vec
 
 class Node2Vec(object):
-    """Perform node2vec (Deepwalk) on an undirected networkx MultiGraph with edge attributes. 
+    """Perform node2vec (Deepwalk), ie unbiased random walk over nodes on an undirected networkx MultiGraph. 
  
     Parameters
     ----------
     graph : networkx.MultiGraph
     walk_length : (default 100)
     N_iterations : (default 1)
+
+    Attributes:
+    walks : random walks
+    N_walks : total number of random walks
     
     Methods: 
-    get_walks
-    word2vec
-    
-    Attributes
     ----------
     get_walks()
     word2vec()
