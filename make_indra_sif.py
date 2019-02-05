@@ -5,6 +5,8 @@ and adds some additional information before exporting as SIF."""
 import pandas
 import pickle
 import argparse
+from indra.databases import hgnc_client
+from indra.preassembler.hierarchy_manager import hierarchies
 
 
 def load_genes(fname):
@@ -27,11 +29,26 @@ def dump_sif(df, fname):
 
 def filter_to_genes(df, genes):
     # Look for pairs where both genes are in the gene list
-    filters = ((df.agA_ns == 'HGNC') & (df.agA_id.isin(genes)))
-    filters &= ((df.agB_ns == 'HGNC') & (df.agB_id.isin(genes)))
-    # TODO: add further clauses to accept GO targets and relevant FPLX
+    filters = (((df.agA_ns == 'HGNC') & (df.agA_id.isin(genes)))
+               & ((df.agB_ns == 'HGNC') & (df.agB_id.isin(genes))))
+    # Look for pairs where the source is a gene in the list and the target
+    # is a GO term
+    filters |= (((df.agA_ns == 'HGNC') & (df.agA_id.isin(genes)))
+                & (df.agB_ns == 'GO'))
     # sources/targets
     return df[filters]
+
+
+def get_famplex_terms(genes):
+    eh = hierarchies['entity']
+    all_parents = set()
+    for hgnc_id in genes:
+        hgnc_name = hgnc_client.get_hgnc_name(hgnc_id)
+        gene_uri = eh.get_uri('HGNC', hgnc_name)
+        parents = eh.get_parents(gene_uri)
+        parent_tuples = [eh.ns_id_from_uri(par_uri) for par_uri in parents]
+        all_parents |= set(parent_tuples)
+    return sorted(list(all_parents))
 
 
 def collapse_and_count(df):
