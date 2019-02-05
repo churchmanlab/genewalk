@@ -3,24 +3,23 @@ import random
 from gensim.models import Word2Vec
 
 class Node2Vec(object):
-    """Perform node2vec (Deepwalk), ie unbiased random walk over nodes on an undirected networkx MultiGraph. 
- 
+    """Perform node2vec (Deepwalk), ie unbiased random walk over nodes
+    on an undirected networkx MultiGraph.
+
     Parameters
     ----------
     graph : networkx.MultiGraph
-    walk_length : (default 100)
-    N_iterations : (default 1)
+    walk_length : Optional[int]
+        Default: 100
+    N_iterations : Optional[int]
+        Ddefault: 1
 
-    Attributes:
-    walks : random walks
-    N_walks : total number of random walks
-    
-    Methods: 
+    Attributes
     ----------
-    get_walks()
-    word2vec()
+    walks : list
+    N_walks : int
+        Total number of random walks.
     """
-    
     def __init__(self,graph,walk_length=100,N_iterations=1):
         self.graph = graph
         self.walks=[]
@@ -29,8 +28,9 @@ class Node2Vec(object):
         self.N_walks=0
         
     def get_walks(self):
-        """Generate collection of graph walks: one for each node (= starting point) 
-        sampled by an (unbiased) random walk over the networkx MultiGraph.
+        """Generate collection of graph walks: one for each node
+        (= starting point) sampled by an (unbiased) random walk over the
+        networkx MultiGraph.
         """
         start = time.time()
         g_iter=nx.nodes_iter(self.graph)
@@ -52,13 +52,15 @@ class Node2Vec(object):
                   
 
     def _graph_walk(self,idx,u):
-        """Generates walks (sentences) sampled by an (unbiased) random walk over the networkx MultiGraph:
-        node and edge names for the sentences.
+        """Generates walks (sentences) sampled by an (unbiased) random walk
+        over the networkx MultiGraph: node and edge names for the sentences.
         
         Parameters
         ----------
-        idx : index of walk in self.walks that will form corpus for word2vec
-        u : starting node
+        idx : int
+            index of walk in self.walks that will form corpus for word2vec
+        u : str
+            starting node
         """
         self.walks[idx]=['NA' for i in range(self.wl)]
         self.walks[idx][0]=u
@@ -68,22 +70,37 @@ class Node2Vec(object):
             
     
     def word2vec(self,sg=1,size=10,window=3, min_count=1, negative=5, workers=4,sample=0):
-        """source: https://radimrehurek.com/gensim/models/word2vec.html
+        """Set the model based on Word2Vec
+
+        Source: https://radimrehurek.com/gensim/models/word2vec.html
+
         Parameters
         ----------
-        sentences (iterable of iterables) : The sentences iterable can be simply a list of lists of tokens, 
-            but for larger corpora, consider an iterable that streams the sentences directly from disk/network.
-        sg (int {1, 0}) – Defines the training algorithm. If 1, skip-gram is employed; otherwise, CBOW is used.
-        size (int) : Dimensionality of the feature vectors.
-        window (int) : (aka context size) maximum distance between the current and predicted word within a sentence.
-        min_count (int) : Ignores all words with total frequency lower than this.
-        negative (int) : If > 0, negative sampling will be used, the int for negative specifies how many 
-            “noise words” should be drawn (usually between 5-20). If set to 0, no negative sampling is used.
-        workers (int) : Use these many worker threads to train the model (=faster training with multicore machines).
-        sample (float) : The threshold for configuring which higher-frequency words are randomly downsampled,
-        useful range is (0, 1e-5). parameter t in eq 5 Mikolov et al. Without edge labels: set to 0.
+        sentences : iterable of iterables
+            The sentences iterable can be simply a list of lists of tokens,
+            but for larger corpora, consider an iterable that streams the
+            sentences directly from disk/network.
+        sg : int {1, 0}
+            Defines the training algorithm. If 1, skip-gram is employed;
+            otherwise, CBOW is used.
+        size : int
+            Dimensionality of the feature vectors.
+        window : int
+            AKA context size. Maximum distance between the current and
+            predicted word within a sentence.
+        min_count : int
+            Ignores all words with total frequency lower than this.
+        negative : int
+            If > 0, negative sampling will be used, the int for negative
+            specifies how many "noise words” should be drawn (usually between
+            5-20). If set to 0, no negative sampling is used.
+        workers : int
+            Use these many worker threads to train the model (=faster training
+            with multicore machines).
+        sample : float
+            The threshold for configuring which higher-frequency words are
+            randomly downsampled, useful range is (0, 1e-5). parameter t in eq
+            5 Mikolov et al. Without edge labels: set to 0.
         """
         self.model = Word2Vec(sentences=self.walks,sg=sg,size=size,window=window, 
                               min_count=min_count,negative=negative, workers=workers,sample=sample) 
-        
-        
