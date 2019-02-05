@@ -9,6 +9,7 @@ class Node2Vec(object):
     Parameters
     ----------
     graph : networkx.MultiGraph
+        A networkx multigraph to be used as the basis for node2vec.
     walk_length : Optional[int]
         Default: 100
     N_iterations : Optional[int]
@@ -17,6 +18,7 @@ class Node2Vec(object):
     Attributes
     ----------
     walks : list
+        A list of walks.
     N_walks : int
         Total number of random walks.
     """
