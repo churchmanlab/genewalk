@@ -7,8 +7,9 @@ Welcome to NGF's documentation!
 ===============================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 3
+
+   modules/index
 
 
 
