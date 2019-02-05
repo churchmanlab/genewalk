@@ -27,16 +27,18 @@ def dump_sif(df, fname):
     df.to_csv(fname)
 
 
-def filter_to_genes(df, genes):
-    # Look for pairs where both genes are in the gene list
-    filters = (((df.agA_ns == 'HGNC') & (df.agA_id.isin(genes)))
-               & ((df.agB_ns == 'HGNC') & (df.agB_id.isin(genes))))
-    # Look for pairs where the source is a gene in the list and the target
-    # is a GO term
-    filters |= (((df.agA_ns == 'HGNC') & (df.agA_id.isin(genes)))
-                & (df.agB_ns == 'GO'))
+def filter_to_genes(df, genes, fplx_terms):
+    # Look for sources that are in the gene list or whose families/complexes
+    # are in the FamPlex term list
+    source_filter = (((df.agA_ns == 'HGNC') & (df.agA_id.isin(genes))) |
+                     ((df.agA_ns == 'FPLX') & (df.agA_id.isin(fplx_terms))))
+    # Look for targets that are in the gene list or whose families/complexes
+    # are in the FamPlex term list, or which are GO terms
+    target_filter = (((df.agB_ns == 'HGNC') & (df.agB_id.isin(genes))) |
+                     ((df.agB_ns == 'FPLX') & (df.agB_id.isin(fplx_terms))) |
+                     (df.agB_ns == 'GO'))
     # sources/targets
-    return df[filters]
+    return df[source_filter & target_filter]
 
 
 def get_famplex_terms(genes):
@@ -46,8 +48,8 @@ def get_famplex_terms(genes):
         hgnc_name = hgnc_client.get_hgnc_name(hgnc_id)
         gene_uri = eh.get_uri('HGNC', hgnc_name)
         parents = eh.get_parents(gene_uri)
-        parent_tuples = [eh.ns_id_from_uri(par_uri) for par_uri in parents]
-        all_parents |= set(parent_tuples)
+        parent_ids = [eh.ns_id_from_uri(par_uri)[1] for par_uri in parents]
+        all_parents |= set(parent_ids)
     return sorted(list(all_parents))
 
 
@@ -66,7 +68,8 @@ if __name__ == '__main__':
     parser.add_argument('--sif', default='data/JQ1_HGNCidForINDRA.sif')
     args = parser.parse_args()
     genes = load_genes(args.genes)
+    fplx_terms = get_famplex_terms(genes)
     df = load_indra_df(args.indra_df)
-    df = filter_to_genes(df, genes)
+    df = filter_to_genes(df, genes, fplx_terms)
     df = collapse_and_count(df)
     dump_sif(df, args.sif)
