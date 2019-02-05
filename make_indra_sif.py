@@ -10,6 +10,7 @@ from indra.preassembler.hierarchy_manager import hierarchies
 
 
 def load_genes(fname):
+    """Return a list of genes IDs from a file with lines like HGNC:123."""
     with open(fname, 'r') as fh:
         # Get the HGNC IDs from the list of genes file, assuming that
         # each line looks like HGNC:123
@@ -18,16 +19,19 @@ def load_genes(fname):
 
 
 def load_indra_df(fname):
+    """Return an INDRA Statement data frame from a pickle file."""
     with open(fname, 'rb') as fh:
         df = pickle.load(fh)
     return df
 
 
 def dump_sif(df, fname):
+    """Dump a data frame into a CSV file."""
     df.to_csv(fname)
 
 
 def filter_to_genes(df, genes, fplx_terms):
+    """Filter a data frame of INDRA Statements given gene and FamPlex IDs."""
     # Look for sources that are in the gene list or whose families/complexes
     # are in the FamPlex term list
     source_filter = (((df.agA_ns == 'HGNC') & (df.agA_id.isin(genes))) |
@@ -42,6 +46,7 @@ def filter_to_genes(df, genes, fplx_terms):
 
 
 def get_famplex_terms(genes):
+    """Get a list of associated FamPlex IDs from a list of gene IDs."""
     eh = hierarchies['entity']
     all_parents = set()
     for hgnc_id in genes:
@@ -54,6 +59,7 @@ def get_famplex_terms(genes):
 
 
 def collapse_and_count(df):
+    """Collapse an INDRA Statement data frame and count evidences."""
     df_counts = df.groupby(by=['agA_ns', 'agA_id', 'agA_name',
                                'agB_ns', 'agB_id', 'agB_name',
                                'stmt_type']).sum()
@@ -61,15 +67,20 @@ def collapse_and_count(df):
 
 
 if __name__ == '__main__':
+    # Handle command line arguments
     parser = argparse.ArgumentParser(
         description='Choose a file with a list of genes to get a SIF for.')
     parser.add_argument('--genes', default='data/JQ1_HGNCidForINDRA.csv')
     parser.add_argument('--indra_df', default='data/stmt_df.pkl')
     parser.add_argument('--sif', default='data/JQ1_HGNCidForINDRA.sif')
     args = parser.parse_args()
+    # Load genes and get FamPlex terms
     genes = load_genes(args.genes)
     fplx_terms = get_famplex_terms(genes)
+    # Load INDRA Statements in a flat data frame
     df = load_indra_df(args.indra_df)
+    # Filter the data frame to relevant entities
     df = filter_to_genes(df, genes, fplx_terms)
+    # Collapse data frame and dump into SIF
     df = collapse_and_count(df)
     dump_sif(df, args.sif)
