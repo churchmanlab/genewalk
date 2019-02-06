@@ -9,6 +9,7 @@ import pandas
 import pickle
 import logging
 import argparse
+import itertools
 from indra.util import batch_iter
 from indra.sources import indra_db_rest
 from indra.databases import hgnc_client
@@ -60,19 +61,45 @@ def filter_to_genes(df, genes, fplx_terms):
     return df
 
 
+def get_gene_parents(hgnc_name):
+    eh = hierarchies['entity']
+    gene_uri = eh.get_uri('HGNC', hgnc_name)
+    parents = eh.get_parents(gene_uri)
+    parent_ids = [eh.ns_id_from_uri(par_uri)[1] for par_uri in parents]
+    return parent_ids
+
+
 def get_famplex_terms(genes):
     """Get a list of associated FamPlex IDs from a list of gene IDs."""
-    eh = hierarchies['entity']
     all_parents = set()
     for hgnc_id in genes:
         hgnc_name = hgnc_client.get_hgnc_name(hgnc_id)
-        gene_uri = eh.get_uri('HGNC', hgnc_name)
-        parents = eh.get_parents(gene_uri)
-        parent_ids = [eh.ns_id_from_uri(par_uri)[1] for par_uri in parents]
+        parent_ids = get_gene_parents(hgnc_name)
         all_parents |= set(parent_ids)
     fplx_terms = sorted(list(all_parents))
     logger.info('Found %d relevant FamPlex terms.' % (len(fplx_terms)))
     return fplx_terms
+
+
+def get_famplex_links(df):
+    """Given a list of INDRA Statements, construct FamPlex links."""
+    genes_appearing = (set(df[df.agA_ns == 'HGNC'].agA_name) |
+                       set(df[df.agB_ns == 'HGNC'].agB_name))
+    fplx_appearing = (set(df[df.agA_ns == 'FPLX'].agA_id) |
+                      set(df[df.agB_ns == 'FPLX'].agB_id))
+    links = []
+    for gene in genes_appearing:
+        parent_ids = get_gene_parents(gene)
+        parents_appearing = fplx_appearing & set(parent_ids)
+        links += [(gene, parent) for parent in parents_appearing]
+    eh = hierarchies['entity']
+    for fplx_child in fplx_appearing:
+        fplx_uri = eh.get_uri('FPLX', fplx_child)
+        parents = eh.get_parents(fplx_uri)
+        parent_ids = [eh.ns_id_from_uri(par_uri)[1] for par_uri in parents]
+        parents_appearing = fplx_appearing & set(parent_ids)
+        links += [(fplx_child, parent) for parent in parents_appearing]
+    return links
 
 
 def download_statements(df):
@@ -104,6 +131,7 @@ if __name__ == '__main__':
     # Filter the data frame to relevant entities
     df = filter_to_genes(df, genes, fplx_terms)
     # Download the Statement corresponding to each row
-    stmts = download_statements(df)
+    # stmts = download_statements(df)
     # Dump the Statements into a pickle file
-    dump_pickle(stmts, args.pickle)
+    # dump_pickle(stmts, args.pickle)
+    fplx_links = get_famplex_links(df)
