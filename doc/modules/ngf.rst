@@ -12,9 +12,9 @@ Networkx MultiGraph assembler (:py:mod:`ngf.nx_mg_assembler`)
     :members:
     :show-inheritance:
 
-INDRA SIF exporter (:py:mod:`ngf.make_indra_sif`)
-=================================================
+Get relevant INDRA Statements (:py:mod:`ngf.get_indra_stmts`)
+=============================================================
 
-.. automodule:: ngf.make_indra_sif
+.. automodule:: ngf.get_indra_stmts
     :members:
     :show-inheritance:

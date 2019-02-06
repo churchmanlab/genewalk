@@ -1,7 +1,10 @@
-"""This script creates a SIF file for a specific set of genes, based on a
-pre-assembled network of interactions produced by INDRA. It loads the INDRA
-interactions as a pandas DataFrame and, filters it to the genes of interest,
-and adds some additional information before exporting as SIF."""
+"""This script creates a pickle file of INDRA Statements for a specific set of
+genes, based on a pre-assembled network of interactions produced by INDRA. It
+loads the INDRA interactions as a pandas DataFrame and, filters it to the genes
+and familiex/complexes of interest, as well as targeted biological processes.
+It downloads the relevant Statement objects for reference and dumps them into
+a pickle file.
+"""
 import pandas
 import pickle
 import logging
