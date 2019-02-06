@@ -9,26 +9,28 @@ from indra.statements import *
 from goatools.obo_parser import GODag
 
 class Nx_MG_Assembler(object):
-    """The Nx_MG_Assembler assembles INDRA Statements and GO ontology / annotations into 
-    a networkx (undirected) MultiGraph including edge attributes.
-    This code is based on INDRA's SifAssembler
+    """The Nx_MG_Assembler assembles INDRA Statements and GO ontology /
+    annotations into a networkx (undirected) MultiGraph including edge
+    attributes. This code is based on INDRA's SifAssembler
     http://indra.readthedocs.io/en/latest/_modules/indra/assemblers/sif_assembler.html
-    
+
     Parameters
     ----------
     stmts : Optional[list[indra.statements.Statement]]
         A list of INDRA Statements to be added to the assembler's list
         of Statements.
+    GOpath : str
+        Path to the goa_human.gaf file
 
     Attributes
     ----------
     graph : networkx.MultiGraph
         A networkx graph that is assembled by this assembler.
-    GOA : GO annotation in pd.dataframe format
-    OGO : GO ontology, GODag object (see goatools)
-    INDRA_GOterms : GOterm nodes present from INDRA statements; key is from INDRA, not GOI; populated in MG_from_INDRA
+    GOA : pandas.DataFrame
+        GO annotation in pd.dataframe format
+    OGO : goatools.GODag
+        GO ontology, GODag object (see goatools)
     """
-
     def __init__(self,stmts=None,GOpath='~/'):
         if stmts is None:
             self.stmts = []
@@ -81,9 +83,9 @@ class Nx_MG_Assembler(object):
                 self._add_INnode_edge(a, b, edge_attr)
     
     def add_GOannotations(self):
-        """Add to self.graph the GO annotations (GO:IDs) of proteins (ie, the subset
-        of self.graph nodes that contain UniprotKB:ID) in the form of labeled edges (see _GOA_from_UP for details)
-        and new nodes (GO:IDs).
+        """Add to self.graph the GO annotations (GO:IDs) of proteins (ie, the
+        subset of self.graph nodes that contain UniprotKB:ID) in the form of
+        labeled edges (see _GOA_from_UP for details) and new nodes (GO:IDs).
         """
         IN_nodes=nx.nodes(self.graph)
         N=len(IN_nodes)
@@ -103,8 +105,9 @@ class Nx_MG_Assembler(object):
             j=j+1
                      
     def add_GOontology(self):
-        """Add to self.graph the GO ontology (GO:IDs and their relations) in the form of labeled edge 
-        (relation type, eg is_a) and new nodes (GO:IDs).
+        """Add to self.graph the GO ontology (GO:IDs and their relations) in
+        the form of labeled edge (relation type, eg is_a) and new nodes
+        (GO:IDs).
         """
         for goid in self.OGO.keys():
             GOT=self.OGO[goid]
