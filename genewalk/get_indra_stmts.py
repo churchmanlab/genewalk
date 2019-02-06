@@ -15,7 +15,7 @@ from indra.databases import hgnc_client
 from indra.preassembler.hierarchy_manager import hierarchies
 
 
-logger = logging.getLogger('ngf.make_indra_sif')
+logger = logging.getLogger('genewalk.make_indra_sif')
 
 
 def load_genes(fname):

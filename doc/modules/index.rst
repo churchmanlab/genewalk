@@ -1,9 +1,9 @@
-.. _ngf_modules_ref:
+.. _genewalk_modules_ref:
 
-NGF modules reference
-=====================
+GeneWalk modules reference
+==========================
 
 .. toctree::
    :maxdepth: 4
 
-   ngf
+   genewalk

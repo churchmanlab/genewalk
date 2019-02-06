@@ -19,9 +19,9 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'NGF'
-copyright = '2019, NGF Developers'
-author = 'NGF Developers'
+project = 'GeneWalk'
+copyright = '2019, GeneWalk Developers'
+author = 'GeneWalk Developers'
 
 # The short X.Y version
 version = ''
@@ -108,7 +108,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'NGFdoc'
+htmlhelp_basename = 'GeneWalkdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -135,8 +135,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'NGF.tex', 'NGF Documentation',
-     'NGF Developers', 'manual'),
+    (master_doc, 'GeneWalk.tex', 'GeneWalk Documentation',
+     'GeneWalk Developers', 'manual'),
 ]
 
 
@@ -145,7 +145,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'ngf', 'NGF Documentation',
+    (master_doc, 'genewalk', 'GeneWalk Documentation',
      [author], 1)
 ]
 
@@ -156,8 +156,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'NGF', 'NGF Documentation',
-     author, 'NGF', 'One line description of project.',
+    (master_doc, 'GeneWalk', 'GeneWalk Documentation',
+     author, 'GeneWalk', 'One line description of project.',
      'Miscellaneous'),
 ]
 

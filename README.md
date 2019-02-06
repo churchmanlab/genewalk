@@ -1,2 +1,2 @@
-# NGF
+# GeneWalk
 
