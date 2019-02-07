@@ -81,7 +81,7 @@ def get_famplex_terms(genes):
     return fplx_terms
 
 
-def get_famplex_links(df):
+def get_famplex_links(df, fname):
     """Given a list of INDRA Statements, construct FamPlex links."""
     genes_appearing = (set(df[df.agA_ns == 'HGNC'].agA_name) |
                        set(df[df.agB_ns == 'HGNC'].agB_name))
@@ -99,6 +99,9 @@ def get_famplex_links(df):
         parent_ids = [eh.ns_id_from_uri(par_uri)[1] for par_uri in parents]
         parents_appearing = fplx_appearing & set(parent_ids)
         links += [(fplx_child, parent) for parent in parents_appearing]
+    with open(fname, 'w') as fh:
+        for link in links:
+            fh.write('%s,%s\n' % link)
     return links
 
 
@@ -119,19 +122,20 @@ if __name__ == '__main__':
     # Handle command line arguments
     parser = argparse.ArgumentParser(
         description='Choose a file with a list of genes to get a SIF for.')
+    parser.add_argument('--df', default='data/stmt_df.pkl')
     parser.add_argument('--genes', default='data/JQ1_HGNCidForINDRA.csv')
-    parser.add_argument('--indra_df', default='data/stmt_df.pkl')
-    parser.add_argument('--pickle', default='data/JQ1_HGNCidForINDRA.pkl')
+    parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA.pkl')
+    parser.add_argument('--fplx', default='data/JQ1_HGNCidForINDRA.csv')
     args = parser.parse_args()
     # Load genes and get FamPlex terms
     genes = load_genes(args.genes)
     fplx_terms = get_famplex_terms(genes)
     # Load INDRA Statements in a flat data frame
-    df = load_indra_df(args.indra_df)
+    df = load_indra_df(args.df)
     # Filter the data frame to relevant entities
     df = filter_to_genes(df, genes, fplx_terms)
     # Download the Statement corresponding to each row
     # stmts = download_statements(df)
     # Dump the Statements into a pickle file
-    # dump_pickle(stmts, args.pickle)
-    fplx_links = get_famplex_links(df)
+    # dump_pickle(stmts, args.stmts)
+    fplx_links = get_famplex_links(df, args.fplx)
