@@ -21,6 +21,10 @@ class Nx_MG_Assembler(object):
         of Statements.
     GOpath : str
         Path to the goa_human.gaf file
+    fplx_links : list of tuple
+        A List of tuples with the first element of the tuple
+        a child gene name or FamPlex entry, and the second element
+        a parent FamPlex entry, e.g. [('KRAS', 'RAS')].
 
     Attributes
     ----------
@@ -31,11 +35,9 @@ class Nx_MG_Assembler(object):
     OGO : goatools.GODag
         GO ontology, GODag object (see goatools)
     """
-    def __init__(self,stmts=None,GOpath='~/'):
-        if stmts is None:
-            self.stmts = []
-        else:
-            self.stmts = stmts
+    def __init__(self,stmts=None,GOpath='~/',fplx_links=None):
+        self.stmts = [] if stmts is None else stmts
+        self.fplx_link = [] if fplx_links is None else fplx_links
         self.graph = nx.MultiGraph()
         self.GOpath = GOpath
         self.GOA = pd.read_csv(self.GOpath+'goa_human.gaf', sep='\t',skiprows=23,dtype=str,header=None, 
@@ -81,6 +83,9 @@ class Nx_MG_Assembler(object):
             #Iterate over all the agent combinations and add edge
             for a, b in itertools.combinations(agents, 2):
                 self._add_INnode_edge(a, b, edge_attr)
+        # Add protein family/complex links
+        for link in self.fplx_links:
+            self._add_INode_edge(link[0], link[1], 'parent')
     
     def add_GOannotations(self):
         """Add to self.graph the GO annotations (GO:IDs) of proteins (ie, the
