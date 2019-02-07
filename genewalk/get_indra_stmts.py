@@ -124,8 +124,8 @@ if __name__ == '__main__':
         description='Choose a file with a list of genes to get a SIF for.')
     parser.add_argument('--df', default='data/stmt_df.pkl')
     parser.add_argument('--genes', default='data/JQ1_HGNCidForINDRA.csv')
-    parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA.pkl')
-    parser.add_argument('--fplx', default='data/JQ1_HGNCidForINDRA.csv')
+    parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
+    parser.add_argument('--fplx', default='data/JQ1_HGNCidForINDRA_fplx.txt')
     args = parser.parse_args()
     # Load genes and get FamPlex terms
     genes = load_genes(args.genes)
