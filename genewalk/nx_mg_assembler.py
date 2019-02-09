@@ -89,7 +89,6 @@ class Nx_MG_Assembler(object):
         a parent FamPlex entry, e.g. ('KRAS', 'RAS')
         """
         FPLX=pd.read_csv(filename,sep=',',dtype=str,header=None)
-        N=len(FPLX)
         # Add protein family/complex links
         for i in FPLX.index:
             s=FPLX[0][i]
