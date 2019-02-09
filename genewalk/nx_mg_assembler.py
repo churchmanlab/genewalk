@@ -8,40 +8,36 @@ import pandas as pd
 from indra.statements import *
 from goatools.obo_parser import GODag
 
-import json
-from builtins import dict, str
-import numpy
-import itertools
-import networkx as nx
-import re
-import pandas as pd
-from indra.statements import *
-from goatools.obo_parser import GODag
-
 class Nx_MG_Assembler(object):
-    """The Nx_MG_Assembler assembles INDRA Statements and GO ontology / annotations into 
-    a networkx (undirected) MultiGraph including edge attributes.
-    
+    """The Nx_MG_Assembler assembles INDRA Statements and GO ontology /
+    annotations into a networkx (undirected) MultiGraph including edge
+    attributes. This code is based on INDRA's SifAssembler
+    http://indra.readthedocs.io/en/latest/_modules/indra/assemblers/sif_assembler.html
+
     Parameters
     ----------
     stmts : Optional[list[indra.statements.Statement]]
         A list of INDRA Statements to be added to the assembler's list
         of Statements.
+    GOpath : str
+        Path to the goa_human.gaf file
+    fplx_links : list of tuple
+        A List of tuples with the first element of the tuple
+        a child gene name or FamPlex entry, and the second element
+        a parent FamPlex entry, e.g. [('KRAS', 'RAS')].
 
     Attributes
     ----------
     graph : networkx.MultiGraph
         A networkx graph that is assembled by this assembler.
-    GOA : GO annotation in pd.dataframe format
-    OGO : GO ontology, GODag object (see goatools)
-    INDRA_GOterms : GOterm nodes present from INDRA statements; key is from INDRA, not GOI; populated in MG_from_INDRA
+    GOA : pandas.DataFrame
+        GO annotation in pd.dataframe format
+    OGO : goatools.GODag
+        GO ontology, GODag object (see goatools)
     """
-
-    def __init__(self,stmts=None,GOpath='~/'):
-        if stmts is None:
-            self.stmts = []
-        else:
-            self.stmts = stmts
+    def __init__(self,stmts=None,GOpath='~/',fplx_links=None):
+        self.stmts = [] if stmts is None else stmts
+        self.fplx_link = [] if fplx_links is None else fplx_links
         self.graph = nx.MultiGraph()
         self.GOpath = GOpath
         self.GOA = pd.read_csv(self.GOpath+'goa_human.gaf', sep='\t',skiprows=23,dtype=str,header=None, 
@@ -87,28 +83,16 @@ class Nx_MG_Assembler(object):
             #Iterate over all the agent combinations and add edge
             for a, b in itertools.combinations(agents, 2):
                 self._add_INnode_edge(a, b, edge_attr)
+        # Add protein family/complex links
+        for link in self.fplx_links:
+            self._add_INode_edge(link[0], link[1], 'parent')
     
-    def add_FPLXannotations(self,filename):
-        """Add to self.graph an edge (label: 'FPLX:is_a') between the gene family to member annotation edges.
-        
-        Parameters
-        ----------
-        filename : str specifying the .csv file with (family,member) tuples
-        """
-        FPLX=pd.read_csv(filename,sep=',',dtype=str,header=None)
-        N=len(FPLX)
-        for i in FPLX.index:
-            s=FPLX[0][i]
-            t=FPLX[1][i]
-            edge_attr='FPLX:is_a'
-            self._add_edge(s, t, edge_attr)
-            
     def add_GOannotations(self):
-        """Add to self.graph the GO annotations (GO:IDs) of proteins (ie, the subset
-        of self.graph nodes that contain UniprotKB:ID) in the form of labeled edges (see _GOA_from_UP for details)
-        and new nodes (GO:IDs).
+        """Add to self.graph the GO annotations (GO:IDs) of proteins (ie, the
+        subset of self.graph nodes that contain UniprotKB:ID) in the form of
+        labeled edges (see _GOA_from_UP for details) and new nodes (GO:IDs).
         """
-        IN_nodes=list(nx.nodes(self.graph))
+        IN_nodes=nx.nodes(self.graph)
         N=len(IN_nodes)
         j=0#counter for duration
         for n in IN_nodes: 
@@ -126,8 +110,9 @@ class Nx_MG_Assembler(object):
             j=j+1
                      
     def add_GOontology(self):
-        """Add to self.graph the GO ontology (GO:IDs and their relations) in the form of labeled edge 
-        (relation type, eg is_a) and new nodes (GO:IDs).
+        """Add to self.graph the GO ontology (GO:IDs and their relations) in
+        the form of labeled edge (relation type, eg is_a) and new nodes
+        (GO:IDs).
         """
         for goid in self.OGO.keys():
             GOT=self.OGO[goid]
@@ -200,4 +185,4 @@ class Nx_MG_Assembler(object):
         return self.graph.edges(node_key,keys=True)
     
     def save_graph(self,folder='~/',filename='test'):
-        nx.write_graphml(self.graph,folder+filename+'.xml')#works and runs fast
+        nx.write_graphml(self.graph,folder+filename+'.xml')
