@@ -8,6 +8,16 @@ import pandas as pd
 from indra.statements import *
 from goatools.obo_parser import GODag
 
+import json
+from builtins import dict, str
+import numpy
+import itertools
+import networkx as nx
+import re
+import pandas as pd
+from indra.statements import *
+from goatools.obo_parser import GODag
+
 class Nx_MG_Assembler(object):
     """The Nx_MG_Assembler assembles INDRA Statements and GO ontology / annotations into 
     a networkx (undirected) MultiGraph including edge attributes.
