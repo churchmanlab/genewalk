@@ -2,8 +2,8 @@ import networkx as nx
 import random
 from gensim.models import Word2Vec
 
-class Node2Vec(object):
-    """Perform node2vec (Deepwalk), ie unbiased random walk over nodes
+class DeepWalk(object):
+    """Perform DeepWalk (node2vec), ie unbiased random walk over nodes
     on an undirected networkx MultiGraph.
 
     Parameters
@@ -13,7 +13,7 @@ class Node2Vec(object):
     walk_length : Optional[int]
         Default: 100
     N_iterations : Optional[int]
-        Ddefault: 1
+        Default: 1
 
     Attributes
     ----------
@@ -71,9 +71,8 @@ class Node2Vec(object):
             u=self.walks[idx][i]       
             
     
-    def word2vec(self,sg=1,size=10,window=3, min_count=1, negative=5, workers=4,sample=0):
+    def word2vec(self,sg=1,size=10,window=1, min_count=1, negative=5, workers=4,sample=0):
         """Set the model based on Word2Vec
-
         Source: https://radimrehurek.com/gensim/models/word2vec.html
 
         Parameters
