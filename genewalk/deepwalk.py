@@ -71,7 +71,7 @@ class DeepWalk(object):
             u=self.walks[idx][i]       
             
     
-    def word2vec(self,sg=1,size=10,window=1, min_count=1, negative=5, workers=4,sample=0):
+    def word2vec(self,sg=1,size=50,window=1, min_count=1, negative=5, workers=4,sample=0):
         """Set the model based on Word2Vec
         Source: https://radimrehurek.com/gensim/models/word2vec.html
 
