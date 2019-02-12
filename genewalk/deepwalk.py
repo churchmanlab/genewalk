@@ -1,4 +1,4 @@
-import networkx as nx
+import networkx as nx #v2.2
 import random
 from gensim.models import Word2Vec
 import time
@@ -36,16 +36,16 @@ class DeepWalk(object):
         networkx MultiGraph.
         """
         start = time.time()
-        g_iter=nx.nodes_iter(self.graph)
-        for u in g_iter:
-            self.N_walks=self.N_walks+len(self.graph[u].keys())
+        g_view=nx.nodes(self.graph)
+        for u in g_view:
+            self.N_walks=self.N_walks+len(self.graph[u])
         self.N_walks=self.N_walks*self.N_iter
                 
         self.walks=[[] for i in range(self.N_walks)]
         count=0#row index for self.walks
-        g_iter=nx.nodes_iter(self.graph)
-        for u in g_iter:
-            N_neighbor=len(self.graph[u].keys())
+        g_view=nx.nodes(self.graph)
+        for u in g_view:
+            N_neighbor=len(self.graph[u])
             for i in range(self.N_iter):
                 for k in range(N_neighbor):
                     if count%10000==0:
@@ -68,7 +68,7 @@ class DeepWalk(object):
         self.walks[idx]=['NA' for i in range(self.wl)]
         self.walks[idx][0]=u
         for i in range(1,self.wl):
-            self.walks[idx][i]=random.choice(list(self.graph[u].keys() ) )
+            self.walks[idx][i]=random.choice(list(self.graph[u]) )
             u=self.walks[idx][i]       
             
     
