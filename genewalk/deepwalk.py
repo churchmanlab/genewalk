@@ -1,6 +1,7 @@
 import networkx as nx
 import random
 from gensim.models import Word2Vec
+import time
 
 class DeepWalk(object):
     """Perform DeepWalk (node2vec), ie unbiased random walk over nodes
