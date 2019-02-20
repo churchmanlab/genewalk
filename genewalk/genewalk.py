@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 import statsmodels.stats.multitest
-from get_indra_stmts import load_genes
-from nx_mg_assembler import Nx_MG_Assembler
+from genewalk.genewalk.get_indra_stmts import load_genes
+from genewalk.genewalk.nx_mg_assembler import Nx_MG_Assembler
 
 class GeneWalk(object):
     """GeneWalk object that generates the final output list of significant GO terms
@@ -37,24 +37,24 @@ class GeneWalk(object):
                  fnv='GeneWalk_DW_nv.pkl',
                  fnull_dist='GeneWalk_DW_rand_simdists.pkl'):
         self.path=folder
-        self.hgncid=load_genes(path+fhgnc)#read hgnc list of interest
+        self.hgncid=load_genes(self.path+fhgnc)#read hgnc list of interest
         self.outdf=pd.DataFrame(columns=['HGNC:ID','HUGO','GO description','GO:ID',
                                                 'N_con(gene)','N_con(GO)',
                                                 'similarity','pval','padj'])
         # Open pickled statements and initialize Nx_MG_Assembler
-        with open(path+fstmts, 'rb') as f:
+        with open(self.path+fstmts, 'rb') as f:
             stmts=pkl.load(f)
         self.MG=Nx_MG_Assembler(stmts,'/n/groups/churchman/ri23/GO/')
         del(stmts)    
         #load multigraph
-        with open(path+fmg, 'rb') as f:
+        with open(self.path+fmg, 'rb') as f:
             self.MG.graph=pkl.load(f)
         self.GO_nodes=set(nx.get_node_attributes(self.MG.graph,'GO'))
         # load all node vectors    
-        with open(path+fnv, 'rb') as f:
+        with open(self.path+fnv, 'rb') as f:
             self.nv=pkl.load(f)
         # Load similarity null distributions for significance testing       
-        with open(path+fnull_dist, 'rb') as f:
+        with open(self.path+fnull_dist, 'rb') as f:
             self.srd = pkl.load(f)
         
     
