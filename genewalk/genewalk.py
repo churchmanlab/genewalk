@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+import pickle as pkl
+import networkx as nx
+import indra
 import statsmodels.stats.multitest
 from genewalk.genewalk.get_indra_stmts import load_genes
 from genewalk.genewalk.nx_mg_assembler import Nx_MG_Assembler
@@ -72,7 +75,7 @@ class GeneWalk(object):
                 if self.MG.graph.node[n]['HGNC'] in self.hgncid:
                     N_gene_con=len(self.MG.graph[n])
                     GOdf=self.get_GO_df(n,N_gene_con,alpha_FDR)
-                    GOdf.insert(loc=0,column='HGNC:ID', value=pd.Series(GW[tr].MG.graph.node[n]['HGNC'], index=GOdf.index))
+                    GOdf.insert(loc=0,column='HGNC:ID', value=pd.Series(self.MG.graph.node[n]['HGNC'], index=GOdf.index))
                     GOdf.insert(loc=1,column='HUGO', value=pd.Series(n, index=GOdf.index))
                     GOdf.insert(loc=4,column='N_con(gene)', value=pd.Series(N_gene_con, index=GOdf.index))
                     self.outdf=self.outdf.append(GOdf, ignore_index=True)
