@@ -10,13 +10,14 @@ from genewalk.genewalk.nx_mg_assembler import Nx_MG_Assembler
 class GeneWalk(object):
     """GeneWalk object that generates the final output list of significant GO terms
     for each gene in the input list with genes of interest from an experiment, eg DE genes or CRISPR screen hits. 
-    If an input gene is not in the output, this could have several reasons: 
-    1) there are no GO annotations or INDRA statements for this gene or 
-    2) no annotated GO terms were significant at the chosen significance level (alpha_FDR).
+    If an input gene is not in the output, check GeneWalk_allGO.csv to see if it is present there:
+    1) if not: there are no GO annotations or INDRA statements for this gene or 
+    2) if present: no annotated GO terms were significant at the chosen significance level (alpha_FDR).
 
     Parameters
     ----------
-    folder : folder where files are located and generated (default '~/'),
+    path : directory where files are generated (default '~/genewalk/'),
+    path_GO : directory where GO ontology, of GOAtools are located (default '~/genewalk/GO/'),
     fhgnc : filename of input list with HGNC ids from genes of interest, (default: 'HGNCidForINDRA.csv'), 
     fstmts : pickle file with INDRA statements as generated with get_indra_stmts.py (default: 'HGNCidForINDRA.pkl'),
     fmg : pickle file with networkx multigraph as generated with nx_mg_assembler.py (default: 'GeneWalk_MG.pkl'),
@@ -33,13 +34,14 @@ class GeneWalk(object):
     outdf : pandas.DataFrame that will be the final result of GeneWalk
     """
     
-    def __init__(self,folder='~/',
+    def __init__(self,path='~/genewalk/',
                  fhgnc='HGNCidForINDRA.csv',
                  fstmts='HGNCidForINDRA.pkl',
                  fmg='GeneWalk_MG.pkl',
                  fnv='GeneWalk_DW_nv.pkl',
-                 fnull_dist='GeneWalk_DW_rand_simdists.pkl'):
-        self.path=folder
+                 fnull_dist='GeneWalk_DW_rand_simdists.pkl',
+                 path_GO='~/genewalk/GO/'):
+        self.path=path
         self.hgncid=load_genes(self.path+fhgnc)#read hgnc list of interest
         self.outdf=pd.DataFrame(columns=['HGNC:ID','HUGO','GO description','GO:ID',
                                                 'N_con(gene)','N_con(GO)',
@@ -47,7 +49,7 @@ class GeneWalk(object):
         # Open pickled statements and initialize Nx_MG_Assembler
         with open(self.path+fstmts, 'rb') as f:
             stmts=pkl.load(f)
-        self.MG=Nx_MG_Assembler(stmts,'/n/groups/churchman/ri23/GO/')
+        self.MG=Nx_MG_Assembler(stmts,path_GO)
         del(stmts)    
         #load multigraph
         with open(self.path+fmg, 'rb') as f:
@@ -116,3 +118,26 @@ class GeneWalk(object):
                                                      alpha=alpha_FDR, method='indep')
         simdf.insert(loc=5,column='padj', value=pd.Series(q_val, index=simdf.index))
         return simdf[simdf['padj']<alpha_FDR]
+
+
+if __name__ == '__main__':
+    # Handle command line arguments
+    parser = argparse.ArgumentParser(
+        description='Choose a path where GeneWalk files are generated (default: ~/genewalk/ ).')
+    parser.add_argument('--path', default='~/genewalk/')
+    parser.add_argument('--genes', default='data/JQ1_HGNCidForINDRA.csv')
+    parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
+    parser.add_argument('--path_GO', default='~/genewalk/GO/')
+    parser.add_argument('--alpha_FDR', default=0.05)
+    args = parser.parse_args()
+
+    GW=GeneWalk(path=args.path,
+                    fhgnc=args.genes,
+                    fstmts=args.stmts,
+                    fmg='GeneWalk_MG.pkl',
+                    fnv='GeneWalk_DW_nv.pkl',
+                    fnull_dist='GeneWalk_DW_rand_simdists.pkl',
+                    path_GO=args.path_GO)
+    GW.generate_output(alpha_FDR=args.alpha_FDR,fname_out='GeneWalk.csv')
+    GW.generate_output(alpha_FDR=1,fname_out='GeneWalk_all_GO.csv')
+    print(time.time() - start)
