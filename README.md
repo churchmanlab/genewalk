@@ -4,6 +4,7 @@
 `outDir=~/genewalk`
 `mkdir -p ${outDir}/LogErr`
 `mkdir -p ${outDir}/GO`
+TODO: provide code to download GO annotation/ontology from GOAtools
 `python get_indra_stmts.py` #to BG/JB: this line needs more specification
 `python -u get_node_vectors.py --path ${outDir} > ${outDir}/LogErr/get_node_vectors.log`
 `python -u get_null_distributions.py --path ${outDir} > ${outDir}/LogErr/get_null_distributions.log`
