@@ -18,7 +18,6 @@ if __name__ == '__main__':
     parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
     parser.add_argument('--fplx', default='data/JQ1_HGNCidForINDRA_fplx.txt')
     parser.add_argument('--path_GO', default='data/GO/')
-    #parser.add_argument('--mg', default='GeneWalk_MG.pkl')
     args = parser.parse_args()
 
     # Open pickled statements
@@ -45,15 +44,10 @@ if __name__ == '__main__':
     with open(args.path+filename, 'wb') as f:
         pkl.dump(MGA,f,protocol=pkl.HIGHEST_PROTOCOL)
     del(MG)
-
-    # #load multigraph
-    # with open(args.path+args.mg, 'rb') as f:
-    #     MGA=pkl.load(f)
         
-    #initialize object
     DW=DeepWalk(graph=MGA)
     del(MGA)
-
+    
     print('generate random walks')
     start = time.time()
     DW.get_walks()
@@ -69,7 +63,7 @@ if __name__ == '__main__':
     start = time.time()
     DW.word2vec()
     end = time.time()
-    print("DW.word2vec done",end - start)#in sec
+    print('DW.word2vec done',end - start)#in sec
 
     ### Pickle the node vectors (embeddings) and DW object
     nv = copy.deepcopy(DW.model.wv)
