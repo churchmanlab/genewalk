@@ -17,7 +17,7 @@ if __name__ == '__main__':
     parser.add_argument('--path', default='~/genewalk/')
     parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
     parser.add_argument('--fplx', default='data/JQ1_HGNCidForINDRA_fplx.txt')
-    parser.add_argument('--path_GO', default='data/GO/')
+    parser.add_argument('--path_GO', default='~/genewalk/GO/')
     args = parser.parse_args()
 
     # Open pickled statements
