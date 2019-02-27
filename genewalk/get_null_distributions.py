@@ -26,14 +26,11 @@ def Get_Rand_Graph(mg,seed):
     R_graph=nx.relabel_nodes(R_graph,mapping, copy=False)
     return R_graph
 
-
-
 if __name__ == '__main__':
     # Handle command line arguments
     parser = argparse.ArgumentParser(
         description='Choose a path where GeneWalk files are generated (default: ~/genewalk/ ).')
     parser.add_argument('--path', default='~/genewalk/')
-    parser.add_argument('--mg', default='GeneWalk_MG.pkl')
     parser.add_argument('--Nreps', default=15)
     args = parser.parse_args()
 
@@ -41,7 +38,7 @@ if __name__ == '__main__':
     #key structure: of srd: 'd'+str(#connections of a node)
 
     #load multigraph
-    with open(args.path+args.mg, 'rb') as f:
+    with open(args.path+'GeneWalk_MG.pkl', 'rb') as f:
         MGA=pkl.load(f)
 
     for rep in range(1,args.Nreps+1):
