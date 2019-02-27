@@ -33,4 +33,4 @@ or with Mac OS:  `curl -O http://snapshot.geneontology.org/ontology/go.obo`
 `python get_indra_stmts.py` #to BG/JB: this line needs more specification  
 `python -u get_node_vectors.py --path ${outDir} > ${outDir}/LogErr/get_node_vectors.log`  
 `python -u get_null_distributions.py --path ${outDir} > ${outDir}/LogErr/get_null_distributions.log`  
-`python genewalk.py --path ${outDir}`
+`python -u genewalk.py --path ${outDir} > ${outDir}/LogErr/genewalk.log`
