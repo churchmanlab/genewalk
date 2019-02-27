@@ -125,11 +125,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Choose a path where GeneWalk files are generated (default: ~/genewalk/ ).')
     parser.add_argument('--path', default='~/genewalk/')
+    parser.add_argument('--path_GO', default='(provided) path/GO/')
     parser.add_argument('--genes', default='data/JQ1_HGNCidForINDRA.csv')
     parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
-    parser.add_argument('--path_GO', default='~/genewalk/GO/')
     parser.add_argument('--alpha_FDR', default=0.05)
     args = parser.parse_args()
+    args.path_GO=args.path+'GO/'
 
     GW=GeneWalk(path=args.path,
                     fhgnc=args.genes,
@@ -140,4 +141,3 @@ if __name__ == '__main__':
                     path_GO=args.path_GO)
     GW.generate_output(alpha_FDR=args.alpha_FDR,fname_out='GeneWalk.csv')
     GW.generate_output(alpha_FDR=1,fname_out='GeneWalk_all_GO.csv')
-    print(time.time() - start)
