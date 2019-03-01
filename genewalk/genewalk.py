@@ -130,7 +130,8 @@ if __name__ == '__main__':
     parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
     parser.add_argument('--alpha_FDR', default=0.05)
     args = parser.parse_args()
-    args.path_GO=args.path+'GO/'
+    if args.path_GO=='(provided) path/GO/':
+        args.path_GO=args.path+'GO/'
 
     GW=GeneWalk(path=args.path,
                     fhgnc=args.genes,
