@@ -11,7 +11,7 @@
 `pip install git+https://github.com/sorgerlab/indra.git`  
 `pip install goatools`  
 `pip install --upgrade gensim`  
-`pip install statsmodels`
+`pip install statsmodels`  
 `pip install genewalk` #######################UNFINISHED, to BG/JB: please help adjust so that this could work 
 
 ### Set output directory
