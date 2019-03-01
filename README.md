@@ -12,6 +12,7 @@
 `pip install goatools`  
 `pip install --upgrade gensim`  
 `pip install statsmodels`
+`pip install genewalk` #######################UNFINISHED, to BG/JB: please help adjust so that this could work 
 
 ### Set output directory
 `outDir=~/genewalk`  
@@ -30,7 +31,7 @@ or with Mac OS:  `curl -O http://snapshot.geneontology.org/ontology/go.obo`
 `gunzip http://geneontology.org/gene-associations/goa_human.gaf.gz`
 
 ### Run GeneWalk
-`python get_indra_stmts.py` #to BG/JB: this line needs more specification  
+`python get_indra_stmts.py` #################to BG/JB: this line needs more specification / alteration  
 `python -u get_node_vectors.py --path ${outDir} > ${outDir}/LogErr/get_node_vectors.log`  
 `python -u get_null_distributions.py --path ${outDir} > ${outDir}/LogErr/get_null_distributions.log`  
 `python -u genewalk.py --path ${outDir} > ${outDir}/LogErr/genewalk.log`
