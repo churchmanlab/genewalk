@@ -71,6 +71,9 @@ class GeneWalk(object):
         alpha_FDR :  significance level for FDR (default=0.05)
         fname_out : filename of GeneWalk output file (default=GeneWalk.csv)
         """
+        self.outdf=pd.DataFrame(columns=['HGNC:ID','HUGO','GO description','GO:ID',
+                                         'N_con(gene)','N_con(GO)',
+                                         'similarity','pval','padj'])
         g_view=nx.nodes(self.MG.graph)
         for n in g_view:
             try: 
