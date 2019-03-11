@@ -29,6 +29,22 @@ def load_genes(fname):
     return genes
 
 
+def load_mouse_genes(fname):
+    """Return a list of human genes based on a table of mouse genes."""
+    df = pandas.read_csv(fname)
+    mgi_ids = df['MGI Gene/Marker ID']
+    genes = []
+    for mgi_id in mgi_ids:
+        if mgi_id.startswith('MGI:'):
+            mgi_id = mgi_id[4:]
+        hgnc_id = hgnc_client.get_hgnc_from_mouse(mgi_id)
+        if not hgnc_id:
+            print('Could not find human gene corresponding to %s' % mgi_id)
+            continue
+        genes.append(hgnc_id)
+    return genes
+
+
 def load_indra_df(fname):
     """Return an INDRA Statement data frame from a pickle file."""
     with open(fname, 'rb') as fh:
@@ -108,8 +124,6 @@ def get_famplex_links(df, fname):
 def download_statements(df):
     """Download the INDRA Statements corresponding to entries in a data frame.
     """
-    from indra.sources.indra_db_rest.util import logger
-    logger.setLevel(logging.ERROR)
     all_stmts = []
     for idx, group in enumerate(batch_iter(df.hash, 500)):
         logger.info('Getting statement batch %d' % idx)
@@ -124,18 +138,22 @@ if __name__ == '__main__':
         description='Choose a file with a list of genes to get a SIF for.')
     parser.add_argument('--df', default='data/stmt_df.pkl')
     parser.add_argument('--genes', default='data/JQ1_HGNCidForINDRA.csv')
+    parser.add_argument('--mouse_genes')
     parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
     parser.add_argument('--fplx', default='data/JQ1_HGNCidForINDRA_fplx.txt')
     args = parser.parse_args()
     # Load genes and get FamPlex terms
-    genes = load_genes(args.genes)
+    if args.mouse_genes:
+        genes = load_mouse_genes(args.mouse_genes)
+    else:
+        genes = load_genes(args.genes)
     fplx_terms = get_famplex_terms(genes)
     # Load INDRA Statements in a flat data frame
     df = load_indra_df(args.df)
     # Filter the data frame to relevant entities
     df = filter_to_genes(df, genes, fplx_terms)
     # Download the Statement corresponding to each row
-    # stmts = download_statements(df)
+    stmts = download_statements(df)
     # Dump the Statements into a pickle file
-    # dump_pickle(stmts, args.stmts)
+    dump_pickle(stmts, args.stmts)
     fplx_links = get_famplex_links(df, args.fplx)
