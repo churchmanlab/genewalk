@@ -174,17 +174,18 @@ if __name__ == '__main__':
     parser.add_argument('--genes', default='data/JQ1_HGNCidForINDRA.csv')
     parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
     parser.add_argument('--alpha_FDR', default=0.05)
-    parser.add_argument('--mouse_genes')
+    parser.add_argument('--mouse_genes',default=False)
     args = parser.parse_args()
     if args.path_GO=='(provided) path/GO/':
         args.path_GO=args.path+'GO/'
 
     GW=GeneWalk(path=args.path,
+                    path_GO=args.path_GO,
                     fgeneid=args.genes,
                     fstmts=args.stmts,
                     fmg='GeneWalk_MG.pkl',
                     fnv='GeneWalk_DW_nv.pkl',
                     fnull_dist='GeneWalk_DW_rand_simdists.pkl',
-                    path_GO=args.path_GO)
+                    mouse_genes=args.mouse_genes)
     GW.generate_output(alpha_FDR=args.alpha_FDR,fname_out='GeneWalk.csv')
     GW.generate_output(alpha_FDR=1,fname_out='GeneWalk_all_GO.csv')
