@@ -11,7 +11,7 @@ class GeneWalk(object):
     """GeneWalk object that generates the final output list of significant GO terms
     for each gene in the input list with genes of interest from an experiment, eg DE genes or CRISPR screen hits. 
     If an input gene is not in the output, check GeneWalk_allGO.csv to see if it is present there:
-    1) if not: there are no GO annotations or INDRA statements for this gene or 
+    1) if not: there are no GO annotations or INDRA statements for this gene (or in case of mouse: no mapped human ortholog) or 
     2) if present: no annotated GO terms were significant at the chosen significance level (alpha_FDR).
 
     Parameters
@@ -27,7 +27,8 @@ class GeneWalk(object):
     
     Attributes
     ----------
-    hgncid : list of HGNC ids from genes of interest (loaded from fgeneid)
+    hgncid : list of HGNC ids from genes of interest (loaded from fgeneid in case mouse_genes equals False)
+    mdf : pandas dataframe with MGI ids from genes of interest (loaded from fgeneid in case mouse_genes equals True)
     MG : Nx_MG_Assembler object, with indra statements as MG.stmts (loaded from fstmts) and MG.graph (loaded from fmg)
     nv : node vectors (loaded from fnv) 
     srd : similarity random (null) distributions (loaded from fnull_dist)
@@ -101,7 +102,7 @@ class GeneWalk(object):
                 try: 
                     if self.MG.graph.node[n]['HGNC'] in hgncid:
                         hid=self.MG.graph.node[n]['HGNC']
-                        mgis=self.mdf[self.mdf['HGNC:ID']==hid]['MGI'].unique()# Gene/Marker ID
+                        mgis=self.mdf[self.mdf['HGNC:ID']==hid]['MGI'].unique()
                         symbols=self.mdf[self.mdf['HGNC:ID']==hid]['Symbol'].unique()
                         N_gene_con=len(self.MG.graph[n])
                         for i in range(len(mgis)):
@@ -118,7 +119,7 @@ class GeneWalk(object):
                 except KeyError:
                     pass
             self.outdf['MGI'] = self.outdf['MGI'].astype("category")
-            self.outdf['MGI'].cat.set_categories(self.mdf['MGI'].unique(), inplace=True)# Gene/Marker ID
+            self.outdf['MGI'].cat.set_categories(self.mdf['MGI'].unique(), inplace=True)
             self.outdf=self.outdf.sort_values(by=['MGI','Symbol','padj','pval'])
         else:#human genes
             self.outdf=pd.DataFrame(columns=['HGNC:ID','HUGO','GO description','GO:ID',
