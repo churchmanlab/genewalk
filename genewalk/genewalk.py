@@ -67,9 +67,13 @@ class GeneWalk(object):
             self.srd = pkl.load(f)
     
     def _load_mouse_genes(self,fname):
-        """Return a list of human genes based on a table of mouse genes."""
-        self.mdf = pd.read_csv(self.path+fname)
-        mgi_ids = self.mdf['MGI Gene/Marker ID']
+        """Append human gene IDs to a df of mouse genes (self.mdf)."""
+        self.mdf = pd.read_csv(self.path+fname)#assumes the csv has headers
+        for c in self.mdf.columns:
+            if c.startswith('MGI'):#assumes the first column starting with MGI is the relevant one with MGI:IDs
+                self.mdf=self.mdf.rename(columns={c: 'MGI'})
+                break
+        mgi_ids = self.mdf['MGI']
         genes = []
         for mgi_id in mgi_ids:
             if mgi_id.startswith('MGI:'):
@@ -97,7 +101,7 @@ class GeneWalk(object):
                 try: 
                     if self.MG.graph.node[n]['HGNC'] in hgncid:
                         hid=self.MG.graph.node[n]['HGNC']
-                        mgis=self.mdf[self.mdf['HGNC:ID']==hid]['MGI Gene/Marker ID'].unique()
+                        mgis=self.mdf[self.mdf['HGNC:ID']==hid]['MGI'].unique()# Gene/Marker ID
                         symbols=self.mdf[self.mdf['HGNC:ID']==hid]['Symbol'].unique()
                         N_gene_con=len(self.MG.graph[n])
                         for i in range(len(mgis)):
@@ -113,7 +117,9 @@ class GeneWalk(object):
                             self.outdf=self.outdf.append(GOdf, ignore_index=True)
                 except KeyError:
                     pass
-            self.outdf=self.outdf.sort_values(by=['Symbol','padj','pval'])
+            self.outdf['MGI'] = self.outdf['MGI'].astype("category")
+            self.outdf['MGI'].cat.set_categories(self.mdf['MGI'].unique(), inplace=True)# Gene/Marker ID
+            self.outdf=self.outdf.sort_values(by=['MGI','Symbol','padj','pval'])
         else:#human genes
             self.outdf=pd.DataFrame(columns=['HGNC:ID','HUGO','GO description','GO:ID',
                                                 'N_con(gene)','N_con(GO)',
@@ -130,7 +136,7 @@ class GeneWalk(object):
                 except KeyError:
                     pass
             self.outdf['HGNC:ID'] = self.outdf['HGNC:ID'].astype("category")
-            self.outdf['HGNC:ID'].cat.set_categories(self.hgncid, inplace=True)#problematic if non-unique list self.hgncid
+            self.outdf['HGNC:ID'].cat.set_categories(self.hgncid.unique(), inplace=True)
             self.outdf=self.outdf.sort_values(by=['HGNC:ID','padj','pval'])
         self.outdf.to_csv(self.path+fname_out, index=False)
         return self.outdf
