@@ -31,8 +31,12 @@ def load_genes(fname):
 
 def load_mouse_genes(fname):
     """Return a list of human genes based on a table of mouse genes."""
-    df = pandas.read_csv(fname)
-    mgi_ids = df['MGI Gene/Marker ID']
+    df = pandas.read_csv(fname)#assumes the csv has headers
+    for c in df.columns:
+        if c.startswith('MGI'):#assumes the first column starting with MGI is the relevant one with MGI:IDs
+            df=df.rename(columns={c: 'MGI'})
+            break
+    mgi_ids = df['MGI']
     genes = []
     for mgi_id in mgi_ids:
         if mgi_id.startswith('MGI:'):
