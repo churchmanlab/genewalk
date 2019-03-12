@@ -18,12 +18,13 @@ class GeneWalk(object):
     ----------
     path : directory where files are generated (default '~/genewalk/'),
     path_GO : directory where GO ontology, of GOAtools are located (default '~/genewalk/GO/'),
-    fgeneid : filename of input list with HGNC ids from genes of interest, (default: 'HGNCidForINDRA.csv'), 
+    fgeneid : filename of input list with HGNC ids (or MGI ids) from genes of interest, (default: 'HGNCidForINDRA.csv'), 
     fstmts : pickle file with INDRA statements as generated with get_indra_stmts.py (default: 'HGNCidForINDRA.pkl'),
     fmg : pickle file with networkx multigraph as generated with nx_mg_assembler.py (default: 'GeneWalk_MG.pkl'),
     fnv : pickle file with node vectors as generated with deepwalk.py (default: 'GeneWalk_DW_nv.pkl'),
     fnull_dist : pickle file with null distributions for significance testing as generated
-                with get_null_distributions.py (default: 'GeneWalk_DW_rand_simdists.pkl') 
+                with get_null_distributions.py (default: 'GeneWalk_DW_rand_simdists.pkl')
+    mouse_genes : set to True if the input list are MGI:IDs from mouse genes (default: False)
     
     Attributes
     ----------
