@@ -97,16 +97,17 @@ class GeneWalk(object):
                 try: 
                     if self.MG.graph.node[n]['HGNC'] in hgncid:
                         hid=self.MG.graph.node[n]['HGNC']
-                        idx=self.mdf[self.mdf['HGNC:ID']==hid].index
+                        mgis=self.mdf[self.mdf['HGNC:ID']==hid]['MGI Gene/Marker ID'].unique()
+                        symbols=self.mdf[self.mdf['HGNC:ID']==hid]['Symbol'].unique()
                         N_gene_con=len(self.MG.graph[n])
-                        for i in idx:
+                        for i in range(len(mgis)):
                             GOdf=self.get_GO_df(n,N_gene_con,alpha_FDR)
                             GOdf.insert(loc=0,column='MGI', 
-                                        value=pd.Series(self.mdf.loc[i,'MGI Gene/Marker ID'], index=GOdf.index))
+                                        value=pd.Series(mgis[i], index=GOdf.index))
                             GOdf.insert(loc=1,column='Symbol', 
-                                        value=pd.Series(self.mdf.loc[i,'Symbol'], index=GOdf.index))
+                                        value=pd.Series(symbols[i], index=GOdf.index))
                             GOdf.insert(loc=2,column='mapped HGNC:ID', 
-                                        value=pd.Series(self.mdf.loc[i,'HGNC:ID'], index=GOdf.index))
+                                        value=pd.Series(hid, index=GOdf.index))
                             GOdf.insert(loc=3,column='mapped HUGO', value=pd.Series(n, index=GOdf.index))
                             GOdf.insert(loc=6,column='N_con(gene)', value=pd.Series(N_gene_con, index=GOdf.index))
                             self.outdf=self.outdf.append(GOdf, ignore_index=True)
@@ -128,8 +129,8 @@ class GeneWalk(object):
                         self.outdf=self.outdf.append(GOdf, ignore_index=True)
                 except KeyError:
                     pass
-            self.outdf['HGNC:ID'] = self.outdf['HGNC:ID'].astype("category")#problematic for input list with non-unique HGNCIDs
-            self.outdf['HGNC:ID'].cat.set_categories(self.hgncid, inplace=True)#sort according to input hgncid list
+            self.outdf['HGNC:ID'] = self.outdf['HGNC:ID'].astype("category")
+            self.outdf['HGNC:ID'].cat.set_categories(self.hgncid, inplace=True)#problematic if non-unique list self.hgncid
             self.outdf=self.outdf.sort_values(by=['HGNC:ID','padj','pval'])
         self.outdf.to_csv(self.path+fname_out, index=False)
         return self.outdf
