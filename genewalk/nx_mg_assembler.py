@@ -55,7 +55,7 @@ class Nx_MG_Assembler(object):
                        'Gene_Product_Form_ID'])
         self.GOA = self.GOA.sort_values(by=['DB_ID','GO_ID'])
         self.OGO = GODag(GOpath+'go.obo')#dict
-        self.EC_GOA=['EXP','IDA','IPI','IMP','IGI','IEP','HTP','HDA','HMP','HGI','IBA','IBD']
+        self.EC_GOA=['EXP','IDA','IPI','IMP','IGI','IEP','HTP','HDA','HMP','HGI','HEP','IBA','IBD']
     
     def MG_from_INDRA(self):
         """Assemble the graph from the assembler's list of INDRA Statements. 
