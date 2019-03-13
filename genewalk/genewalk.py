@@ -138,7 +138,7 @@ class GeneWalk(object):
                 except KeyError:
                     pass
             self.outdf['HGNC:ID'] = self.outdf['HGNC:ID'].astype("category")
-            self.outdf['HGNC:ID'].cat.set_categories(self.hgncid.unique(), inplace=True)
+            self.outdf['HGNC:ID'].cat.set_categories(pd.Series(self.hgncid).unique(), inplace=True)
             self.outdf=self.outdf.sort_values(by=['HGNC:ID','padj','pval'])
         self.outdf.to_csv(self.path+fname_out, index=False)
         return self.outdf
