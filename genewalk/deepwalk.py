@@ -12,9 +12,9 @@ class DeepWalk(object):
     graph : networkx.MultiGraph
         A networkx multigraph to be used as the basis for node2vec.
     walk_length : Optional[int]
-        Default: 100
+        Default: 10
     N_iterations : Optional[int]
-        Default: 1
+        Default: 100
 
     Attributes
     ----------
@@ -23,7 +23,7 @@ class DeepWalk(object):
     N_walks : int
         Total number of random walks.
     """
-    def __init__(self,graph,walk_length=100,N_iterations=1):
+    def __init__(self,graph,walk_length=10,N_iterations=100):
         self.graph = graph
         self.walks=[]
         self.wl=walk_length
@@ -72,7 +72,7 @@ class DeepWalk(object):
             u=self.walks[idx][i]       
             
     
-    def word2vec(self,sg=1,size=50,window=1, min_count=1, negative=5, workers=4,sample=0):
+    def word2vec(self,sg=1,size=8,window=1, min_count=1, negative=5, workers=4,sample=0):
         """Set the model based on Word2Vec
         Source: https://radimrehurek.com/gensim/models/word2vec.html
 
@@ -86,7 +86,7 @@ class DeepWalk(object):
             Defines the training algorithm. If 1, skip-gram is employed;
             otherwise, CBOW is used.
         size : int
-            Dimensionality of the feature vectors.
+            Dimensionality of the node vectors. Default is 8.
         window : int
             AKA context size. Maximum distance between the current and
             predicted word within a sentence.
