@@ -173,25 +173,24 @@ class GeneWalk(object):
                 COLUMNS=['MGI','Symbol','mapped HGNC:ID','mapped HUGO',
                         'GO description','GO:ID',
                         'N_con(gene)','N_con(GO)']
-
             else:#human genes
                 COLUMNS=['HGNC:ID','HUGO',
                         'GO description','GO:ID',
                         'N_con(gene)','N_con(GO)']
             self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].merge(self.outdfs[rep],on=COLUMNS,how='outer')
-        self.outdfs[self.Nreps+1].insert(loc=8,column='mean:sim',
+        self.outdfs[self.Nreps+1].insert(loc=len(COLUMNS),column='mean:sim',
                     value=self.outdfs[self.Nreps+1][[str(r)+':similarity' for r in range(1,self.Nreps+1)]].mean(axis=1))
-        self.outdfs[self.Nreps+1].insert(loc=9,column='sem:sim',
+        self.outdfs[self.Nreps+1].insert(loc=len(COLUMNS)+1,column='sem:sim',
                     value=self.outdfs[self.Nreps+1][[str(r)+':similarity' for r in \ 
                                                           range(1,self.Nreps+1)]].std(axis=1)/np.sqrt(self.Nreps))
-        self.outdfs[self.Nreps+1].insert(loc=10,column='mean:pval',
+        self.outdfs[self.Nreps+1].insert(loc=len(COLUMNS)+2,column='mean:pval',
                     value=self.outdfs[self.Nreps+1][[str(r)+':pval' for r in range(1,self.Nreps+1)]].mean(axis=1))
-        self.outdfs[self.Nreps+1].insert(loc=11,column='sem:pval',
+        self.outdfs[self.Nreps+1].insert(loc=len(COLUMNS)+3,column='sem:pval',
                     value=self.outdfs[self.Nreps+1][[str(r)+':pval' for r in \
                                                           range(1,self.Nreps+1)]].std(axis=1)/np.sqrt(self.Nreps))
-        self.outdfs[self.Nreps+1].insert(loc=10,column='mean:padj',
+        self.outdfs[self.Nreps+1].insert(loc=len(COLUMNS)+4,column='mean:padj',
                     value=self.outdfs[self.Nreps+1][[str(r)+':padj' for r in range(1,self.Nreps+1)]].mean(axis=1))
-        self.outdfs[self.Nreps+1].insert(loc=11,column='sem:padj',
+        self.outdfs[self.Nreps+1].insert(loc=len(COLUMNS)+5,column='sem:padj',
                     value=self.outdfs[self.Nreps+1][[str(r)+':padj' for r in \
                                                           range(1,self.Nreps+1)]].std(axis=1)/np.sqrt(self.Nreps))   
         if self.mouse_genes:
