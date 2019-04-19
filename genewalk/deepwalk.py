@@ -84,11 +84,11 @@ class DeepWalk(object):
             sentences directly from disk/network.
         sg : int {1, 0}
             Defines the training algorithm. If 1, skip-gram is employed;
-            otherwise, CBOW is used.
+            otherwise, CBOW is used. For GeneWalk this is set to 1.
         size : int
             Dimensionality of the node vectors. Default for GeneWalk is 8.
         window : int
-            AKA context size. Maximum distance between the current and
+            a.k.a. context size. Maximum distance between the current and
             predicted word within a sentence. For GeneWalk this is set to 1
             to assess directly connected nodes only.
         min_count : int
@@ -96,7 +96,7 @@ class DeepWalk(object):
         negative : int
             If > 0, negative sampling will be used, the int for negative
             specifies how many "noise words” should be drawn (usually between
-            5-20). If set to 0, no negative sampling is used.
+            5-20). If set to 0, no negative sampling is used. For GeneWalk this is set to 0.
         workers : int
             Use these many worker threads to train the model (=faster training
             with multicore machines).
