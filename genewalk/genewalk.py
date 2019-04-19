@@ -116,7 +116,6 @@ class GeneWalk(object):
                                                        'GO description','GO:ID',
                                                        'N_con(gene)','N_con(GO)',
                                                        'similarity','pval','padj']
-                self.outdfs[rep]=pd.DataFrame(columns=)
             else:#human genes
                 COLUMNS=['HGNC:ID','HUGO',
                            'GO description','GO:ID',
@@ -203,8 +202,7 @@ class GeneWalk(object):
         else:#human genes
             self.outdfs[self.Nreps+1]['HGNC:ID'] = self.outdfs[self.Nreps+1]['HGNC:ID'].astype("category")
             self.outdfs[self.Nreps+1]['HGNC:ID'].cat.set_categories(pd.Series(self.hgncid).unique(), inplace=True)
-            self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].sort_values(by=['HGNC:ID','mean:padj','GO description'])
-            
+            self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].sort_values(by=['HGNC:ID','mean:padj','GO description'])    
         self.outdfs[self.Nreps+1].drop([str(r)+':similarity' for r in range(1,self.Nreps+1)],axis=1)
         self.outdfs[self.Nreps+1].drop([str(r)+':pval' for r in range(1,self.Nreps+1)],axis=1)
         self.outdfs[self.Nreps+1].drop([str(r)+':padj' for r in range(1,self.Nreps+1)],axis=1)    
