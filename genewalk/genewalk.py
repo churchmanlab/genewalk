@@ -21,7 +21,9 @@ class GeneWalk(object):
     fgeneid : filename of input list with HGNC ids (or MGI ids) from genes of interest, (default: 'HGNCidForINDRA.csv'), 
     fstmts : pickle file with INDRA statements as generated with get_indra_stmts.py (default: 'HGNCidForINDRA.pkl'),
     fmg : pickle file with networkx multigraph as generated with nx_mg_assembler.py (default: 'GeneWalk_MG.pkl'),
-    fnv : pickle file with node vectors as generated with deepwalk.py (default: 'GeneWalk_DW_nv.pkl'),
+    fnv_prefix : prefix for multiple pickle files with node vectors as generated with deepwalk.py (default: 'GeneWalk_DW_nv'),
+    Nreps : number of DeepWalk repetitions for the gene/GO network. It must match Nreps parameter used in deepwalk.py
+            (default: 10), 
     fnull_dist : pickle file with null distributions for significance testing as generated
                 with get_null_distributions.py (default: 'GeneWalk_DW_rand_simdists.pkl')
     mouse_genes : set to True if the input list are MGI:IDs from mouse genes (default: False)
@@ -31,16 +33,17 @@ class GeneWalk(object):
     hgncid : list of HGNC ids from genes of interest (loaded from fgeneid in case mouse_genes equals False)
     mdf : pandas dataframe with MGI ids from genes of interest (loaded from fgeneid in case mouse_genes equals True)
     MG : Nx_MG_Assembler object, with indra statements as MG.stmts (loaded from fstmts) and MG.graph (loaded from fmg)
-    nv : node vectors (loaded from fnv) 
+    nv : node vectors (loaded from fnv_prefix and Nreps) 
     srd : similarity random (null) distributions (loaded from fnull_dist)
-    outdf : pandas.DataFrame that will be the final result of GeneWalk
+    outdfs : pandas.DataFrames that will generate the final result of GeneWalk
     """
     
     def __init__(self,path='~/genewalk/',
                  fgeneid='HGNCidForINDRA.csv',
                  fstmts='HGNCidForINDRA.pkl',
                  fmg='GeneWalk_MG.pkl',
-                 fnv='GeneWalk_DW_nv.pkl',
+                 fnv_prefix='GeneWalk_DW_nv',
+                 Nreps=10,
                  fnull_dist='GeneWalk_DW_rand_simdists.pkl',
                  path_GO='~/genewalk/GO/',
                  mouse_genes=False):
@@ -51,7 +54,6 @@ class GeneWalk(object):
             self._load_mouse_genes(fgeneid)#read mgi csv into self.mdf and mapped HGNC:ID
         else:
             self.hgncid=load_genes(self.path+fgeneid)#read hgnc list of interest
-        self.outdf=pd.DataFrame()
         # Open pickled statements and initialize Nx_MG_Assembler
         with open(self.path+fstmts, 'rb') as f:
             stmts=pkl.load(f)
@@ -61,12 +63,13 @@ class GeneWalk(object):
         with open(self.path+fmg, 'rb') as f:
             self.MG.graph=pkl.load(f)
         self.GO_nodes=set(nx.get_node_attributes(self.MG.graph,'GO'))
-        # load all node vectors    
-        with open(self.path+fnv, 'rb') as f:
-            self.nv=pkl.load(f)
+        self.fnv_prefix=fnv_prefix
+        self.Nreps=Nreps
+        self.nv=[]#node vectors, defined in generate_output
         # Load similarity null distributions for significance testing       
         with open(self.path+fnull_dist, 'rb') as f:
             self.srd = pkl.load(f)
+        self.outdfs=dict()#pd.DataFrame()
     
     def _load_mouse_genes(self,fname):
         """Append human gene IDs to a df of mouse genes (self.mdf)."""
@@ -86,62 +89,127 @@ class GeneWalk(object):
             genes.append(hgnc_id)
         self.mdf.insert(loc=0,column='HGNC:ID', value=pd.Series(genes, index=self.mdf.index))
     
-    def generate_output(self,alpha_FDR=0.05,fname_out='GeneWalk.csv'): 
+    def generate_output(self,alpha_FDR=1.001,fname_out='GeneWalk.csv'): 
         """main function of GeneWalk object that generates the final output list 
         Parameters
         ----------
-        alpha_FDR :  significance level for FDR (default=0.05)
+        alpha_FDR : significance level for FDR [0,1] (default=1, i.e. all GO terms are output). 
+                    If set to a lower value, only annotated GO terms with mean padj < alpha_FDR are output.
         fname_out : filename of GeneWalk output file (default=GeneWalk.csv)
         """
-        g_view=nx.nodes(self.MG.graph)
-        if self.mouse_genes:
-            self.outdf=pd.DataFrame(columns=['MGI','Symbol','mapped HGNC:ID','mapped HUGO','GO description','GO:ID',
-                                                'N_con(gene)','N_con(GO)',
-                                                'similarity','pval','padj'])
+        if self.mouse_genes: 
             hgncid=list(self.mdf['HGNC:ID'])
-            for n in g_view:
-                try: 
-                    if self.MG.graph.node[n]['HGNC'] in hgncid:
-                        hid=self.MG.graph.node[n]['HGNC']
-                        mgis=self.mdf[self.mdf['HGNC:ID']==hid]['MGI'].unique()
-                        symbols=self.mdf[self.mdf['HGNC:ID']==hid]['Symbol'].unique()
-                        N_gene_con=len(self.MG.graph[n])
-                        for i in range(len(mgis)):
-                            GOdf=self.get_GO_df(n,N_gene_con,alpha_FDR)
-                            GOdf.insert(loc=0,column='MGI', 
-                                        value=pd.Series(mgis[i], index=GOdf.index))
-                            GOdf.insert(loc=1,column='Symbol', 
-                                        value=pd.Series(symbols[i], index=GOdf.index))
-                            GOdf.insert(loc=2,column='mapped HGNC:ID', 
-                                        value=pd.Series(hid, index=GOdf.index))
-                            GOdf.insert(loc=3,column='mapped HUGO', value=pd.Series(n, index=GOdf.index))
-                            GOdf.insert(loc=6,column='N_con(gene)', value=pd.Series(N_gene_con, index=GOdf.index))
-                            self.outdf=self.outdf.append(GOdf, ignore_index=True)
-                except KeyError:
-                    pass
-            self.outdf['MGI'] = self.outdf['MGI'].astype("category")
-            self.outdf['MGI'].cat.set_categories(self.mdf['MGI'].unique(), inplace=True)
-            self.outdf=self.outdf.sort_values(by=['MGI','Symbol','padj','pval'])
         else:#human genes
-            self.outdf=pd.DataFrame(columns=['HGNC:ID','HUGO','GO description','GO:ID',
-                                                'N_con(gene)','N_con(GO)',
-                                                'similarity','pval','padj'])
-            for n in g_view:
-                try: 
-                    if self.MG.graph.node[n]['HGNC'] in self.hgncid:
-                        N_gene_con=len(self.MG.graph[n])
-                        GOdf=self.get_GO_df(n,N_gene_con,alpha_FDR)
-                        GOdf.insert(loc=0,column='HGNC:ID', value=pd.Series(self.MG.graph.node[n]['HGNC'], index=GOdf.index))
-                        GOdf.insert(loc=1,column='HUGO', value=pd.Series(n, index=GOdf.index))
-                        GOdf.insert(loc=4,column='N_con(gene)', value=pd.Series(N_gene_con, index=GOdf.index))
-                        self.outdf=self.outdf.append(GOdf, ignore_index=True)
-                except KeyError:
-                    pass
-            self.outdf['HGNC:ID'] = self.outdf['HGNC:ID'].astype("category")
-            self.outdf['HGNC:ID'].cat.set_categories(pd.Series(self.hgncid).unique(), inplace=True)
-            self.outdf=self.outdf.sort_values(by=['HGNC:ID','padj','pval'])
-        self.outdf.to_csv(self.path+fname_out, index=False)
-        return self.outdf
+            hgncid=self.hgncid    
+        for rep in range(1,self.Nreps+1):
+            print(rep,'/',self.Nreps)
+
+            # load node vectors
+            fnv=self.fnv_prefix+'_'+str(rep)+'.pkl'
+            with open(self.path+fnv, 'rb') as f:
+                self.nv=pkl.load(f)
+            g_view=nx.nodes(self.MG.graph)
+            
+            # initialize GeneWalk output dataframe for each replicate run  
+            if self.mouse_genes: 
+                COLUMNS=['MGI','Symbol','mapped HGNC:ID','mapped HUGO',
+                                                       'GO description','GO:ID',
+                                                       'N_con(gene)','N_con(GO)',
+                                                       'similarity','pval','padj']
+                self.outdfs[rep]=pd.DataFrame(columns=)
+            else:#human genes
+                COLUMNS=['HGNC:ID','HUGO',
+                           'GO description','GO:ID',
+                           'N_con(gene)','N_con(GO)',
+                           'similarity','pval','padj']
+            self.outdfs[rep]=pd.DataFrame(columns=COLUMNS)    
+            
+            if self.mouse_genes:
+                for n in g_view:
+                    try: 
+                        if self.MG.graph.node[n]['HGNC'] in hgncid:
+                            hid=self.MG.graph.node[n]['HGNC']
+                            mgis=self.mdf[self.mdf['HGNC:ID']==hid]['MGI'].unique()
+                            symbols=self.mdf[self.mdf['HGNC:ID']==hid]['Symbol'].unique()
+                            N_gene_con=len(self.MG.graph[n])
+                            for i in range(len(mgis)):
+                                GOdf=self.get_GO_df(n,N_gene_con,alpha_FDR)
+                                GOdf.insert(loc=0,column='MGI', 
+                                            value=pd.Series(mgis[i], index=GOdf.index))
+                                GOdf.insert(loc=1,column='Symbol', 
+                                            value=pd.Series(symbols[i], index=GOdf.index))
+                                GOdf.insert(loc=2,column='mapped HGNC:ID', 
+                                            value=pd.Series(hid, index=GOdf.index))
+                                GOdf.insert(loc=3,column='mapped HUGO', value=pd.Series(n, index=GOdf.index))
+                                GOdf.insert(loc=6,column='N_con(gene)', value=pd.Series(N_gene_con, index=GOdf.index))
+                                self.outdfs[rep]=self.outdfs[rep].append(GOdf, ignore_index=True)
+                    except KeyError:
+                        pass
+                self.outdfs[rep]['MGI'] = self.outdfs[rep]['MGI'].astype("category")
+                self.outdfs[rep]['MGI'].cat.set_categories(self.mdf['MGI'].unique(), inplace=True)
+                self.outdfs[rep]=self.outdfs[rep].sort_values(by=['MGI','mapped HGNC:ID','mapped HUGO','GO:ID'])
+            else:#human genes
+                for n in g_view:
+                    try: 
+                        if self.MG.graph.node[n]['HGNC'] in hgncid:
+                            N_gene_con=len(self.MG.graph[n])
+                            GOdf=self.get_GO_df(n,N_gene_con,alpha_FDR)
+                            GOdf.insert(loc=0,column='HGNC:ID', value=pd.Series(self.MG.graph.node[n]['HGNC'],
+                                                                                index=GOdf.index))
+                            GOdf.insert(loc=1,column='HUGO', value=pd.Series(n, index=GOdf.index))
+                            GOdf.insert(loc=4,column='N_con(gene)', value=pd.Series(N_gene_con,index=GOdf.index))
+                            self.outdfs[rep]=self.outdfs[rep].append(GOdf, ignore_index=True)
+                    except KeyError:
+                        pass
+                self.outdfs[rep]['HGNC:ID'] = self.outdfs[rep]['HGNC:ID'].astype("category")
+                self.outdfs[rep]['HGNC:ID'].cat.set_categories(pd.Series(self.hgncid).unique(), inplace=True)
+                self.outdfs[rep]=self.outdfs[rep].sort_values(by=['HGNC:ID','HUGO','GO:ID'])
+        
+            mppr={'similarity':str(rep)+':similarity','pval':str(rep)+':pval','padj':str(rep)+':padj'}
+            self.outdfs[rep]=self.outdfs[rep].rename(mapper=mppr,axis=1)
+        #Merge all self.Nrep experimentals to calculate mean and sem statistics
+        self.outdfs[self.Nreps+1]=copy.deepcopy(self.outdfs[1])        
+        for rep in range(2,self.Nreps+1):
+            if self.mouse_genes: 
+                COLUMNS=['MGI','Symbol','mapped HGNC:ID','mapped HUGO',
+                        'GO description','GO:ID',
+                        'N_con(gene)','N_con(GO)']
+
+            else:#human genes
+                COLUMNS=['HGNC:ID','HUGO',
+                        'GO description','GO:ID',
+                        'N_con(gene)','N_con(GO)']
+            self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].merge(self.outdfs[rep],on=COLUMNS,how='outer')
+        self.outdfs[self.Nreps+1].insert(loc=8,column='mean:sim',
+                    value=self.outdfs[self.Nreps+1][[str(r)+':similarity' for r in range(1,self.Nreps+1)]].mean(axis=1))
+        self.outdfs[self.Nreps+1].insert(loc=9,column='sem:sim',
+                    value=self.outdfs[self.Nreps+1][[str(r)+':similarity' for r in \ 
+                                                          range(1,self.Nreps+1)]].std(axis=1)/np.sqrt(self.Nreps))
+        self.outdfs[self.Nreps+1].insert(loc=10,column='mean:pval',
+                    value=self.outdfs[self.Nreps+1][[str(r)+':pval' for r in range(1,self.Nreps+1)]].mean(axis=1))
+        self.outdfs[self.Nreps+1].insert(loc=11,column='sem:pval',
+                    value=self.outdfs[self.Nreps+1][[str(r)+':pval' for r in \
+                                                          range(1,self.Nreps+1)]].std(axis=1)/np.sqrt(self.Nreps))
+        self.outdfs[self.Nreps+1].insert(loc=10,column='mean:padj',
+                    value=self.outdfs[self.Nreps+1][[str(r)+':padj' for r in range(1,self.Nreps+1)]].mean(axis=1))
+        self.outdfs[self.Nreps+1].insert(loc=11,column='sem:padj',
+                    value=self.outdfs[self.Nreps+1][[str(r)+':padj' for r in \
+                                                          range(1,self.Nreps+1)]].std(axis=1)/np.sqrt(self.Nreps))   
+        if self.mouse_genes:
+            self.outdfs[self.Nreps+1]['MGI'] = self.outdfs[self.Nreps+1]['MGI'].astype("category")
+            self.outdfs[self.Nreps+1]['MGI'].cat.set_categories(self.mdf['MGI'].unique(), inplace=True)
+            self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].sort_values(by=['MGI','Symbol',
+                                                                                'mean:padj','GO description'])
+        else:#human genes
+            self.outdfs[self.Nreps+1]['HGNC:ID'] = self.outdfs[self.Nreps+1]['HGNC:ID'].astype("category")
+            self.outdfs[self.Nreps+1]['HGNC:ID'].cat.set_categories(pd.Series(self.hgncid).unique(), inplace=True)
+            self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].sort_values(by=['HGNC:ID','mean:padj','GO description'])
+            
+        self.outdfs[self.Nreps+1].drop([str(r)+':similarity' for r in range(1,self.Nreps+1)],axis=1)
+        self.outdfs[self.Nreps+1].drop([str(r)+':pval' for r in range(1,self.Nreps+1)],axis=1)
+        self.outdfs[self.Nreps+1].drop([str(r)+':padj' for r in range(1,self.Nreps+1)],axis=1)    
+        self.outdf[self.Nreps+1].to_csv(self.path+fname_out, index=False)
+        return self.outdf[self.Nreps+1]
     
     def P_sim(self,sim,N_con):
         dist_key='d'+str(np.floor(np.log2(N_con)))
@@ -177,13 +245,16 @@ class GeneWalk(object):
 if __name__ == '__main__':
     # Handle command line arguments
     parser = argparse.ArgumentParser(
-        description='Choose a path where GeneWalk files are generated (default: ~/genewalk/ ).')
+        description='Choose a path where GeneWalk files are generated (default: ~/genewalk/ ). \
+        Nreps has to match what is used  in get_node_vectors.py')
     parser.add_argument('--path', default='~/genewalk/')
     parser.add_argument('--path_GO', default='(provided) path/GO/')
     parser.add_argument('--genes', default='data/JQ1_HGNCidForINDRA.csv')
     parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
-    parser.add_argument('--alpha_FDR', default=0.05)
+    parser.add_argument('--alpha_FDR', default=1.001)
     parser.add_argument('--mouse_genes',default=False)
+    parser.add_argument('--filename_out',default='GeneWalk.csv')
+    parser.add_argument('--Nreps', default=10)
     args = parser.parse_args()
     if args.path_GO=='(provided) path/GO/':
         args.path_GO=args.path+'GO/'
@@ -193,8 +264,8 @@ if __name__ == '__main__':
                     fgeneid=args.genes,
                     fstmts=args.stmts,
                     fmg='GeneWalk_MG.pkl',
-                    fnv='GeneWalk_DW_nv.pkl',
+                    fnv_prefix='GeneWalk_DW_nv',
+                    Nrep=args.Nreps,
                     fnull_dist='GeneWalk_DW_rand_simdists.pkl',
                     mouse_genes=args.mouse_genes)
-    GW.generate_output(alpha_FDR=args.alpha_FDR,fname_out='GeneWalk.csv')
-    GW.generate_output(alpha_FDR=1,fname_out='GeneWalk_all_GO.csv')
+    GW.generate_output(alpha_FDR=args.alpha_FDR,fname_out=args.filename_out)
