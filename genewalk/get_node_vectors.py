@@ -18,6 +18,7 @@ if __name__ == '__main__':
     parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
     parser.add_argument('--fplx', default='data/JQ1_HGNCidForINDRA_fplx.txt')
     parser.add_argument('--path_GO', default='~/genewalk/GO/')
+    parser.add_argument('--Nreps', default=10)
     args = parser.parse_args()
 
     # Open pickled statements
@@ -44,32 +45,28 @@ if __name__ == '__main__':
     with open(args.path+filename, 'wb') as f:
         pkl.dump(MGA,f,protocol=pkl.HIGHEST_PROTOCOL)
     del(MG)
-        
-    DW=DeepWalk(graph=MGA)
-    del(MGA)
     
-    print('generate random walks')
-    start = time.time()
-    DW.get_walks()
-    end = time.time()
-    print('DW.get_walks done ',end - start)#in sec
+    for rep in range(1,args.Nreps+1):
+        print(rep,'/',args.Nreps)
+        DW=DeepWalk(graph=MGA)
 
-    #pickling to save walks
-    filename='GeneWalk_DW.pkl'
-    with open(args.path+filename, 'wb') as f:
-        pkl.dump(DW,f)
+        print('generate random walks')
+        start = time.time()
+        DW.get_walks()
+        end = time.time()
+        print('DW.get_walks done ',end - start)#in sec
 
-    print('generate node vectors')
-    start = time.time()
-    DW.word2vec()
-    end = time.time()
-    print('DW.word2vec done',end - start)#in sec
+        print('generate node vectors')
+        start = time.time()
+        DW.word2vec()
+        end = time.time()
+        print('DW.word2vec done',end - start)#in sec
 
-    ### Pickle the node vectors (embeddings) and DW object
-    nv = copy.deepcopy(DW.model.wv)
-    filename='GeneWalk_DW_nv.pkl'
-    with open(args.path+filename, 'wb') as f:
-        pkl.dump(nv,f)
-    filename='GeneWalk_DW.pkl'
-    with open(args.path+filename, 'wb') as f:
-        pkl.dump(DW,f)
+        ### Pickle the node vectors (embeddings) and DW object
+        nv = copy.deepcopy(DW.model.wv)
+        filename='GeneWalk_DW_nv_'+str(rep)+'.pkl'
+        with open(args.path+filename, 'wb') as f:
+            pkl.dump(nv,f)
+        filename='GeneWalk_DW_'+str(rep)+'.pkl'
+        with open(args.path+filename, 'wb') as f:
+            pkl.dump(DW,f)
