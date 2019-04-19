@@ -86,10 +86,11 @@ class DeepWalk(object):
             Defines the training algorithm. If 1, skip-gram is employed;
             otherwise, CBOW is used.
         size : int
-            Dimensionality of the node vectors. Default is 8.
+            Dimensionality of the node vectors. Default for GeneWalk is 8.
         window : int
             AKA context size. Maximum distance between the current and
-            predicted word within a sentence.
+            predicted word within a sentence. For GeneWalk this is set to 1
+            to assess directly connected nodes only.
         min_count : int
             Ignores all words with total frequency lower than this.
         negative : int
@@ -102,7 +103,7 @@ class DeepWalk(object):
         sample : float
             The threshold for configuring which higher-frequency words are
             randomly downsampled, useful range is (0, 1e-5). parameter t in eq
-            5 Mikolov et al. Without edge labels: set to 0.
+            5 Mikolov et al. For GeneWalk this is set to 0.
         """
         self.model = Word2Vec(sentences=self.walks,sg=sg,size=size,window=window, 
                               min_count=min_count,negative=negative, workers=workers,sample=sample) 
