@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import pickle as pkl
 import networkx as nx
+import copy
 from indra.databases import hgnc_client
 import statsmodels.stats.multitest
 from genewalk.genewalk.get_indra_stmts import load_genes
@@ -89,7 +90,7 @@ class GeneWalk(object):
             genes.append(hgnc_id)
         self.mdf.insert(loc=0,column='HGNC:ID', value=pd.Series(genes, index=self.mdf.index))
     
-    def generate_output(self,alpha_FDR=1.001,fname_out='GeneWalk.csv'): 
+    def generate_output(self,alpha_FDR=1,fname_out='GeneWalk.csv'): 
         """main function of GeneWalk object that generates the final output list 
         Parameters
         ----------
@@ -181,7 +182,7 @@ class GeneWalk(object):
         self.outdfs[self.Nreps+1].insert(loc=len(COLUMNS),column='mean:sim',
                     value=self.outdfs[self.Nreps+1][[str(r)+':similarity' for r in range(1,self.Nreps+1)]].mean(axis=1))
         self.outdfs[self.Nreps+1].insert(loc=len(COLUMNS)+1,column='sem:sim',
-                    value=self.outdfs[self.Nreps+1][[str(r)+':similarity' for r in \ 
+                    value=self.outdfs[self.Nreps+1][[str(r)+':similarity' for r in \
                                                           range(1,self.Nreps+1)]].std(axis=1)/np.sqrt(self.Nreps))
         self.outdfs[self.Nreps+1].insert(loc=len(COLUMNS)+2,column='mean:pval',
                     value=self.outdfs[self.Nreps+1][[str(r)+':pval' for r in range(1,self.Nreps+1)]].mean(axis=1))
@@ -202,11 +203,11 @@ class GeneWalk(object):
             self.outdfs[self.Nreps+1]['HGNC:ID'] = self.outdfs[self.Nreps+1]['HGNC:ID'].astype("category")
             self.outdfs[self.Nreps+1]['HGNC:ID'].cat.set_categories(pd.Series(self.hgncid).unique(), inplace=True)
             self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].sort_values(by=['HGNC:ID','mean:padj','GO description'])    
-        self.outdfs[self.Nreps+1].drop([str(r)+':similarity' for r in range(1,self.Nreps+1)],axis=1)
-        self.outdfs[self.Nreps+1].drop([str(r)+':pval' for r in range(1,self.Nreps+1)],axis=1)
-        self.outdfs[self.Nreps+1].drop([str(r)+':padj' for r in range(1,self.Nreps+1)],axis=1)    
-        self.outdf[self.Nreps+1].to_csv(self.path+fname_out, index=False)
-        return self.outdf[self.Nreps+1]
+        self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].drop([str(r)+':similarity' for r in range(1,self.Nreps+1)],axis=1)
+        self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].drop([str(r)+':pval' for r in range(1,self.Nreps+1)],axis=1)
+        self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].drop([str(r)+':padj' for r in range(1,self.Nreps+1)],axis=1)    
+        self.outdfs[self.Nreps+1].to_csv(self.path+fname_out, index=False)
+        return self.outdfs[self.Nreps+1]
     
     def P_sim(self,sim,N_con):
         dist_key='d'+str(np.floor(np.log2(N_con)))
@@ -236,7 +237,10 @@ class GeneWalk(object):
         BOOL,q_val=statsmodels.stats.multitest.fdrcorrection(simdf['pval'], 
                                                      alpha=alpha_FDR, method='indep')
         simdf.insert(loc=5,column='padj', value=pd.Series(q_val, index=simdf.index))
-        return simdf[simdf['padj']<alpha_FDR]
+        if alpha_FDR<1:
+            return simdf[simdf['padj']<alpha_FDR]
+        else:
+            return simdf
 
 
 if __name__ == '__main__':
@@ -248,7 +252,7 @@ if __name__ == '__main__':
     parser.add_argument('--path_GO', default='(provided) path/GO/')
     parser.add_argument('--genes', default='data/JQ1_HGNCidForINDRA.csv')
     parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
-    parser.add_argument('--alpha_FDR', default=1.001)
+    parser.add_argument('--alpha_FDR', default=1)
     parser.add_argument('--mouse_genes',default=False)
     parser.add_argument('--filename_out',default='GeneWalk.csv')
     parser.add_argument('--Nreps', default=10)
