@@ -92,11 +92,11 @@ class DeepWalk(object):
             predicted word within a sentence. For GeneWalk this is set to 1
             to assess directly connected nodes only.
         min_count : int
-            Ignores all words with total frequency lower than this.
+            Ignores all words with total frequency lower than this. For GeneWalk this is set to 0.
         negative : int
             If > 0, negative sampling will be used, the int for negative
             specifies how many "noise words” should be drawn (usually between
-            5-20). If set to 0, no negative sampling is used. For GeneWalk this is set to 0.
+            5-20). If set to 0, no negative sampling is used. Default for GeneWalk is 5.
         workers : int
             Use these many worker threads to train the model (=faster training
             with multicore machines).
