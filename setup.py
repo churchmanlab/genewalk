@@ -1,6 +1,7 @@
 import sys
 from setuptools import setup
 
+
 def main():
     install_list = ['numpy', 'pandas', 'networkx>=2.1', 'gensim', 'goatools']
 
