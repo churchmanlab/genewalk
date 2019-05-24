@@ -1,12 +1,11 @@
-import json
-from builtins import dict, str
-import numpy
 import itertools
 import networkx as nx
 import re
 import pandas as pd
 from indra.statements import *
 from goatools.obo_parser import GODag
+from genewalk.resources import get_go_obo, get_goa_gaf
+
 
 class Nx_MG_Assembler(object):
     """The Nx_MG_Assembler assembles INDRA Statements and GO ontology /
@@ -19,8 +18,6 @@ class Nx_MG_Assembler(object):
     stmts : Optional[list[indra.statements.Statement]]
         A list of INDRA Statements to be added to the assembler's list
         of Statements.
-    GOpath : str
-        Path to the goa_human.gaf file
 
     Attributes
     ----------
@@ -31,11 +28,11 @@ class Nx_MG_Assembler(object):
     OGO : goatools.GODag
         GO ontology, GODag object (see goatools)
     """
-    def __init__(self,stmts=None,GOpath='~/'):
+    def __init__(self, stmts=None):
         self.stmts = [] if stmts is None else stmts
         self.graph = nx.MultiGraph()
-        self.GOpath = GOpath
-        self.GOA = pd.read_csv(self.GOpath+'goa_human.gaf', sep='\t',skiprows=23,dtype=str,header=None, 
+        self.GOA = pd.read_csv(get_goa_gaf(), sep='\t', skiprows=23, dtype=str,
+                               header=None,
                 names=['DB',
                        'DB_ID',
                        'DB_Symbol',
@@ -54,7 +51,7 @@ class Nx_MG_Assembler(object):
                        'Annotation_Extension',
                        'Gene_Product_Form_ID'])
         self.GOA = self.GOA.sort_values(by=['DB_ID','GO_ID'])
-        self.OGO = GODag(GOpath+'go.obo')#dict
+        self.OGO = GODag(get_go_obo())
         self.EC_GOA=['EXP','IDA','IPI','IMP','IGI','IEP','HTP','HDA','HMP','HGI','HEP','IBA','IBD']
     
     def MG_from_INDRA(self):
