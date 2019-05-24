@@ -23,7 +23,7 @@ def main():
           keywords=['gene function', 'network', 'embedding'],
           packages=['genewalk'],
           install_requires=install_list,
-          extras_require={'indra': ['indra']}
+          extras_require={'indra': ['indra']},
           tests_require=['nose'],
           include_package_data=True,
         )

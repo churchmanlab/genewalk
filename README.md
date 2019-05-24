@@ -1,18 +1,25 @@
 # GeneWalk
 
 ### Initialize new genewalk virtual environment
-`virtualenv genewalkenv --system-site-packages`  
-`source genewalkenv/bin/activate`
+```
+virtualenv genewalkenv --system-site-packages
+source genewalkenv/bin/activate
+```
 
-### Install dependencies
-`pip install pandas`  
-`pip install --upgrade numpy`  
-`pip install --upgrade scipy`  
-`pip install git+https://github.com/sorgerlab/indra.git`  
-`pip install goatools`  
-`pip install --upgrade gensim`  
-`pip install statsmodels`  
-`pip install genewalk` #######################UNFINISHED, to BG/JB: please help adjust so that this could work 
+### Install GeneWalk
+To install the latest release of GeneWalk:
+```
+pip install genewalk
+```
+To install the latest code from Github (typically ahead of releases):
+```
+pip install git+https://github.com/churchmanlab/genewalk
+```
+In addition, to use INDRA's sources to collect information
+and assemble a network, do
+```
+pip install indra
+```
 
 ### Set output directory
 `outDir=~/genewalk`  
