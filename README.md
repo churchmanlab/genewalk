@@ -22,7 +22,6 @@ virtualenv genewalkenv --system-site-packages
 source genewalkenv/bin/activate
 ```
 
-
 ### Set output directory
 `outDir=~/genewalk`  
 `mkdir -p ${outDir}/LogErr`  

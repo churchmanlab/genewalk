@@ -5,8 +5,9 @@ import networkx as nx
 import copy
 from indra.databases import hgnc_client
 import statsmodels.stats.multitest
-from genewalk.genewalk.get_indra_stmts import load_genes
-from genewalk.genewalk.nx_mg_assembler import Nx_MG_Assembler
+from genewalk.get_indra_stmts import load_genes
+from genewalk.nx_mg_assembler import Nx_MG_Assembler
+
 
 class GeneWalk(object):
     """GeneWalk object that generates the final output list of significant GO terms
