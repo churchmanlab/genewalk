@@ -161,13 +161,14 @@ class Nx_MG_Assembler(object):
                 self.graph.node[node_key][attr]=ag.db_refs[attr]
         return node_key
 
-    def _add_GOnode(self,GOID,indra):
-        GOT=self.OGO[GOID]
-        nameGO=GOT.name 
-        nameGO=nameGO.replace(" ","_") 
-        self.graph.add_node(GOID,name=nameGO,GO=GOID)#nx ensures no duplicate nodes with same key will be created
+    def _add_GOnode(self, GOID, indra):
+        GOT = self.OGO[GOID]
+        nameGO = GOT.name
+        nameGO = nameGO.replace(" ","_")
+        self.graph.add_node(GOID, name=nameGO, GO=GOID)#nx ensures no
+        # duplicate nodes with same key will be created
         if 'INDRA' not in self.graph.node[GOID].keys():#not yet present, so assign origin: INDRA or GOA/OGO
-            self.graph.node[GOID]['INDRA']=indra
+            self.graph.node[GOID]['INDRA'] = indra
         
     def _add_edge(self, s, t, edge_attributes=None):
         if edge_attributes is None:
@@ -188,7 +189,7 @@ class Nx_MG_Assembler(object):
         return matching_stmts
     
     def node2edges(self, node_key):
-        return self.graph.edges(node_key,keys=True)
+        return self.graph.edges(node_key, keys=True)
     
-    def save_graph(self,folder='~/',filename='test'):
-        nx.write_graphml(self.graph,folder+filename+'.xml')
+    def save_graph(self, folder='~/', filename='test'):
+        nx.write_graphml(self.graph, folder + filename + '.xml')

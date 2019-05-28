@@ -1,7 +1,12 @@
-import networkx as nx #v2.2
-import random
-from gensim.models import Word2Vec
 import time
+import random
+import logging
+import networkx as nx #v2.2
+from gensim.models import Word2Vec
+
+
+logger = logging.getLogger(__name__)
+
 
 class DeepWalk(object):
     """Perform DeepWalk (node2vec), ie unbiased random walk over nodes
@@ -23,12 +28,13 @@ class DeepWalk(object):
     N_walks : int
         Total number of random walks.
     """
-    def __init__(self,graph,walk_length=10,N_iterations=100):
+    def __init__(self, graph, walk_length=10, N_iterations=100):
         self.graph = graph
-        self.walks=[]
-        self.wl=walk_length
-        self.N_iter=N_iterations
-        self.N_walks=0
+        self.walks = []
+        self.wl = walk_length
+        self.N_iter = N_iterations
+        self.N_walks = 0
+        self.model = None
         
     def get_walks(self):
         """Generate collection of graph walks: one for each node
@@ -38,23 +44,23 @@ class DeepWalk(object):
         start = time.time()
         g_view=nx.nodes(self.graph)
         for u in g_view:
-            self.N_walks=self.N_walks+len(self.graph[u])
-        self.N_walks=self.N_walks*self.N_iter
+            self.N_walks = self.N_walks + len(self.graph[u])
+        self.N_walks = self.N_walks*self.N_iter
                 
-        self.walks=[[] for i in range(self.N_walks)]
-        count=0#row index for self.walks
-        g_view=nx.nodes(self.graph)
+        self.walks = [[] for i in range(self.N_walks)]
+        count = 0  # row index for self.walks
+        g_view = nx.nodes(self.graph)
         for u in g_view:
-            N_neighbor=len(self.graph[u])
+            N_neighbor = len(self.graph[u])
             for i in range(self.N_iter):
                 for k in range(N_neighbor):
-                    if count%10000==0:
-                        print(count,'/',self.N_walks,' ',time.time() - start)
+                    if count%10000 == 0:
+                        logger.info('%d/%d %s' % (count, self.N_walks,
+                                    time.time() -start))
                     self._graph_walk(count,u)
-                    count+=1
-                  
+                    count += 1
 
-    def _graph_walk(self,idx,u):
+    def _graph_walk(self, idx, u):
         """Generates walks (sentences) sampled by an (unbiased) random walk
         over the networkx MultiGraph: node and edge names for the sentences.
         
@@ -70,9 +76,9 @@ class DeepWalk(object):
         for i in range(1,self.wl):
             self.walks[idx][i]=random.choice(list(self.graph[u]) )
             u=self.walks[idx][i]       
-            
-    
-    def word2vec(self,sg=1,size=8,window=1, min_count=1, negative=5, workers=4,sample=0):
+
+    def word2vec(self, sg=1, size=8, window=1, min_count=1, negative=5,
+                 workers=4, sample=0):
         """Set the model based on Word2Vec
         Source: https://radimrehurek.com/gensim/models/word2vec.html
 
@@ -92,11 +98,13 @@ class DeepWalk(object):
             predicted word within a sentence. For GeneWalk this is set to 1
             to assess directly connected nodes only.
         min_count : int
-            Ignores all words with total frequency lower than this. For GeneWalk this is set to 0.
+            Ignores all words with total frequency lower than this. For
+            GeneWalk this is set to 0.
         negative : int
             If > 0, negative sampling will be used, the int for negative
             specifies how many "noise words” should be drawn (usually between
-            5-20). If set to 0, no negative sampling is used. Default for GeneWalk is 5.
+            5-20). If set to 0, no negative sampling is used.
+            Default for GeneWalk is 5.
         workers : int
             Use these many worker threads to train the model (=faster training
             with multicore machines).
@@ -105,5 +113,7 @@ class DeepWalk(object):
             randomly downsampled, useful range is (0, 1e-5). parameter t in eq
             5 Mikolov et al. For GeneWalk this is set to 0.
         """
-        self.model = Word2Vec(sentences=self.walks,sg=sg,size=size,window=window, 
-                              min_count=min_count,negative=negative, workers=workers,sample=sample) 
+        self.model = Word2Vec(sentences=self.walks, sg=sg, size=size,
+                              window=window, min_count=min_count,
+                              negative=negative, workers=workers,
+                              sample=sample)
