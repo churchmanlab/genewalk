@@ -38,7 +38,7 @@ def run_walk(rg, fname):
     end = time.time()
     logger.info('DW.get_walks done: %s' % (end - start))  # in sec
     # pickling to save walks
-    with open(os.path.join(args.path, fname), 'wb') as f:
+    with open(os.path.join(os.path.expanduser(args.path), fname), 'wb') as f:
         pkl.dump(DW, f)
     return DW
 
@@ -51,9 +51,11 @@ def get_word2vec(DW, w2v_file, walks_file):
     logger.info('DW.word2vec: %s' % (end - start))  # in sec
     # Pickle the node vectors (embeddings) and DeepWalk object
     nv = copy.deepcopy(DW.model.wv)
-    with open(os.path.join(args.path, w2v_file), 'wb') as f:
+    with open(os.path.join(os.path.expanduser(args.path),
+                           w2v_file), 'wb') as f:
         pkl.dump(nv, f)
-    with open(os.path.join(args.path, walks_file), 'wb') as f:
+    with open(os.path.join(os.path.expanduser(args.path),
+                           walks_file), 'wb') as f:
         pkl.dump(DW, f)
     return DW, nv
 

@@ -47,14 +47,14 @@ class DeepWalk(object):
             self.N_walks = self.N_walks + len(self.graph[u])
         self.N_walks = self.N_walks * self.N_iter
 
-        self.walks = [[] for i in range(self.N_walks)]
+        self.walks = [[] for _ in range(self.N_walks)]
         count = 0  # row index for self.walks
         g_view = nx.nodes(self.graph)
         for u in g_view:
             N_neighbor = len(self.graph[u])
             for i in range(self.N_iter):
                 for k in range(N_neighbor):
-                    if count%10000 == 0:
+                    if count % 10000 == 0:
                         logger.info('%d/%d %s' % (count, self.N_walks,
                                     time.time() - start))
                     self._graph_walk(count,u)
