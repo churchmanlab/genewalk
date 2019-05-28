@@ -6,8 +6,8 @@ import pickle as pkl
 import copy
 import time
 import argparse
-from genewalk.genewalk.nx_mg_assembler import Nx_MG_Assembler
-from genewalk.genewalk.deepwalk import DeepWalk
+from genewalk.nx_mg_assembler import Nx_MG_Assembler
+from genewalk.deepwalk import DeepWalk
 
 
 if __name__ == '__main__':
