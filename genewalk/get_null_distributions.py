@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 def get_rand_graph(mg, seed):
-    """argument: graph = the original nx (multi)graph. 
+    """argument: graph = the original nx (multi)graph.
     -Determines degree of multigraph for each node
-    -Get a random multigraph. 
+    -Get a random multigraph.
     """
     # this is not randomized: order is same
     d_seq = sorted([mg.degree(n) for n in mg.nodes()], reverse=True)
@@ -84,8 +84,8 @@ def get_null_distributions(rg, nv):
 
 def run_repeat(rep):
     logger.info('%s/%s' % (rep, args.Nreps))
-    w2v_file = 'GeneWalk_DW_nv_rand_' + rep + '.pkl'
-    walks_file = 'GeneWalk_DW_rand_' + rep + '.pkl'
+    w2v_file = 'GeneWalk_DW_nv_rand_%d.pkl' % rep
+    walks_file = 'GeneWalk_DW_rand_%d.pkl' % rep
     # generate random graph
     random.seed(a=None)
     gseed = random.randint(0, 1e12)

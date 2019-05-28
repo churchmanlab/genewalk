@@ -53,7 +53,7 @@ class Nx_MG_Assembler(object):
         self.GOA = self.GOA.sort_values(by=['DB_ID','GO_ID'])
         self.OGO = GODag(get_go_obo())
         self.EC_GOA=['EXP','IDA','IPI','IMP','IGI','IEP','HTP','HDA','HMP','HGI','HEP','IBA','IBD']
-    
+
     def MG_from_INDRA(self):
         """Assemble the graph from the assembler's list of INDRA Statements. 
         Edge attribute are given by statement type and index in list of stmts
@@ -75,10 +75,10 @@ class Nx_MG_Assembler(object):
             #Iterate over all the agent combinations and add edge
             for a, b in itertools.combinations(agents, 2):
                 self._add_INnode_edge(a, b, edge_attr)
-    
+
     def add_FPLXannotations(self,filename):
         """Add to self.graph an edge (label: 'FPLX:is_a') between the gene family to member annotation edges.
-   
+
         Parameters
         ----------
         filename : str specifying the .csv file with list of tuples with the first element of the tuple
@@ -114,7 +114,7 @@ class Nx_MG_Assembler(object):
                         self._add_GOnode(GOID,'0')
                         self._add_edge(n,GOID,eattr)
             j=j+1
-                     
+
     def add_GOontology(self):
         """Add to self.graph the GO ontology (GO:IDs and their relations) in
         the form of labeled edge (relation type, eg is_a) and new nodes
@@ -128,7 +128,7 @@ class Nx_MG_Assembler(object):
                     if pa.is_obsolete == False:
                         self._add_GOnode(pa.id,'0')
                         self._add_edge(GOT.id,pa.id,'GO:is_a')
-    
+
     def _GOA_from_UP(self,UP):
         SEL=self.GOA[self.GOA['DB_ID']==UP][['GO_ID','Evidence_Code']].drop_duplicates()#UP matching GOIDs and Qualif
         for i in SEL.index:
@@ -138,7 +138,7 @@ class Nx_MG_Assembler(object):
                 SEL=SEL.drop(i)#Insufficient evidence for annotation or not present in OGO: obsolete GO:ID, so drop.
         SEL.insert(loc=1,column='Qualifier', value=pd.Series('GOan', index=SEL.index))#add new column
         return SEL.drop(columns=['Evidence_Code'])
- 
+
     def _add_INnode_edge(self, s, t, attributes):
         if s is not None:
             s = self._add_INnode(s)
@@ -169,13 +169,13 @@ class Nx_MG_Assembler(object):
         # duplicate nodes with same key will be created
         if 'INDRA' not in self.graph.node[GOID].keys():#not yet present, so assign origin: INDRA or GOA/OGO
             self.graph.node[GOID]['INDRA'] = indra
-        
+
     def _add_edge(self, s, t, edge_attributes=None):
         if edge_attributes is None:
             self.graph.add_edge(s, t, label='NA')
         else:
             self.graph.add_edge(s, t, label=edge_attributes)
-        
+
     def node2stmts(self, node_key):
         matching_stmts = []
         node_name=self.graph.node[node_key]['name']
@@ -187,9 +187,9 @@ class Nx_MG_Assembler(object):
                         matching_stmts.append(stmt)
                         break
         return matching_stmts
-    
+
     def node2edges(self, node_key):
         return self.graph.edges(node_key, keys=True)
-    
+
     def save_graph(self, folder='~/', filename='test'):
         nx.write_graphml(self.graph, folder + filename + '.xml')

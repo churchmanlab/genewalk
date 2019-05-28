@@ -35,7 +35,7 @@ class DeepWalk(object):
         self.N_iter = N_iterations
         self.N_walks = 0
         self.model = None
-        
+
     def get_walks(self):
         """Generate collection of graph walks: one for each node
         (= starting point) sampled by an (unbiased) random walk over the
@@ -45,8 +45,8 @@ class DeepWalk(object):
         g_view=nx.nodes(self.graph)
         for u in g_view:
             self.N_walks = self.N_walks + len(self.graph[u])
-        self.N_walks = self.N_walks*self.N_iter
-                
+        self.N_walks = self.N_walks * self.N_iter
+
         self.walks = [[] for i in range(self.N_walks)]
         count = 0  # row index for self.walks
         g_view = nx.nodes(self.graph)
@@ -56,14 +56,14 @@ class DeepWalk(object):
                 for k in range(N_neighbor):
                     if count%10000 == 0:
                         logger.info('%d/%d %s' % (count, self.N_walks,
-                                    time.time() -start))
+                                    time.time() - start))
                     self._graph_walk(count,u)
                     count += 1
 
     def _graph_walk(self, idx, u):
         """Generates walks (sentences) sampled by an (unbiased) random walk
         over the networkx MultiGraph: node and edge names for the sentences.
-        
+
         Parameters
         ----------
         idx : int
@@ -71,11 +71,11 @@ class DeepWalk(object):
         u : str
             starting node
         """
-        self.walks[idx]=['NA' for i in range(self.wl)]
-        self.walks[idx][0]=u
-        for i in range(1,self.wl):
-            self.walks[idx][i]=random.choice(list(self.graph[u]) )
-            u=self.walks[idx][i]       
+        self.walks[idx] = ['NA' for _ in range(self.wl)]
+        self.walks[idx][0] = u
+        for i in range(1, self.wl):
+            self.walks[idx][i] = random.choice(list(self.graph[u]))
+            u = self.walks[idx][i]
 
     def word2vec(self, sg=1, size=8, window=1, min_count=1, negative=5,
                  workers=4, sample=0):
