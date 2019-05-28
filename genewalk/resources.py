@@ -1,8 +1,8 @@
 import os
 import gzip
 import shutil
-import urllib
 import logging
+import urllib.request
 from . import __version__
 
 logger = logging.getLogger(__name__)
@@ -19,13 +19,15 @@ if not os.path.isdir(resource_dir):
 
 def download_go(fname):
     url = 'http://snapshot.geneontology.org/ontology/go.obo'
-    urllib.urlretrieve(url, fname)
+    logger.info('Downloading %s into %s' % (url, fname))
+    urllib.request.urlretrieve(url, fname)
 
 
 def download_goa(fname):
     url = 'http://geneontology.org/gene-associations/goa_human.gaf.gz'
+    logger.info('Downloading %s and extracting into %s' % (url, fname))
     gz_file = os.path.join(resource_dir, 'goa_human.gaf.gz')
-    urllib.urlretrieve(url, gz_file)
+    urllib.request.urlretrieve(url, gz_file)
     with gzip.open(gz_file, 'rb') as fin:
         with open(fname, 'wb') as fout:
             shutil.copyfileobj(fin, fout)
