@@ -102,7 +102,7 @@ class DeepWalk(object):
             GeneWalk this is set to 0.
         negative : int
             If > 0, negative sampling will be used, the int for negative
-            specifies how many "noise words” should be drawn (usually between
+            specifies how many "noise words" should be drawn (usually between
             5-20). If set to 0, no negative sampling is used.
             Default for GeneWalk is 5.
         workers : int

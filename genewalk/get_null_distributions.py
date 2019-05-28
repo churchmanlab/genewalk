@@ -136,5 +136,5 @@ if __name__ == '__main__':
     filename = 'GeneWalk_DW_rand_simdists.pkl'
     logger.info(filename)
     with open(os.path.join(os.path.expanduser(args.path),
-                           filename, 'wb')) as f:
+                           filename), 'wb') as f:
         pkl.dump(srd, f)
