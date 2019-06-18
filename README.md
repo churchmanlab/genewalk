@@ -24,7 +24,7 @@ pip install git+https://github.com/churchmanlab/genewalk
 `mkdir -p ${outDir}/LogErr`  
 
 ### Run GeneWalk
-with the Pathway Commons data source (currently default):
+with the Pathway Commons data source (currently default):  
 `python -u get_node_vectors.py --path ${outDir} > ${outDir}/LogErr/get_node_vectors.log`  
 `python -u get_null_distributions.py --path ${outDir} > ${outDir}/LogErr/get_null_distributions.log`  
 `python -u genewalk.py --path ${outDir} > ${outDir}/LogErr/genewalk.log`
