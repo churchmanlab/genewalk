@@ -1,14 +1,14 @@
 # GeneWalk
 
 Optional: it is recommended to use Python virtual environments when installing
-GeneWalk. You can start a new environment before installation as
+GeneWalk. You can start a new environment before installation by running in a terminal:
 ```
 virtualenv genewalkenv --system-site-packages
 source genewalkenv/bin/activate
 ```
 
 ### Install GeneWalk
-To install the latest release of GeneWalk (preferred), do
+To install the latest release of GeneWalk (preferred):
 ```
 pip install genewalk
 ```
@@ -17,11 +17,11 @@ To install the latest code from Github (typically ahead of releases):
 pip install git+https://github.com/churchmanlab/genewalk
 ```
 
-
-
 ### Set output directory
-`outDir=~/genewalk`  
-`mkdir -p ${outDir}/LogErr`  
+```
+outDir=~/genewalk  
+mkdir -p ${outDir}/LogErr
+```  
 
 ### Run GeneWalk
 with the Pathway Commons data source (currently default):  
