@@ -4,11 +4,11 @@ import re
 import pandas as pd
 from indra.statements import *
 from goatools.obo_parser import GODag
-from genewalk.resources import get_go_obo, get_goa_gaf
+from genewalk.resources import get_go_obo, get_goa_gaf, get_pc
 
 
-class Nx_MG_Assembler(object):
-    """The Nx_MG_Assembler assembles INDRA Statements and GO ontology /
+class Nx_MG_Assembler_INDRA(object):
+    """The Nx_MG_Assembler_INDRA assembles INDRA Statements and GO ontology /
     annotations into a networkx (undirected) MultiGraph including edge
     attributes. This code is based on INDRA's SifAssembler
     http://indra.readthedocs.io/en/latest/_modules/indra/assemblers/sif_assembler.html
@@ -191,5 +191,58 @@ class Nx_MG_Assembler(object):
     def node2edges(self, node_key):
         return self.graph.edges(node_key, keys=True)
 
-    def save_graph(self, folder='~/', filename='test'):
+    def save_graph(self, folder='~/', filename='gwn'):
         nx.write_graphml(self.graph, folder + filename + '.xml')
+
+        
+
+        
+class Nx_MG_Assembler_fromUser(object):
+    """The Nx_MG_Assembler_fromUser loads a user-provided GeneWalk Network from file.
+
+    Parameters
+    ----------
+    filepath : str
+        Path to the user-provided genewalk network file, assumed to contain gene symbols and GO:IDs. \
+        See gwn_format for supported format details.
+    gwn_format : 'el' (default, edge list: nodeA nodeB (if more columns present: interpreted as edge attributes) \
+        or 'sif' (simple interaction format: nodeA <relationship type> nodeB). Do not include column headers. 
+
+    Attributes
+    ----------
+    graph : networkx.MultiGraph
+        genewalk network that is assembled by this assembler.
+    """
+    
+    def __init__(self,filepath='~/',gwn_format='el'):
+        self.graph = nx.MultiGraph()
+        self.filepath=filepath
+        
+    def MG_from_file(self):
+        """Assemble the GeneWalk Network from the user-provided file path.
+        """
+        gwn_df=pd.read_csv(self.filepath,dtype=str,header=None)
+        col_mapper={}
+        if self.gwn_format=='el':
+            col_mapper[0]='source'
+            col_mapper[1]='target'
+            if len(gwn_df.columns)>2:
+                col_mapper[2]='rel_type'
+                if len(gwn_df.columns)>3:
+                    for c in gwn_df.columns[3:]:
+                        col_mapper[c]='edge_attr'+str(c-1)
+                edge_attributes=True
+            else:
+                edge_attributes=False
+        elif self.gwn_format=='sif':
+            col_mapper[0]='source'
+            col_mapper[1]='rel_type'
+            col_mapper[2]='target'
+            edge_attributes=True
+            
+        gwn_df.rename(mapper=col_mapper,axis='columns')
+        self.graph = nx.from_pandas_edgelist(gwn_df,'source','target',
+                    edge_attr=edge_attributes,create_using=nx.MultiGraph)
+
+    def node2edges(self, node_key):
+        return self.graph.edges(node_key,keys=True)        
