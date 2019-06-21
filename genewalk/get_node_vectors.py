@@ -1,42 +1,75 @@
 #!/usr/bin/env python
 
-import networkx as nx
-import indra
-import pickle as pkl
 import copy
 import time
 import argparse
-from genewalk.nx_mg_assembler import Nx_MG_Assembler
+import pickle as pkl
+import networkx as nx
+import indra
+from genewalk.nx_mg_assembler import Nx_MG_Assembler_PC, Nx_MG_Assembler_INDRA, Nx_MG_Assembler_fromUser 
 from genewalk.deepwalk import DeepWalk
 
 
 if __name__ == '__main__':
     # Handle command line arguments
     parser = argparse.ArgumentParser(
-        description='Choose a path where GeneWalk files are generated (default: ~/genewalk/ ).')
-    parser.add_argument('--path', default='~/genewalk/')
-    parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
-    parser.add_argument('--fplx', default='data/JQ1_HGNCidForINDRA_fplx.txt')
-    parser.add_argument('--path_GO', default='~/genewalk/GO/')
+        description='Choose a path to the text file with genes of interest (default: ~/genewalk/gene_list.txt). \
+        Decide which data_source is used: Pathway Commons (PC, default), \
+        indra, or a user-provided network from file (fromUser). \
+        Set mouse_genes to True (default False) if the gene_list contains MGI identifiers instead of human genes. \ 
+        A GeneWalk Network is then assembled and network representation learning performed.')
+    parser.add_argument('--genes', default='~/genewalk/gene_list.txt')
+    parser.add_argument('--data_source', default='PC')
+    parser.add_argument('--mouse_genes', default=False)
     parser.add_argument('--Nreps', default=10)
     args = parser.parse_args()
 
-    # Open pickled statements
-    print('loading', args.stmts)
-    with open(args.path+args.stmts, 'rb') as f:
-        stmts=pkl.load(f)
+    print('initializing network')
+    if args.data_source == 'PC':
+        MG=Nx_MG_Assembler_PC(args.genes)
+        
+        print('adding gene nodes from Pathway Commons')
+        MG.MG_from_PC()
+        print('number of PC originating nodes',nx.number_of_nodes(MG.graph))
+        
+        print('adding GO nodes')
+        MG.add_GOannotations()
+        MG.add_GOontology()
+        
+    elif args.data_source == 'indra':
+        print('Currently this option is not available for any gene list of interest yet, but it will \
+                become available to public use in the future. Choose PC as data_source for now instead \
+                to run GeneWalk with a user-provided gene list. \
+                Now, we proceed to demonstrate the indra option by running GeneWalk on the JQ1 study \ 
+                described in Ietswaart et al.' )
+        fstmts='./genewalk/JQ1_HGNCidForINDRA_stmts.pkl'
+        print('loading', fstmts)
+        with open(fstmts, 'rb') as f:
+            stmts=pkl.load(f)
 
-    print('assembling network')
-    MG=Nx_MG_Assembler(stmts,args.path_GO)
-    del(stmts)
+        MG=Nx_MG_Assembler_INDRA(stmts)
+        del(stmts)
+        
+        print('adding nodes from INDRA stmts')
+        MG.MG_from_INDRA()
+        
+        ffplx='./genewalk/JQ1_HGNCidForINDRA_fplx.txt'
+        MG.add_FPLXannotations(ffplx)
+        
+        print('number of INDRA originating nodes',nx.number_of_nodes(MG.graph))
+        
+        print('adding GO nodes')
+        MG.add_GOannotations()
+        MG.add_GOontology()
+        
+    elif args.data_source == 'fromUser':
+        print('loading user-provided GeneWalk Network from ', args.genes)
+        MG=Nx_MG_Assembler_fromUser(args.genes)
+    
+    else: 
+        print('Please specify data_source flag as PC, indra or fromUser')
 
-    print('adding genes nodes from INDRA stmts')
-    MG.MG_from_INDRA()
-    MG.add_FPLXannotations(args.fplx)
-    print('number of gene nodes',nx.number_of_nodes(MG.graph))
-    print('adding GO nodes')
-    MG.add_GOannotations()
-    MG.add_GOontology()
+    
     print('total number of nodes in network',nx.number_of_nodes(MG.graph))
 
     #pickle the network
