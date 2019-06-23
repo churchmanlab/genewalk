@@ -37,8 +37,8 @@ if __name__ == '__main__':
         MG.add_GOontology()
         
     elif args.data_source == 'indra':
-        print('Currently this option is not available for any gene list of interest yet, but it will \
-                become available to public use in the future. Choose PC as data_source for now instead \
+        print('Currently this option is not yet available for any user-provided gene list, but it will \
+                become available for public use in the future. Choose PC as data_source instead \
                 to run GeneWalk with a user-provided gene list. \
                 Now, we proceed to demonstrate the indra option by running GeneWalk on the JQ1 study \ 
                 described in Ietswaart et al.' )
