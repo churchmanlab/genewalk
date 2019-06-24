@@ -5,7 +5,6 @@ import time
 import argparse
 import pickle as pkl
 import networkx as nx
-import indra
 from genewalk.nx_mg_assembler import Nx_MG_Assembler_PC, Nx_MG_Assembler_INDRA, Nx_MG_Assembler_fromUser 
 from genewalk.deepwalk import DeepWalk
 
@@ -18,7 +17,7 @@ if __name__ == '__main__':
         indra, or a user-provided network from file (fromUser). \
         Set mouse_genes to True (default False) if the gene_list contains MGI identifiers instead of human genes. \ 
         A GeneWalk Network is then assembled and network representation learning performed.')
-    parser.add_argument('--genes', default='~/genewalk/gene_list.txt')
+    parser.add_argument('--genes', default='./genewalk/gene_list.txt')
     parser.add_argument('--data_source', default='PC')
     parser.add_argument('--mouse_genes', default=False)
     parser.add_argument('--Nreps', default=10)
