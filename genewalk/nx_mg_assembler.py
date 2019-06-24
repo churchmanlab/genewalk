@@ -1,13 +1,15 @@
-import itertools
-import networkx as nx
 import re
+import logging
+import itertools
 import pandas as pd
+import networkx as nx
 from indra.statements import *
+from indra.databases import hgnc_client
 from goatools.obo_parser import GODag
-from genewalk.genewalk.resources import get_go_obo, get_goa_gaf, get_pc
-from genewalk.genewalk.get_indra_stmts import load_genes
+from resources import get_go_obo, get_goa_gaf, get_pc
+from get_indra_stmts import load_genes
 
-
+logger = logging.getLogger(__name__)
 
 class Nx_MG_Assembler_PC(object):
     """The Nx_MG_Assembler_PC assembles a GeneWalk Network with gene reactions
@@ -54,13 +56,13 @@ class Nx_MG_Assembler_PC(object):
             for gsymbol in hg:
                 hgnc_id = hgnc_client.get_hgnc_id(gsymbol)
                 if not hgnc_id:
-                    print('Not included for analysis: could not find hgnc:id corresponding to %s' % gsymbol)
+                    logger.info('Not included for analysis: could not find hgnc:id corresponding to %s' % gsymbol)
                     hg.remove(gsymbol)
                     continue
                 hgncids.append(hgnc_id)
                 up_id = hgnc_client.get_uniprot_id(hgnc_id)
                 if not up_id:
-                    print('Could not find uniprot_id corresponding to hgnc %s' % hgnc_id)
+                    logger.info('Could not find uniprot_id corresponding to hgnc %s' % hgnc_id)
                     up_id = ''
                 upids.append(up_id)
             hg_dict['Symbol']=hg
@@ -70,13 +72,13 @@ class Nx_MG_Assembler_PC(object):
             for hgnc_id in hg:
                 gsymbol=hgnc_client.get_hgnc_name(hgnc_id)
                 if not gsymbol:
-                    print('Not included for analysis: could not find human gene symbol corresponding to %s' % hgnc_id)
+                    logger.info('Not included for analysis: could not find human gene symbol corresponding to %s' % hgnc_id)
                     hg.remove(hgnc_id)
                     continue
                 hsymbol.append(gsymbol)
                 up_id = hgnc_client.get_uniprot_id(hgnc_id)
                 if not up_id:
-                    print('Could not find uniprot_id corresponding to hgnc %s' % hgnc_id)
+                    logger.info('Could not find uniprot_id corresponding to hgnc %s' % hgnc_id)
                     up_id = ''
                 upids.append(up_id)
             hg_dict['HGNC']=hg
@@ -94,7 +96,7 @@ class Nx_MG_Assembler_PC(object):
                 mgi_id = mgi_id[4:]
             hgnc_id = hgnc_client.get_hgnc_from_mouse(mgi_id)
             if not hgnc_id:
-                print('Could not find human gene corresponding to MGI %s' % mgi_id)
+                logger.info('Could not find human gene corresponding to MGI %s' % mgi_id)
                 continue
             hgenes.append(hgnc_id)
         return hgenes
@@ -148,7 +150,7 @@ class Nx_MG_Assembler_PC(object):
         j=0#counter for duration
         for n in PC_nodes: 
             if j%100 == 0:
-                print(j,"/",N)
+                logger.info(j,"/",N)
             if 'UP' in self.graph.node[n].keys():#node is PC gene/protein
                 UP=self.graph.node[n]['UP']
                 GOan=self._GOA_from_UP(UP)
@@ -240,7 +242,7 @@ class Nx_MG_Assembler_INDRA(object):
         N=len(self.stmts)
         for i in range(N):
             if i%1000 == 0:
-                print(i,"/",N)
+                logger.info(i,"/",N)
             st = self.stmts[i]
             # Get all agents in the statement
             agents = st.agent_list()
@@ -250,7 +252,6 @@ class Nx_MG_Assembler_INDRA(object):
             if len(agents) < 2:#excludes (irrelevant) stmt types: Translocation, ActiveForm, SelfModification
                 continue
             edge_attr = str(i)+'_'+type(st).__name__
-            #print(edge_attr)
             #Iterate over all the agent combinations and add edge
             for a, b in itertools.combinations(agents, 2):
                 self._add_INnode_edge(a, b, edge_attr)
@@ -302,7 +303,7 @@ class Nx_MG_Assembler_INDRA(object):
         j=0#counter for duration
         for n in IN_nodes: 
             if j%100 == 0:
-                print(j,"/",N)
+                logger.info(j,"/",N)
             if 'UP' in self.graph.node[n].keys():#node is INDRA gene/protein
                 UP=self.graph.node[n]['UP']
                 GOan=self._GOA_from_UP(UP)
