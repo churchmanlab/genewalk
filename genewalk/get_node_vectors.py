@@ -12,17 +12,19 @@ from genewalk.deepwalk import DeepWalk
 if __name__ == '__main__':
     # Handle command line arguments
     parser = argparse.ArgumentParser(
-        description='Choose a path to the text file with genes of interest (default: ./genewalk/gene_list.txt). \
-        Decide which data_source is used: Pathway Commons (PC, default), \
+        description='Choose a folder where files will be generated (default: ~/genewalk/ ). \
+        Define filename of list with genes of interest (default: gene_list.txt). \
+        Decide which data_source is used: Pathway Commons (default: PC), \
         indra, or a user-provided network from file (fromUser). \
-        Set mouse_genes to True (default False) if the gene_list contains MGI identifiers instead of human genes. \ 
+        Set mouse_genes to True (default: False) if the gene_list contains MGI identifiers instead of human genes. \ 
         A GeneWalk Network is then assembled and network representation learning performed.')
-    parser.add_argument('--genes', default='./genewalk/gene_list.txt')
+    parser.add_argument('--path', default='~/genewalk/')###############This needs work: talk with Ben what is best set up
+    parser.add_argument('--genes', default='gene_list.txt')
     parser.add_argument('--data_source', default='PC')
     parser.add_argument('--mouse_genes', default=False)
     parser.add_argument('--Nreps', default=10)
     args = parser.parse_args()
-    path='./genewalk/'##########################################This needs work: talk with Ben what is best set up
+    self.path=path
     
     print('initializing network')
     if args.data_source == 'PC':
@@ -75,7 +77,7 @@ if __name__ == '__main__':
     #pickle the network
     filename='GeneWalk_MG.pkl'
     MGA=copy.deepcopy(MG.graph)
-    with open(path+filename, 'wb') as f:
+    with open(self.path+filename, 'wb') as f:
         pkl.dump(MGA,f,protocol=pkl.HIGHEST_PROTOCOL)
     del(MG)
 
@@ -98,8 +100,8 @@ if __name__ == '__main__':
         ### Pickle the node vectors (embeddings) and DW object
         nv = copy.deepcopy(DW.model.wv)
         filename='GeneWalk_DW_nv_'+str(rep)+'.pkl'
-        with open(path+filename, 'wb') as f:
+        with open(self.path+filename, 'wb') as f:
             pkl.dump(nv,f)
         filename='GeneWalk_DW_'+str(rep)+'.pkl'
-        with open(path+filename, 'wb') as f:
+        with open(self.path+filename, 'wb') as f:
             pkl.dump(DW,f)
