@@ -102,8 +102,8 @@ def run_repeat(rep):
 if __name__ == '__main__':
     # Handle command line arguments
     parser = argparse.ArgumentParser(
-        description=('Choose a path where GeneWalk files are '
-                     'generated (default: ~/genewalk/ ).'))
+        description=('Choose a path where GeneWalk files are \
+                     generated (default: ~/genewalk/ ).'))
     parser.add_argument('--path', default='~/genewalk/')
     parser.add_argument('--Nreps', default=15)
     parser.add_argument('--nproc', default=1)
