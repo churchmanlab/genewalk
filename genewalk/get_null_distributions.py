@@ -10,9 +10,7 @@ import networkx as nx
 from multiprocessing import Pool
 from genewalk.deepwalk import DeepWalk
 
-
 logger = logging.getLogger(__name__)
-
 
 def get_rand_graph(mg, seed):
     """argument: graph = the original nx (multi)graph.
@@ -102,8 +100,8 @@ def run_repeat(rep):
 if __name__ == '__main__':
     # Handle command line arguments
     parser = argparse.ArgumentParser(
-        description=('Choose a path where GeneWalk files are \
-                     generated (default: ~/genewalk/ ).'))
+        description=('Choose a path where GeneWalk files are '
+                     'generated (default: ~/genewalk/ ).'))
     parser.add_argument('--path', default='~/genewalk/')
     parser.add_argument('--Nreps', default=15)
     parser.add_argument('--nproc', default=1)
