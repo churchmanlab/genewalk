@@ -1,19 +1,51 @@
 #!/usr/bin/env python
-
+import os
 import copy
 import time
+import logging
 import argparse
+import functools
 import pickle as pkl
 import networkx as nx
-from genewalk.nx_mg_assembler import Nx_MG_Assembler_PC, Nx_MG_Assembler_INDRA, Nx_MG_Assembler_fromUser 
+from multiprocessing import Pool
 from genewalk.deepwalk import DeepWalk
+from genewalk.nx_mg_assembler import Nx_MG_Assembler_PC, Nx_MG_Assembler_INDRA, Nx_MG_Assembler_fromUser
+
+logger = logging.getLogger('genewalk.get_node_vectors')
+
+
+def run_repeat(rep, MGA):
+    logger.info('%s/%s' % (rep, args.Nreps))
+    DW = DeepWalk(graph=MGA)
+
+    logger.info('generate random walks')
+    start = time.time()
+    DW.get_walks()
+    end = time.time()
+    logger.info('DW.get_walks done %.2f' % (end - start))  # in sec
+
+    logger.info('generate node vectors')
+    start = time.time()
+    DW.word2vec()
+    end = time.time()
+    logger.info('DW.word2vec done %.2f' % (end - start))  # in sec
+
+    # Pickle the node vectors (embeddings) and DW object
+    nv = copy.deepcopy(DW.model.wv)
+    filename = 'GeneWalk_DW_nv_%d.pkl' % rep
+    with open(os.path.join(args.path, filename), 'wb') as f:
+        pkl.dump(nv, f)
+    filename = 'GeneWalk_DW_%d.pkl' % rep
+    with open(os.path.join(args.path, filename), 'wb') as f:
+        pkl.dump(DW, f)
+
 
 
 if __name__ == '__main__':
     # Handle command line arguments
     parser = argparse.ArgumentParser(
         description='Choose a folder where files will be generated (default: ~/genewalk/ ). \
-        Define filename of list with genes of interest (default: gene_list.txt). \
+        Define filename of list with genes of interest (default: gene_list.csv). \
         Decide which data_source is used: Pathway Commons (default: PC), \
         indra, or a user-provided network from file (fromUser). \
         Set mouse_genes to True (default: False) if the gene_list contains MGI identifiers instead of human genes. \ 
@@ -22,19 +54,19 @@ if __name__ == '__main__':
     parser.add_argument('--genes', default='gene_list.txt')
     parser.add_argument('--data_source', default='PC')
     parser.add_argument('--mouse_genes', default=False)
-    parser.add_argument('--Nreps', default=10)
+    parser.add_argument('--nproc', default=1, type=int)
+    parser.add_argument('--Nreps', default=10, type=int)
     args = parser.parse_args()
-    self.path=path
     
-    print('initializing network')
+    logger.info('initializing network')
     if args.data_source == 'PC':
-        MG=Nx_MG_Assembler_PC(args.genes)
+        MG=Nx_MG_Assembler_PC(os.path.join(args.path, args.genes))
         
-        print('adding gene nodes from Pathway Commons')
+        logger.info('adding gene nodes from Pathway Commons')
         MG.MG_from_PC()
-        print('number of PC originating nodes',nx.number_of_nodes(MG.graph))
+        logger.info('number of PC originating nodes %d' % nx.number_of_nodes(MG.graph))
         
-        print('adding GO nodes')
+        logger.info('adding GO nodes')
         MG.add_GOannotations()
         MG.add_GOontology()
         
@@ -44,64 +76,48 @@ if __name__ == '__main__':
                 to run GeneWalk with a user-provided gene list. \
                 Now, we proceed to demonstrate the indra option by running GeneWalk on the JQ1 study \ 
                 described in Ietswaart et al.' )
-        fstmts='./genewalk/JQ1_HGNCidForINDRA_stmts.pkl'
-        print('loading', fstmts)
-        with open(fstmts, 'rb') as f:
-            stmts=pkl.load(f)
+        
+        # Open pickled statements
+        fstmts='INDRA_stmts.pkl'
+        logger.info('loading %s' % fstmts)
+        with open(os.path.join(args.path, fstmts), 'rb') as f:
+            stmts = pkl.load(f)
 
         MG=Nx_MG_Assembler_INDRA(stmts)
-        del(stmts)
+        del stmts
         
         print('adding nodes from INDRA stmts')
         MG.MG_from_INDRA()
         
-        ffplx='./genewalk/JQ1_HGNCidForINDRA_fplx.txt'
-        MG.add_FPLXannotations(ffplx)
+        ffplx='INDRA_fplx.txt'
+        MG.add_FPLXannotations(os.path.join(args.path, ffplx))
         
-        print('number of INDRA originating nodes',nx.number_of_nodes(MG.graph))
+        logger.info('number of INDRA originating nodes %d' % nx.number_of_nodes(MG.graph))
         
-        print('adding GO nodes')
+        logger.info('adding GO nodes')
         MG.add_GOannotations()
         MG.add_GOontology()
         
     elif args.data_source == 'fromUser':
-        print('loading user-provided GeneWalk Network from ', args.genes)
-        MG=Nx_MG_Assembler_fromUser(args.genes)
+        logger.info('loading user-provided GeneWalk Network from %s' % args.genes)
+        MG=Nx_MG_Assembler_fromUser(os.path.join(args.path, args.genes))
     
     else: 
-        print('Please specify data_source flag as PC, indra or fromUser')
+        logger.info('Please specify data_source flag as PC, indra or fromUser')
 
-    
-    print('total number of nodes in network',nx.number_of_nodes(MG.graph))
+    logger.info('total number of nodes in network %d' % nx.number_of_nodes(MG.graph))
 
     #pickle the network
-    filename='GeneWalk_MG.pkl'
+    fmg='GeneWalk_MG.pkl'
     MGA=copy.deepcopy(MG.graph)
-    with open(self.path+filename, 'wb') as f:
+    with open(os.path.join(args.path, fmg), 'wb') as f:
         pkl.dump(MGA,f,protocol=pkl.HIGHEST_PROTOCOL)
-    del(MG)
+    del MG 
 
-    for rep in range(1,args.Nreps+1):
-        print(rep,'/',args.Nreps)
-        DW=DeepWalk(graph=MGA)
-
-        print('generate random walks')
-        start = time.time()
-        DW.get_walks()
-        end = time.time()
-        print('DW.get_walks done ',end - start)#in sec
-
-        print('generate node vectors')
-        start = time.time()
-        DW.word2vec()
-        end = time.time()
-        print('DW.word2vec done',end - start)#in sec
-
-        ### Pickle the node vectors (embeddings) and DW object
-        nv = copy.deepcopy(DW.model.wv)
-        filename='GeneWalk_DW_nv_'+str(rep)+'.pkl'
-        with open(self.path+filename, 'wb') as f:
-            pkl.dump(nv,f)
-        filename='GeneWalk_DW_'+str(rep)+'.pkl'
-        with open(self.path+filename, 'wb') as f:
-            pkl.dump(DW,f)
+    pool = Pool(args.nproc) if args.nproc > 1 else None
+    if pool:
+        run_repeat_wrapper = functools.partial(run_repeat, MGA=MGA)
+        pool.map(run_repeat_wrapper, range(1, args.Nreps + 1))
+    else:
+        for rep in range(1, args.Nreps + 1):
+            run_repeat(rep, MGA)
