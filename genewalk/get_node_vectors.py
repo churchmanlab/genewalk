@@ -11,8 +11,7 @@ from multiprocessing import Pool
 from deepwalk import DeepWalk
 from nx_mg_assembler import Nx_MG_Assembler_PC, Nx_MG_Assembler_INDRA, Nx_MG_Assembler_fromUser
 
-logger = logging.getLogger('genewalk.get_node_vectors')
-
+logger = logging.getLogger(__name__)
 
 def run_repeat(rep, MGA):
     logger.info('%s/%s' % (rep, args.Nreps))
@@ -83,7 +82,7 @@ if __name__ == '__main__':
         MG=Nx_MG_Assembler_INDRA(stmts)
         del stmts
         
-        print('adding nodes from INDRA stmts')
+        logger.info('adding nodes from INDRA stmts')
         MG.MG_from_INDRA()
         
         ffplx='INDRA_fplx.txt'
