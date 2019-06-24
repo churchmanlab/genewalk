@@ -8,8 +8,8 @@ import functools
 import pickle as pkl
 import networkx as nx
 from multiprocessing import Pool
-from genewalk.deepwalk import DeepWalk
-from genewalk.nx_mg_assembler import Nx_MG_Assembler_PC, Nx_MG_Assembler_INDRA, Nx_MG_Assembler_fromUser
+from deepwalk import DeepWalk
+from nx_mg_assembler import Nx_MG_Assembler_PC, Nx_MG_Assembler_INDRA, Nx_MG_Assembler_fromUser
 
 logger = logging.getLogger('genewalk.get_node_vectors')
 
@@ -44,12 +44,13 @@ def run_repeat(rep, MGA):
 if __name__ == '__main__':
     # Handle command line arguments
     parser = argparse.ArgumentParser(
-        description='Choose a folder where files will be generated (default: ~/genewalk/ ). \
-        Define filename of list with genes of interest (default: gene_list.csv). \
-        Decide which data_source is used: Pathway Commons (default: PC), \
-        indra, or a user-provided network from file (fromUser). \
-        Set mouse_genes to True (default: False) if the gene_list contains MGI identifiers instead of human genes. \ 
-        A GeneWalk Network is then assembled and network representation learning performed.')
+        description='Choose a folder where files will be generated (default: ~/genewalk/ ). '
+        'Define filename of list with genes of interest (default: gene_list.csv). '
+        'Decide which data_source is used: Pathway Commons (default: PC), indra, '
+        'or a user-provided network from file (fromUser). '
+        'Set mouse_genes to True (default: False) if the gene_list contains MGI identifiers '
+        'instead of human genes. '
+        'A GeneWalk Network is then assembled and network representation learning performed.')
     parser.add_argument('--path', default='~/genewalk/')###############This needs work: talk with Ben what is best set up
     parser.add_argument('--genes', default='gene_list.txt')
     parser.add_argument('--data_source', default='PC')
@@ -60,7 +61,7 @@ if __name__ == '__main__':
     
     logger.info('initializing network')
     if args.data_source == 'PC':
-        MG=Nx_MG_Assembler_PC(os.path.join(args.path, args.genes))
+        MG=Nx_MG_Assembler_PC(os.path.join(args.path, args.genes),mouse_genes=args.mouse_genes)
         
         logger.info('adding gene nodes from Pathway Commons')
         MG.MG_from_PC()
@@ -71,11 +72,7 @@ if __name__ == '__main__':
         MG.add_GOontology()
         
     elif args.data_source == 'indra':
-        print('Currently this option is not yet available for any user-provided gene list, but it will \
-                become available for public use in the future. Choose PC as data_source instead \
-                to run GeneWalk with a user-provided gene list. \
-                Now, we proceed to demonstrate the indra option by running GeneWalk on the JQ1 study \ 
-                described in Ietswaart et al.' )
+        logger.info('Currently this option is not yet available for any user-provided gene list, but it will become available for public use in the future. Choose PC as data_source instead to run GeneWalk with a user-provided gene list. Now, we proceed to demonstrate the indra option by running GeneWalk on the JQ1 study described in Ietswaart et al.' )
         
         # Open pickled statements
         fstmts='INDRA_stmts.pkl'
