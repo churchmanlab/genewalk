@@ -3,12 +3,12 @@ import gzip
 import shutil
 import logging
 import urllib.request
-#from . import __version__ #somehow this didn't work: ImportError
+
 
 logger = logging.getLogger(__name__)
 
 home_dir = os.path.expanduser('/n/groups/churchman/ri23/')#TEMP###################, change back to '~'
-resource_dir = os.path.join(home_dir, 'genewalk','resources')#__version__)
+resource_dir = os.path.join(home_dir, 'genewalk','resources')
 
 if not os.path.isdir(resource_dir):
     try:
