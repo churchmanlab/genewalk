@@ -28,7 +28,7 @@ with the Pathway Commons data source (currently default):
 ```
 python -u get_node_vectors.py --path ${outDir} > ${outDir}/LogErr/get_node_vectors.log  
 python -u get_null_distributions.py --path ${outDir} > ${outDir}/LogErr/get_null_distributions.log  
-python -u genewalk.py --path ${outDir} > ${outDir}/LogErr/genewalk.log
+python -u perform_statistics.py --path ${outDir} > ${outDir}/LogErr/genewalk.log
 ```
 
 ### Optional: GeneWalk with INDRA data source
@@ -39,5 +39,5 @@ pip install indra
 python get_indra_stmts.py
 python -u get_node_vectors.py --path ${outDir} > ${outDir}/LogErr/get_node_vectors.log  
 python -u get_null_distributions.py --path ${outDir} > ${outDir}/LogErr/get_null_distributions.log
-python -u genewalk.py --path ${outDir} > ${outDir}/LogErr/genewalk.log
+python -u perform_statistics.py --path ${outDir} > ${outDir}/LogErr/genewalk.log
 ```
