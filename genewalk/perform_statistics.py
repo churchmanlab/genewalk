@@ -22,7 +22,7 @@ class GeneWalk(object):
 
     Parameters
     ----------
-    fgenes : filename of input list with HGNC ids (or MGI ids) from genes of interest,
+    fgenes : filename of input list with HGNC ids (or MGI ids) from genes of interest (default: gene_list.csv),
     mouse_genes : set to True if the input list are MGI:IDs from mouse genes (default: False)
 
     Attributes
@@ -37,10 +37,11 @@ class GeneWalk(object):
 
     def __init__(self,
                  path='~/genewalk/',############this needs proper fix: talk with Ben for best strategy
-                 fgenes,
+                 fgenes='gene_list.csv'),
                  mouse_genes=False):
 
         self.path=path
+        self.Nreps=10#this is unfinished: it needs to be recognized based on the output files from get_node_vectors.py
         self.mouse_genes=mouse_genes
         if self.mouse_genes:
             self.mdf=pd.DataFrame()
