@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
     # load multigraph
     with open(os.path.join(os.path.expanduser(args.path),
-                           'GeneWalk_MG_QKI.pkl'), 'rb') as f:
+                           'GeneWalk_MG.pkl'), 'rb') as f:
         MGA = pkl.load(f)
 
     pool = Pool(args.nproc) if args.nproc > 1 else None
