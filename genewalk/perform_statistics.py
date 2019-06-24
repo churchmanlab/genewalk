@@ -1,20 +1,22 @@
+import copy
+import logging
+import argparse
 import pandas as pd
 import numpy as np
 import pickle as pkl
 import networkx as nx
-import copy
 from indra.databases import hgnc_client
 import statsmodels.stats.multitest
 from genewalk.get_indra_stmts import load_genes
 
-
+logger = logging.getLogger(__name__)
 
 class GeneWalk(object):
     """GeneWalk object that generates the final output list of significant GO terms
-    for each gene in the input list with genes of interest from an experiment, for example differentially expressed genes \
+    for each gene in the input list with genes of interest from an experiment, for example differentially expressed genes
     or CRISPR screen hits.
     If an input gene is not in the output file, this could have the following reasons:
-    1) No reaction statements could be retrieved from the data_source selected \
+    1) No reaction statements could be retrieved from the data_source selected
     in get_node_vectors.py (Pathway Commons, indra or fromUser).
     2) No connected (annotated) GO terms are present in the GeneWalk Network.
     3) (In case of mouse genes) no mapped human ortholog was identified.
@@ -95,7 +97,7 @@ class GeneWalk(object):
         else:  # human genes
             hgncid = self.hgncid
         for rep in range(1, self.Nreps + 1):
-            print(rep, '/', self.Nreps)
+            logger.info(rep, '/', self.Nreps)
 
             # load node vectors
             fnv=self.fnv_prefix+'_'+str(rep)+'.pkl'
@@ -240,7 +242,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Choose a path to the gene list.')
     parser.add_argument('--path', default='~/genewalk/')
-    parser.add_argument('--genes', default='JQ1_HGNCidForINDRA.csv')
+    parser.add_argument('--genes', default='gene_list.csv')
     parser.add_argument('--alpha_FDR', default=1)
     parser.add_argument('--mouse_genes',default=False)
     parser.add_argument('--filename_out',default='GeneWalk.csv')
