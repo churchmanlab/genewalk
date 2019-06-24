@@ -4,7 +4,6 @@ import shutil
 import logging
 import urllib.request
 
-
 logger = logging.getLogger(__name__)
 
 home_dir = os.path.expanduser('/n/groups/churchman/ri23/')#TEMP###################, change back to '~'
