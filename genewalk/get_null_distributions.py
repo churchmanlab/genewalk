@@ -68,17 +68,18 @@ def get_null_distributions(rg, nv):
         if node in connections:
             connections.remove(node)
         N_con_source = len(connections)
-        sim_dist = list(1-nv.distances(node, other_words=connections))
-        for inb in range(len(connections)):
-            nb = connections[inb]
-            N_con_neighbor = len(rg[nb])
-            # make log2 scale categories of connectivity
-            key = 'd' + str(np.floor(np.log2(min(N_con_source,
-                                                 N_con_neighbor))))
-            if key in srd:
-                srd[key].append(sim_dist[inb])
-            else:
-                srd[key] = [sim_dist[inb]]
+        if N_con_source > 0:
+            sim_dist = list(1-nv.distances(node, other_words=connections))
+            for inb in range(len(connections)):
+                nb = connections[inb]
+                N_con_neighbor = len(rg[nb])
+                # make log2 scale categories of connectivity
+                key = 'd' + str(np.floor(np.log2(min(N_con_source,
+                                                     N_con_neighbor))))
+                if key in srd:
+                    srd[key].append(sim_dist[inb])
+                else:
+                    srd[key] = [sim_dist[inb]]
     return srd
 
 
@@ -124,7 +125,10 @@ if __name__ == '__main__':
     srd = {}
     for sr in srs:
         for k, v in sr.items():
-            srd[k] = v
+            if k in srd:
+                srd[k].extend(v)
+            else:
+                srd[k] = v
 
     # To improve search speed: convert lists with similarities
     # to sorted numpy arrays.
