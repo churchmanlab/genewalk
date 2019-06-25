@@ -5,7 +5,7 @@ import networkx as nx #v2.2
 from gensim.models import Word2Vec
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('genewalk.deepwalk')
 
 
 class DeepWalk(object):
