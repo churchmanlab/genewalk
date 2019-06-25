@@ -63,13 +63,13 @@ if __name__ == '__main__':
     if args.data_source == 'PC':
         MG=Nx_MG_Assembler_PC(os.path.join(args.path, args.genes),mouse_genes=args.mouse_genes)
         
-#         logger.info('adding gene nodes from Pathway Commons')
-#         MG.MG_from_PC()
-#         logger.info('number of PC originating nodes %d' % nx.number_of_nodes(MG.graph))
+        logger.info('adding gene nodes from Pathway Commons')
+        MG.MG_from_PC()
+        logger.info('number of PC originating nodes %d' % nx.number_of_nodes(MG.graph))
         
-#         logger.info('adding GO nodes')
-#         MG.add_GOannotations()
-#         MG.add_GOontology()
+        logger.info('adding GO nodes')
+        MG.add_GOannotations()
+        MG.add_GOontology()
         
     elif args.data_source == 'indra':
         logger.info('Currently this option is not yet available for any user-provided gene list, but it will become available for public use in the future. Choose PC as data_source instead to run GeneWalk with a user-provided gene list. Now, we proceed to demonstrate the indra option by running GeneWalk on the JQ1 study described in Ietswaart et al.' )
@@ -104,17 +104,17 @@ if __name__ == '__main__':
 
     logger.info('total number of nodes in network %d' % nx.number_of_nodes(MG.graph))
 
-#     #pickle the network
-#     fmg='GeneWalk_MG.pkl'
-#     MGA=copy.deepcopy(MG.graph)
-#     with open(os.path.join(args.path, fmg), 'wb') as f:
-#         pkl.dump(MGA,f,protocol=pkl.HIGHEST_PROTOCOL)
-#     del MG 
+    #pickle the network
+    fmg='GeneWalk_MG.pkl'
+    MGA=copy.deepcopy(MG.graph)
+    with open(os.path.join(args.path, fmg), 'wb') as f:
+        pkl.dump(MGA,f,protocol=pkl.HIGHEST_PROTOCOL)
+    del MG 
 
-#     pool = Pool(args.nproc) if args.nproc > 1 else None
-#     if pool:
-#         run_repeat_wrapper = functools.partial(run_repeat, MGA=MGA)
-#         pool.map(run_repeat_wrapper, range(1, args.Nreps + 1))
-#     else:
-#         for rep in range(1, args.Nreps + 1):
-#             run_repeat(rep, MGA)
+    pool = Pool(args.nproc) if args.nproc > 1 else None
+    if pool:
+        run_repeat_wrapper = functools.partial(run_repeat, MGA=MGA)
+        pool.map(run_repeat_wrapper, range(1, args.Nreps + 1))
+    else:
+        for rep in range(1, args.Nreps + 1):
+            run_repeat(rep, MGA)
