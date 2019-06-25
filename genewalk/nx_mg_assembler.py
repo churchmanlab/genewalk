@@ -9,7 +9,7 @@ from goatools.obo_parser import GODag
 from resources import get_go_obo, get_goa_gaf, get_pc
 from get_indra_stmts import load_genes
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('genewalk.nx_mg_assembler')
 
 class Nx_MG_Assembler_PC(object):
     """The Nx_MG_Assembler_PC assembles a GeneWalk Network with gene reactions
