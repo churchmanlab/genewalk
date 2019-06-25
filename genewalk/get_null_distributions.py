@@ -10,7 +10,7 @@ import networkx as nx
 from multiprocessing import Pool
 from genewalk.deepwalk import DeepWalk
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('genewalk.get_null_distributions')
 
 def get_rand_graph(mg, seed):
     """argument: graph = the original nx (multi)graph.
@@ -106,7 +106,8 @@ if __name__ == '__main__':
     parser.add_argument('--Nreps', default=15)
     parser.add_argument('--nproc', default=1)
     args = parser.parse_args()
-
+    logger.addHandler(logging.FileHandler(os.path.join(args.path,'%s.log' % logger.name))) 
+    
     # load multigraph
     with open(os.path.join(os.path.expanduser(args.path),
                            'GeneWalk_MG.pkl'), 'rb') as f:
