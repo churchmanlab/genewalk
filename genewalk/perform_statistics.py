@@ -9,7 +9,7 @@ from indra.databases import hgnc_client
 import statsmodels.stats.multitest
 from genewalk.get_indra_stmts import load_genes
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('genewalk.perform_statistics')
 
 class GeneWalk(object):
     """GeneWalk object that generates the final output list of significant GO terms
@@ -247,6 +247,7 @@ if __name__ == '__main__':
     parser.add_argument('--mouse_genes',default=False)
     parser.add_argument('--filename_out',default='GeneWalk.csv')
     args = parser.parse_args()
-
+    logger.addHandler(logging.FileHandler(os.path.join(args.path,'LogErr','%s.log' % logger.name))) 
+    
     GW=GeneWalk(path=args.path,fgenes=args.genes,mouse_genes=args.mouse_genes)
     GW.generate_output(alpha_FDR=args.alpha_FDR,fname_out=args.filename_out)
