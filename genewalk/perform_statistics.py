@@ -7,7 +7,7 @@ import pickle as pkl
 import networkx as nx
 from indra.databases import hgnc_client
 import statsmodels.stats.multitest
-from genewalk.get_indra_stmts import load_genes
+from genewalk.genewalk.get_indra_stmts import load_genes
 
 logger = logging.getLogger('genewalk.perform_statistics')
 
@@ -39,7 +39,7 @@ class GeneWalk(object):
 
     def __init__(self,
                  path='~/genewalk/',############this needs proper fix: talk with Ben for best strategy
-                 fgenes='gene_list.csv'),
+                 fgenes='gene_list.csv',
                  mouse_genes=False):
 
         self.path=path
@@ -57,11 +57,11 @@ class GeneWalk(object):
             self.graph=pkl.load(f)
         self.GO_nodes=set(nx.get_node_attributes(self.graph,'GO'))
         
-        self.fnv_prefix='GeneWalk_DW_nv'#fnv_prefix
+        self.fnv_prefix='GeneWalk_DW_nv_'#fnv_prefix
         self.nv=[]#node vectors, defined in generate_output
         
         # Load similarity null distributions for significance testing
-        fnull_dist='GeneWalk_DW_rand_simdists.pkl',
+        fnull_dist='GeneWalk_DW_rand_simdists.pkl'
         with open(self.path+fnull_dist, 'rb') as f:
             self.srd = pkl.load(f)
         self.outdfs=dict()
@@ -97,10 +97,10 @@ class GeneWalk(object):
         else:  # human genes
             hgncid = self.hgncid
         for rep in range(1, self.Nreps + 1):
-            logger.info(rep, '/', self.Nreps)
+            logger.info('%s/%s' % (rep, self.Nreps))
 
             # load node vectors
-            fnv=self.fnv_prefix+'_'+str(rep)+'.pkl'
+            fnv=self.fnv_prefix+str(rep)+'.pkl'
             with open(self.path+fnv, 'rb') as f:
                 self.nv=pkl.load(f)
             g_view=nx.nodes(self.graph)
