@@ -150,7 +150,7 @@ class Nx_MG_Assembler_PC(object):
         j=0#counter for duration
         for n in PC_nodes: 
             if j%100 == 0:
-                logger.info(j,"/",N)
+                logger.info("%d / %d" % (j , N))
             if 'UP' in self.graph.node[n].keys():#node is PC gene/protein
                 UP=self.graph.node[n]['UP']
                 GOan=self._GOA_from_UP(UP)
@@ -242,7 +242,7 @@ class Nx_MG_Assembler_INDRA(object):
         N=len(self.stmts)
         for i in range(N):
             if i%1000 == 0:
-                logger.info(i,"/",N)
+                logger.info("%d / %d" % (i , N))
             st = self.stmts[i]
             # Get all agents in the statement
             agents = st.agent_list()
@@ -303,7 +303,7 @@ class Nx_MG_Assembler_INDRA(object):
         j=0#counter for duration
         for n in IN_nodes: 
             if j%100 == 0:
-                logger.info(j,"/",N)
+                logger.info("%d / %d" % (j , N))
             if 'UP' in self.graph.node[n].keys():#node is INDRA gene/protein
                 UP=self.graph.node[n]['UP']
                 GOan=self._GOA_from_UP(UP)
