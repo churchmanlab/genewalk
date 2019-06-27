@@ -16,7 +16,7 @@ from indra.databases import hgnc_client
 from indra.preassembler.hierarchy_manager import hierarchies
 
 
-logger = logging.getLogger('genewalk.make_indra_sif')
+logger = logging.getLogger('genewalk.get_indra_stmts')
 
 
 def load_genes(fname):
@@ -43,7 +43,7 @@ def load_mouse_genes(fname):
             mgi_id = mgi_id[4:]
         hgnc_id = hgnc_client.get_hgnc_from_mouse(mgi_id)
         if not hgnc_id:
-            print('Could not find human gene corresponding to %s' % mgi_id)
+            print('Could not find human gene corresponding to MGI %s' % mgi_id)
             continue
         genes.append(hgnc_id)
     return genes
@@ -146,6 +146,8 @@ if __name__ == '__main__':
     parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
     parser.add_argument('--fplx', default='data/JQ1_HGNCidForINDRA_fplx.txt')
     args = parser.parse_args()
+    logger.addHandler(logging.FileHandler(os.path.join(args.path,'LogErr','%s.log' % logger.name))) 
+    
     # Load genes and get FamPlex terms
     if args.mouse_genes:
         genes = load_mouse_genes(args.mouse_genes)
