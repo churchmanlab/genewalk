@@ -56,8 +56,6 @@ class GeneWalk(object):
         with open(self.path+fmg, 'rb') as f:
             self.graph=pkl.load(f)
         self.GO_nodes=set(nx.get_node_attributes(self.graph,'GO'))
-        
-        self.fnv_prefix='GeneWalk_DW_nv_'#fnv_prefix
         self.nv=[]#node vectors, defined in generate_output
         
         # Load similarity null distributions for significance testing
@@ -100,7 +98,7 @@ class GeneWalk(object):
             logger.info('%s/%s' % (rep, self.Nreps))
 
             # load node vectors
-            fnv=self.fnv_prefix+str(rep)+'.pkl'
+            fnv='GeneWalk_DW_nv_'+str(rep)+'.pkl'
             with open(self.path+fnv, 'rb') as f:
                 self.nv=pkl.load(f)
             g_view=nx.nodes(self.graph)
