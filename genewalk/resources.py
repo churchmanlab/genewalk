@@ -6,7 +6,7 @@ import urllib.request
 
 logger = logging.getLogger('genewalk.resources')
 
-home_dir = os.path.expanduser('/n/groups/churchman/ri23/')#TEMP###################, change back to '~'
+home_dir = os.path.expanduser('~/')
 resource_dir = os.path.join(home_dir, 'genewalk','resources')
 
 logger.addHandler(logging.FileHandler(os.path.join(resource_dir,'%s.log' % logger.name))) 
