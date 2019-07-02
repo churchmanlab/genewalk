@@ -5,11 +5,11 @@ and familiex/complexes of interest, as well as targeted biological processes.
 It downloads the relevant Statement objects for reference and dumps them into
 a pickle file.
 """
+import os
 import pandas
 import pickle
 import logging
 import argparse
-import itertools
 from indra.util import batch_iter
 from indra.sources import indra_db_rest
 from indra.databases import hgnc_client
@@ -146,7 +146,10 @@ if __name__ == '__main__':
     parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
     parser.add_argument('--fplx', default='data/JQ1_HGNCidForINDRA_fplx.txt')
     args = parser.parse_args()
-    logger.addHandler(logging.FileHandler(os.path.join(args.path,'LogErr','%s.log' % logger.name))) 
+    log_handler = logging.FileHandler(os.path.join(args.path,
+                                                   'LogErr',
+                                                   '%s.log' % logger.name))
+    logger.addHandler(log_handler)
     
     # Load genes and get FamPlex terms
     if args.mouse_genes:

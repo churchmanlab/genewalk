@@ -8,8 +8,9 @@ import functools
 import pickle as pkl
 import networkx as nx
 from multiprocessing import Pool
-from deepwalk import DeepWalk
-from nx_mg_assembler import Nx_MG_Assembler_PC, Nx_MG_Assembler_INDRA, Nx_MG_Assembler_fromUser
+from genewalk.deepwalk import DeepWalk
+from genewalk.nx_mg_assembler import Nx_MG_Assembler_PC, \
+    Nx_MG_Assembler_INDRA, Nx_MG_Assembler_fromUser
 
 logger = logging.getLogger('genewalk.get_node_vectors')
 

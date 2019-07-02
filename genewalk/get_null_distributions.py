@@ -12,6 +12,7 @@ from genewalk.deepwalk import DeepWalk
 
 logger = logging.getLogger('genewalk.get_null_distributions')
 
+
 def get_rand_graph(mg, seed):
     """argument: graph = the original nx (multi)graph.
     -Determines degree of multigraph for each node

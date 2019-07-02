@@ -3,11 +3,10 @@ import logging
 import itertools
 import pandas as pd
 import networkx as nx
-from indra.statements import *
 from indra.databases import hgnc_client
 from goatools.obo_parser import GODag
-from resources import get_go_obo, get_goa_gaf, get_pc
-from get_indra_stmts import load_genes
+from genewalk.resources import get_go_obo, get_goa_gaf, get_pc
+from genewalk.get_indra_stmts import load_genes
 
 logger = logging.getLogger('genewalk.nx_mg_assembler')
 

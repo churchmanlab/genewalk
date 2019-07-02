@@ -7,9 +7,10 @@ import urllib.request
 logger = logging.getLogger('genewalk.resources')
 
 home_dir = os.path.expanduser('~/')
-resource_dir = os.path.join(home_dir, 'genewalk','resources')
+resource_dir = os.path.join(home_dir, 'genewalk', 'resources')
 
-logger.addHandler(logging.FileHandler(os.path.join(resource_dir,'%s.log' % logger.name))) 
+logger.addHandler(logging.FileHandler(os.path.join(resource_dir, '%s.log' %
+                                                   logger.name)))
 
 if not os.path.isdir(resource_dir):
     try:
@@ -44,13 +45,14 @@ def get_goa_gaf():
     fname = os.path.join(resource_dir, 'goa_human.gaf')
     if not os.path.exists(fname):
         url_goa = 'http://geneontology.org/gene-associations/goa_human.gaf.gz'
-        download_gz(fname,url_goa)
+        download_gz(fname, url_goa)
     return fname
 
 
 def get_pc():
     fname = os.path.join(resource_dir, 'PathwayCommons11.All.hgnc.sif')
     if not os.path.exists(fname):
-        url_pc = 'http://www.pathwaycommons.org/archives/PC2/v11/PathwayCommons11.All.hgnc.sif.gz'
+        url_pc = ('http://www.pathwaycommons.org/archives/PC2/v11/'
+                  'PathwayCommons11.All.hgnc.sif.gz')
         download_gz(fname,url_pc)
     return fname
