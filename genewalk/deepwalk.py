@@ -1,7 +1,13 @@
+"""
+This module implements a wrapper around DeepWalk as a class. The class
+contains a graph used as a basis for running the Deepwalk algorithm. It also
+implements a method to run a given number of walks and save the walks as an
+attribute of the instance.
+"""
 import time
 import random
 import logging
-import networkx as nx #v2.2
+import networkx as nx
 from gensim.models import Word2Vec
 
 
@@ -9,13 +15,13 @@ logger = logging.getLogger('genewalk.deepwalk')
 
 
 class DeepWalk(object):
-    """Perform DeepWalk (node2vec), ie unbiased random walk over nodes
+    """Perform DeepWalk (node2vec), i.e., unbiased random walk over nodes
     on an undirected networkx MultiGraph.
 
     Parameters
     ----------
     graph : networkx.MultiGraph
-        A networkx multigraph to be used as the basis for node2vec.
+        A networkx multigraph to be used as the basis for DeepWalk.
     walk_length : Optional[int]
         Default: 10
     N_iterations : Optional[int]
@@ -26,7 +32,7 @@ class DeepWalk(object):
     walks : list
         A list of walks.
     N_walks : int
-        Total number of random walks.
+        Total number of random walks that were sampled.
     """
     def __init__(self, graph, walk_length=10, N_iterations=100):
         self.graph = graph
@@ -42,7 +48,7 @@ class DeepWalk(object):
         networkx MultiGraph.
         """
         start = time.time()
-        g_view=nx.nodes(self.graph)
+        g_view = nx.nodes(self.graph)
         for u in g_view:
             self.N_walks = self.N_walks + len(self.graph[u])
         self.N_walks = self.N_walks * self.N_iter
@@ -57,7 +63,7 @@ class DeepWalk(object):
                     if count % 10000 == 0:
                         logger.info('%d/%d %s' % (count, self.N_walks,
                                     time.time() - start))
-                    self._graph_walk(count,u)
+                    self._graph_walk(count, u)
                     count += 1
 
     def _graph_walk(self, idx, u):
@@ -77,6 +83,10 @@ class DeepWalk(object):
             self.walks[idx][i] = random.choice(list(self.graph[u]))
             u = self.walks[idx][i]
 
+    # TODO: set worker size depending on the number of processors,
+    #  do a benchmark on a large machine to see how much workers defined
+    #  here speed up the process. If it scales well, we can do
+    #  parallelization at this level only.
     def word2vec(self, sg=1, size=8, window=1, min_count=1, negative=5,
                  workers=4, sample=0):
         """Set the model based on Word2Vec
