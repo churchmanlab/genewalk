@@ -1,9 +1,9 @@
-import sys
 from setuptools import setup
 
 
 def main():
-    install_list = ['numpy', 'pandas', 'networkx>=2.1', 'gensim', 'goatools']
+    install_list = ['numpy', 'pandas', 'networkx>=2.1', 'gensim', 'goatools',
+                    'indra']
 
     setup(name='genewalk',
           version='0.0.1',
@@ -24,7 +24,6 @@ def main():
           keywords=['gene function', 'network', 'embedding'],
           packages=['genewalk'],
           install_requires=install_list,
-          extras_require={'indra': ['indra']},
           tests_require=['nose'],
           include_package_data=True,
         )
