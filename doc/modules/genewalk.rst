@@ -1,7 +1,21 @@
-Node2Vec (:py:mod:`genewalk.node2vec`)
+Calculate node vectors (:py:mod:`genewalk.get_node_vectors`)
+============================================================
+
+.. automodule:: genewalk.get_node_vectors
+    :members:
+    :show-inheritance:
+
+Calculate null distributions (:py:mod:`genewalk.calculate_null_distributions`)
+==============================================================================
+
+.. automodule:: genewalk.calculate_null_distributions
+    :members:
+    :show-inheritance:
+
+DeepWalk (:py:mod:`genewalk.deepwalk`)
 ======================================
 
-.. automodule:: genewalk.node2vec
+.. automodule:: genewalk.deepwalk
     :members:
     :show-inheritance:
 
@@ -16,5 +30,12 @@ Get relevant INDRA Statements (:py:mod:`genewalk.get_indra_stmts`)
 ==================================================================
 
 .. automodule:: genewalk.get_indra_stmts
+    :members:
+    :show-inheritance:
+
+Perform statistics (:py:mod:`genewalk.perform_statistics`)
+==========================================================
+
+.. automodule:: genewalk.perform_statistics
     :members:
     :show-inheritance:
