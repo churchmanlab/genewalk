@@ -5,10 +5,10 @@ Calculate node vectors (:py:mod:`genewalk.get_node_vectors`)
     :members:
     :show-inheritance:
 
-Calculate null distributions (:py:mod:`genewalk.calculate_null_distributions`)
-==============================================================================
+Calculate null distributions (:py:mod:`genewalk.get_null_distributions`)
+========================================================================
 
-.. automodule:: genewalk.calculate_null_distributions
+.. automodule:: genewalk.get_null_distributions
     :members:
     :show-inheritance:
 
