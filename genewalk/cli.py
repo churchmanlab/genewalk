@@ -1,7 +1,17 @@
 import os
 import argparse
+from genewalk.nx_mg_assembler import load_network
+from genewalk.gene_lists import read_gene_list
+from genewalk.get_node_vectors import run_repeat
 
 default_base_folder = os.path.join(os.path.expanduser('~/'), 'genewalk')
+
+
+def create_project_folder(base_folder, project):
+    project_folder = os.path.join(base_folder, project)
+    if not os.path.exists(project_folder):
+     os.makedirs(project_folder)
+    return project_folder
 
 
 if __name__ == '__main__':
@@ -56,3 +66,11 @@ if __name__ == '__main__':
                         help='The number of repeats to run when calculating '
                              'node vectors, and the null distribution.')
     args = parser.parse_args()
+
+    # Now we run the relevant stage of processing
+    project_folder = create_project_folder(args.base_folder, args.project)
+    if args.stage == 'node_vectors':
+        genes = read_gene_list(args.genes, args.id_type)
+        MG = load_network(args.network_source, args.network_file, genes)
+        for i in args.nreps:
+            run_repeat(i, MG)
