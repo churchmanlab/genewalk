@@ -1,8 +1,14 @@
 import os
+import copy
+import pickle
+import logging
 import argparse
 from genewalk.nx_mg_assembler import load_network
 from genewalk.gene_lists import read_gene_list
 from genewalk.get_node_vectors import run_repeat
+
+
+logger = logging.getLogger('genewalk.cli')
 
 default_base_folder = os.path.join(os.path.expanduser('~/'), 'genewalk')
 
@@ -12,6 +18,12 @@ def create_project_folder(base_folder, project):
     if not os.path.exists(project_folder):
      os.makedirs(project_folder)
     return project_folder
+
+
+def save_pickle(obj, project_folder, prefix):
+    fname = os.path.join(project_folder, '%s.pkl' % prefix)
+    with open(fname, 'wb') as fh:
+        pickle.dump(fh, obj, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 if __name__ == '__main__':
@@ -72,5 +84,14 @@ if __name__ == '__main__':
     if args.stage == 'node_vectors':
         genes = read_gene_list(args.genes, args.id_type)
         MG = load_network(args.network_source, args.network_file, genes)
+        save_pickle(MG, project_folder, 'genewalk_mg')
         for i in args.nreps:
-            run_repeat(i, MG)
+            logger.info('%s/%s' % (i + 1, args.nreps))
+            DW = run_repeat(i, MG)
+
+            # Pickle the node vectors (embeddings) and DW object
+            save_pickle(DW, project_folder, 'genewalk_dw_%d' % i)
+            nv = copy.deepcopy(DW.model.wv)
+            save_pickle(nv, project_folder, 'genewalk_dw_nv_%d' % i)
+
+    if args.stage == 'null_distributions':
