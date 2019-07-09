@@ -84,84 +84,15 @@ class Nx_MG_Assembler_PC(object):
     OGO : goatools.GODag
         GO ontology, GODag object (see goatools) 
     """
-    def __init__(self,fgenes,mouse_genes=False):
-        self.mouse_genes=mouse_genes
-        self.hgenes=self._get_hgenes(fgenes)  # dataframe with columns:
-        # gene symbols ('Symbol'), HGNC ids ('HGNC') and uniprot IDs ('UP').
+    def __init__(self, genes):
+        self.genes = genes
         self.graph = nx.MultiGraph()
         self.PC = []
         self.GOA = []
         self.OGO = []
         self.EC_GOA = ['EXP', 'IDA', 'IPI', 'IMP', 'IGI', 'IEP', 'HTP', 'HDA',
                        'HMP', 'HGI', 'HEP', 'IBA', 'IBD']
-    
-    def _get_hgenes(self, fname):
-        hg = []
-        hg_dict = {}
-        upids = []
-        if self.mouse_genes:
-            # read MGI:IDs and get mapped HGNC:IDs
-            hg = self._load_mouse_genes(fname)
-        else:
-            # read HGNC:IDs or HGNC gene symbols
-            hg = load_genes(fname)
-        # human gene symbols as input
-        if re.match('^[A-Za-z]', hg[0]):
-            hgncids = []
-            for gsymbol in hg:
-                hgnc_id = hgnc_client.get_hgnc_id(gsymbol)
-                if not hgnc_id:
-                    logger.info('Not included for analysis: could not '
-                                'find hgnc:id corresponding to %s' % gsymbol)
-                    hg.remove(gsymbol)
-                    continue
-                hgncids.append(hgnc_id)
-                up_id = hgnc_client.get_uniprot_id(hgnc_id)
-                if not up_id:
-                    logger.info('Could not find uniprot_id'
-                                ' corresponding to hgnc %s' % hgnc_id)
-                    up_id = ''
-                upids.append(up_id)
-            hg_dict['Symbol'] = hg
-            hg_dict['HGNC'] = hgncids
-        # hg contains HGNC IDs
-        else:
-            hsymbol = []
-            for hgnc_id in hg:
-                gsymbol = hgnc_client.get_hgnc_name(hgnc_id)
-                if not gsymbol:
-                    logger.info('Not included for analysis: could not find'
-                                ' human gene symbol corresponding to %s' %
-                                hgnc_id)
-                    hg.remove(hgnc_id)
-                    continue
-                hsymbol.append(gsymbol)
-                up_id = hgnc_client.get_uniprot_id(hgnc_id)
-                if not up_id:
-                    logger.info('Could not find uniprot_id corresponding to'
-                                ' hgnc %s' % hgnc_id)
-                    up_id = ''
-                upids.append(up_id)
-            hg_dict['HGNC'] = hg
-            hg_dict['Symbol'] = hsymbol
-        hg_dict['UP'] = upids
-        hgdf = pd.DataFrame(hg_dict)
-        return hgdf
-    
-    def _load_mouse_genes(self,fname):
-        """Returns a list with mapped human gene IDs"""
-        mgis= load_genes(fname)
-        hgenes = []
-        for mgi_id in mgis:
-            if mgi_id.startswith('MGI:'):
-                mgi_id = mgi_id[4:]
-            hgnc_id = hgnc_client.get_hgnc_from_mouse(mgi_id)
-            if not hgnc_id:
-                logger.info('Could not find human gene corresponding to MGI %s' % mgi_id)
-                continue
-            hgenes.append(hgnc_id)
-        return hgenes
-    
+
     def MG_from_PC(self):
         """Assemble a nx.MultiGraph from the Pathway Commons sif file
         (nodeA <relationship type> nodeB).
@@ -177,13 +108,16 @@ class Nx_MG_Assembler_PC(object):
                                      edge_attr=edge_attributes,
                                      create_using=nx.MultiGraph)
         # subset over genes in the input gene list
-        pc_sub = pc.subgraph(list(self.hgenes['Symbol']))
-        gene2hgnc_dict = dict(zip(self.hgenes['Symbol'], self.hgenes['HGNC']))
+        hgnc_symbols = [g['HGNC_SYMBOL'] for g in self.genes]
+        hgnc_ids = [g['HGNC'] for g in self.genes]
+        up_ids = [g['UP'] for g in self.genes]
+        pc_sub = pc.subgraph(hgnc_symbols)
+        gene2hgnc_dict = dict(zip(hgnc_symbols, hgnc_ids))
         nx.set_node_attributes(pc_sub, gene2hgnc_dict, 'HGNC')
-        gene2up_dict = dict(zip(self.hgenes['Symbol'], self.hgenes['UP']))
+        gene2up_dict = dict(zip(hgnc_symbols, up_ids))
         nx.set_node_attributes(pc_sub, gene2up_dict, 'UP')
         # make a copy to unfreeze graph
-        self.graph=nx.MultiGraph(pc_sub)
+        self.graph = nx.MultiGraph(pc_sub)
 
     def add_GOannotations(self):
         """Add to self.graph the GO annotations (GO:IDs) of proteins (ie, the
