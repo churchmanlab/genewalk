@@ -17,7 +17,7 @@ logger = logging.getLogger('genewalk.nx_mg_assembler')
 # refactored to derive from a single assembler class
 
 def load_network(network_type, network_file, genes):
-    if network_type == 'PC':
+    if network_type == 'pc':
         MG = Nx_MG_Assembler_PC(genes)
         logger.info('Adding gene nodes from Pathway Commons.')
         MG.MG_from_PC()
@@ -26,7 +26,7 @@ def load_network(network_type, network_file, genes):
         logger.info('Adding GO nodes.')
         MG.add_GOannotations()
         MG.add_GOontology()
-    elif network_type == 'INDRA':
+    elif network_type == 'indra':
         logger.info('Loading %s' % network_file)
         with open(network_file, 'rb') as f:
             stmts = pickle.load(f)
@@ -47,10 +47,14 @@ def load_network(network_type, network_file, genes):
         logger.info('Adding GO nodes.')
         MG.add_GOannotations()
         MG.add_GOontology()
-    elif network_type == 'user':
+    elif network_type == 'edge_list':
         logger.info('Loading user-provided GeneWalk Network from %s.' %
                     network_file)
-        MG = Nx_MG_Assembler_fromUser(network_file)
+        MG = Nx_MG_Assembler_fromUser(network_file, gwn_format='el')
+    elif network_type == 'sif':
+        logger.info('Loading user-provided GeneWalk Network from %s.' %
+                    network_file)
+        MG = Nx_MG_Assembler_fromUser(network_file, gwn_format='sif')
     else:
         raise ValueError('Unknown network_type: %s' % network_type)
     return MG
