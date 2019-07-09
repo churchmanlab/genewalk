@@ -6,6 +6,24 @@ logger = logging.getLogger('genewalk.gene_lists')
 
 
 def read_gene_list(fname, id_type):
+    """Return references for genes from a file with the given ID type.
+
+    Parameters
+    ----------
+    fname : str
+        The name of the file containing the list of genes. Each line of the
+        file corresponds to a single gene.
+    id_type : str
+        The type of identifier contained in each line of the gene list file.
+        Possible values are: hgnc_symbol, hgnc_id, mgi_id.
+
+    Returns
+    -------
+    dict
+        A dictionary of references with keys including HGNCSYMBOL, HGNC, UP,
+        and if id_type is mgi_id, MGI, with values corresponding to the
+        identifiers of the provided list of genes.
+    """
     with open(fname, 'r') as fh:
         lines = [line.strip() for line in fh.readlines()]
     if id_type == 'hgnc_symbol':
@@ -19,6 +37,7 @@ def read_gene_list(fname, id_type):
 
 
 def map_hgnc_symbols(hgnc_symbols):
+    """Return references based on a list of HGNC symbols."""
     refs = []
     for hgnc_symbol in hgnc_symbols:
         ref = {'HGNC_SYMBOL': hgnc_symbol, 'HGNC': None, 'UP': None}
@@ -38,6 +57,7 @@ def map_hgnc_symbols(hgnc_symbols):
 
 
 def map_hgnc_ids(hgnc_ids):
+    """Return references based on a list of HGNC IDs."""
     refs = []
     for hgnc_id in hgnc_ids:
         ref = {'HGNC_SYMBOL': None, 'HGNC': hgnc_id, 'UP': None}
@@ -58,6 +78,7 @@ def map_hgnc_ids(hgnc_ids):
 
 
 def map_mgi_ids(mgi_ids):
+    """Return references based on a list of MGI IDs."""
     refs = []
     for mgi_id in mgi_ids:
         if mgi_id.startswith('MGI:'):
@@ -83,5 +104,3 @@ def map_mgi_ids(mgi_ids):
         ref['UP'] = uniprot_id
         refs.append(ref)
     return refs
-
-
