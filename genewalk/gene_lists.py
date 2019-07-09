@@ -5,16 +5,22 @@ from indra.databases import hgnc_client
 logger = logging.getLogger('genewalk.gene_lists')
 
 
-def _read_lines(fname):
+def read_gene_list(fname, id_type):
     with open(fname, 'r') as fh:
         lines = [line.strip() for line in fh.readlines()]
-    return lines
+    if id_type == 'hgnc_symbol':
+        return map_hgnc_symbols(lines)
+    elif id_type == 'hgnc_id':
+        return map_hgnc_ids(lines)
+    elif id_type == 'mgi_id':
+        return map_mgi_ids(lines)
+    else:
+        raise ValueError('Unknown id_type: %s' % id_type)
 
 
-def load_hgnc_symbols(fname):
-    lines = _read_lines(fname)
+def map_hgnc_symbols(hgnc_symbols):
     refs = []
-    for hgnc_symbol in lines:
+    for hgnc_symbol in hgnc_symbols:
         ref = {'HGNC_SYMBOL': hgnc_symbol, 'HGNC': None, 'UP': None}
         hgnc_id = hgnc_client.get_hgnc_id(hgnc_symbol)
         if not hgnc_id:
@@ -31,10 +37,9 @@ def load_hgnc_symbols(fname):
     return refs
 
 
-def load_hgnc_ids(fname):
-    lines = _read_lines(fname)
+def map_hgnc_ids(hgnc_ids):
     refs = []
-    for hgnc_id in lines:
+    for hgnc_id in hgnc_ids:
         ref = {'HGNC_SYMBOL': None, 'HGNC': hgnc_id, 'UP': None}
         hgnc_name = hgnc_client.get_hgnc_name(hgnc_id)
         if not hgnc_name:
@@ -52,10 +57,9 @@ def load_hgnc_ids(fname):
     return refs
 
 
-def load_mgi_ids(fname):
-    lines = _read_lines(fname)
+def map_mgi_ids(mgi_ids):
     refs = []
-    for mgi_id in lines:
+    for mgi_id in mgi_ids:
         if mgi_id.startswith('MGI:'):
             mgi_id = mgi_id[4:]
         ref = {'HGNC_SYMBOL': None, 'HGNC': hgnc_id, 'UP': None,
