@@ -13,10 +13,13 @@ from gensim.models import Word2Vec
 
 logger = logging.getLogger('genewalk.deepwalk')
 
+default_walk_length = 10
+default_niter = 100
+
 
 def run_walk(graph, **kwargs):
-    dw_args = {'walk_length': kwargs.pop('walk_length', None),
-               'niter': kwargs.pop('niter', None)}
+    dw_args = {'walk_length': kwargs.pop('walk_length', default_walk_length),
+               'niter': kwargs.pop('niter', default_niter)}
     DW = DeepWalk(graph, **dw_args)
     DW.get_walks()
     DW.word2vec(**kwargs)
@@ -40,15 +43,16 @@ class DeepWalk(object):
     ----------
     walks : list
         A list of walks.
-    N_walks : int
+    nwalks : int
         Total number of random walks that were sampled.
     """
-    def __init__(self, graph, walk_length=10, niter=100):
+    def __init__(self, graph, walk_length=default_walk_length,
+                 niter=default_niter):
         self.graph = graph
         self.walks = []
         self.wl = walk_length
-        self.N_iter = niter
-        self.N_walks = 0
+        self.niter = niter
+        self.nwalks = 0
         self.model = None
 
     def get_walks(self):
@@ -56,23 +60,23 @@ class DeepWalk(object):
         (= starting point) sampled by an (unbiased) random walk over the
         networkx MultiGraph.
         """
-        logger.info('generate random walks')
+        logger.info('Generating random walks...')
         start = time.time()
         g_view = nx.nodes(self.graph)
         for u in g_view:
-            self.N_walks = self.N_walks + len(self.graph[u])
-        self.N_walks = self.N_walks * self.N_iter
+            self.nwalks = self.nwalks + len(self.graph[u])
+        self.nwalks = self.nwalks * self.niter
 
-        self.walks = [[] for _ in range(self.N_walks)]
+        self.walks = [[] for _ in range(self.nwalks)]
         count = 0  # row index for self.walks
         g_view = nx.nodes(self.graph)
         for u in g_view:
             N_neighbor = len(self.graph[u])
-            for i in range(self.N_iter):
+            for i in range(self.niter):
                 for k in range(N_neighbor):
                     if count % 10000 == 0:
-                        logger.info('%d/%d %s' % (count, self.N_walks,
-                                    time.time() - start))
+                        logger.info('%d/%d walks done in %.2fs.' %
+                                    (count, self.nwalks, time.time() - start))
                     self._graph_walk(count, u)
                     count += 1
         end = time.time()
