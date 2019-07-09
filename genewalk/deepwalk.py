@@ -14,6 +14,15 @@ from gensim.models import Word2Vec
 logger = logging.getLogger('genewalk.deepwalk')
 
 
+def run_walk(graph, **kwargs):
+    dw_args = {'walk_length': kwargs.pop('walk_length', None),
+               'niter': kwargs.pop('niter', None)}
+    DW = DeepWalk(graph, **dw_args)
+    DW.get_walks()
+    DW.word2vec(**kwargs)
+    return DW
+
+
 class DeepWalk(object):
     """Perform DeepWalk (node2vec), i.e., unbiased random walk over nodes
     on an undirected networkx MultiGraph.
@@ -24,7 +33,7 @@ class DeepWalk(object):
         A networkx multigraph to be used as the basis for DeepWalk.
     walk_length : Optional[int]
         Default: 10
-    N_iterations : Optional[int]
+    niter : Optional[int]
         Default: 100
 
     Attributes
@@ -34,11 +43,11 @@ class DeepWalk(object):
     N_walks : int
         Total number of random walks that were sampled.
     """
-    def __init__(self, graph, walk_length=10, N_iterations=100):
+    def __init__(self, graph, walk_length=10, niter=100):
         self.graph = graph
         self.walks = []
         self.wl = walk_length
-        self.N_iter = N_iterations
+        self.N_iter = niter
         self.N_walks = 0
         self.model = None
 

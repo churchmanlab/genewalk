@@ -5,7 +5,7 @@ import logging
 import argparse
 from genewalk.nx_mg_assembler import load_network
 from genewalk.gene_lists import read_gene_list
-from genewalk.get_node_vectors import run_repeat
+from genewalk.deepwalk import run_walk
 
 
 logger = logging.getLogger('genewalk.cli')
@@ -87,11 +87,12 @@ if __name__ == '__main__':
         save_pickle(MG, project_folder, 'genewalk_mg')
         for i in args.nreps:
             logger.info('%s/%s' % (i + 1, args.nreps))
-            DW = run_repeat(i, MG)
+            DW = run_walk(MG)
 
             # Pickle the node vectors (embeddings) and DW object
             save_pickle(DW, project_folder, 'genewalk_dw_%d' % i)
             nv = copy.deepcopy(DW.model.wv)
             save_pickle(nv, project_folder, 'genewalk_dw_nv_%d' % i)
 
-    if args.stage == 'null_distributions':
+    if args.stage == 'null_distribution':
+
