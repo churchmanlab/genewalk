@@ -46,42 +46,31 @@ class GeneWalk(object):
         fgenes in case mouse_genes equals True)
     graph : networkx.MultiGraph
         GeneWalk Network
-    nv
+    nv : dict
         node vectors (loaded from fnv_prefix and Nreps)
-    srd
+    srd : dict
         similarity random (null) distributions (loaded from fnull_dist)
     outdfs : list of pandas.DataFrame
         pandas DataFrames that will generate the final result of GeneWalk
     """
 
-    def __init__(self,
-                 path='~/genewalk/',############this needs proper fix: talk with Ben for best strategy
-                 fgenes='gene_list.csv',
-                 mouse_genes=False):
-
-        self.path = path
-        self.Nreps = 10#this is unfinished: it needs to be recognized based
-        # on the output files from get_node_vectors.py
-        self.mouse_genes=mouse_genes
+    # TODO: mouse gene mapping are loaded here to enable outputting the MGI
+    #  IDs and symbols for mouse genes. This could be refactored to use INDRA's
+    #  mappings and perhaps structured better in the code.
+    def __init__(self, graph, genes, nvs, null_dist):
+        '''
         if self.mouse_genes:
             self.mdf = pd.DataFrame()
             self._load_mouse_genes(fgenes)#read mgi csv into self.mdf and mapped HGNC:ID
         else:
             self.hgncid = load_genes(self.path+fgenes)#read hgnc list of
             # interest
-        
-        #load multigraph
-        fmg='GeneWalk_MG.pkl'
-        with open(self.path+fmg, 'rb') as f:
-            self.graph=pkl.load(f)
-        self.GO_nodes=set(nx.get_node_attributes(self.graph,'GO'))
-        self.nv=[]#node vectors, defined in generate_output
-        
-        # Load similarity null distributions for significance testing
-        fnull_dist='GeneWalk_DW_rand_simdists.pkl'
-        with open(self.path+fnull_dist, 'rb') as f:
-            self.srd = pkl.load(f)
-        self.outdfs=dict()
+        '''
+        self.graph = graph
+        self.GO_nodes = set(nx.get_node_attributes(self.graph, 'GO'))
+        self.nv = []  # node vectors, defined in generate_output
+        self.srd = null_dist
+        self.outdfs = {}
 
     def _load_mouse_genes(self,fname):
         """Append human gene IDs to a df of mouse genes (self.mdf)."""
@@ -101,7 +90,7 @@ class GeneWalk(object):
             genes.append(hgnc_id)
         self.mdf.insert(loc=0,column='HGNC', value=pd.Series(genes, index=self.mdf.index))
 
-    def generate_output(self, alpha_FDR=1, fname_out='GeneWalk.csv'):
+    def generate_output(self, alpha_FDR=1):
         """Main function of GeneWalk object that generates the final output
         list
 
@@ -111,13 +100,12 @@ class GeneWalk(object):
             significance level for FDR [0,1] (default=1, i.e. all GO
             terms are output). If set to a lower value, only annotated GO
             terms with mean padj < alpha_FDR are output.
-        fname_out
-            filename of GeneWalk output file (default=GeneWalk.csv)
         """
         if self.mouse_genes: 
             hgncid = list(self.mdf['HGNC'])
         else:  # human genes
             hgncid = self.hgncid
+        # TODO: could this loop be parallelized or optimized?
         for rep in range(1, self.Nreps + 1):
             logger.info('%s/%s' % (rep, self.Nreps))
 
@@ -148,6 +136,9 @@ class GeneWalk(object):
                             symbols=self.mdf[self.mdf['HGNC']==hid]['Symbol'].unique()
                             N_gene_con=len(self.graph[n])
                             for i in range(len(mgis)):
+                                # TODO: refactor this to use a Python
+                                #  datastructure to build up the results and
+                                #  then in the end dump it into a data frame.
                                 GOdf=self.get_GO_df(n,N_gene_con,alpha_FDR)
                                 GOdf.insert(loc=0,column='MGI', 
                                             value=pd.Series(mgis[i], index=GOdf.index))
@@ -225,6 +216,9 @@ class GeneWalk(object):
         return self.outdfs[self.Nreps+1]
 
     def P_sim(self, sim, N_con):
+        # Gets the p-value by comparing the experimental similarity value
+        # to the null distribution.
+        # TODO: is searchsorted the slow step here?
         dist_key = 'd'+str(np.floor(np.log2(N_con)))
         RANK = np.searchsorted(self.srd[dist_key], sim, side='left',
                                sorter=None)
@@ -269,6 +263,7 @@ class GeneWalk(object):
 
 if __name__ == '__main__':
     # Handle command line arguments
+    # TODO: implement CLI with documentation here
     parser = argparse.ArgumentParser(
         description='Choose a path to the gene list.')
     parser.add_argument('--path', default='~/genewalk/')

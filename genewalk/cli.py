@@ -8,6 +8,7 @@ from genewalk.gene_lists import read_gene_list
 from genewalk.deepwalk import run_walk
 from genewalk.null_distributions import get_rand_graph, \
     get_null_distributions, get_srd
+from genewalk.perform_statistics import GeneWalk
 
 
 logger = logging.getLogger('genewalk.cli')
@@ -85,12 +86,16 @@ if __name__ == '__main__':
     parser.add_argument('--nreps', default=10, type=int,
                         help='The number of repeats to run when calculating '
                              'node vectors, and the null distribution.')
+    parser.add_argument('--alpha_fdr', default=1, type=float,
+                        help='The false discovery rate to use when '
+                             'calculating the final statistics.')
     args = parser.parse_args()
 
     # Now we run the relevant stage of processing
     project_folder = create_project_folder(args.base_folder, args.project)
     if args.stage == 'node_vectors':
         genes = read_gene_list(args.genes, args.id_type)
+        save_pickle(genes, project_folder, 'genewalk_genes')
         MG = load_network(args.network_source, args.network_file, genes)
         save_pickle(MG, project_folder, 'genewalk_mg')
         for i in args.nreps:
@@ -119,3 +124,14 @@ if __name__ == '__main__':
             srs.append(sr)
         srd = get_srd(srs)
         save_pickle(srd, project_folder, 'genewalk_dw_rand_simdists')
+
+    if args.stage == 'statistics':
+        genes = load_pickle(project_folder, 'genewalk_genes')
+        null_dist = load_pickle(project_folder, 'genewalk_dw_rand_simdists')
+        MG = load_pickle(project_folder, 'genewalk_mg')
+        nvs = [load_pickle(project_folder, 'genewalk_dw_nv_rand_%d' % (i + 1)
+               for i in range(args.nreps)]
+        GW = GeneWalk(path=args.path, fgenes=args.genes)
+        df = GW.generate_output(alpha_FDR=args.alpha_fdr)
+        fname = os.path.join(project_folder, 'genewalk_results.csv')
+        df.to_csv(fname, index=False)
