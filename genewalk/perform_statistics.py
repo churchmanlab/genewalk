@@ -24,29 +24,15 @@ class GeneWalk(object):
 
     Parameters
     ----------
-    TODO: complete parameter docs
-
-    Attributes
-    ----------
-    hgncid : list of str
-        list of HGNC ids from genes of interest (loaded from fgenes in
-        ase mouse_genes equals False)
-    mdf : pandas.DataFrame
-        pandas dataframe with MGI ids from genes of interest (loaded from
-        fgenes in case mouse_genes equals True)
     graph : networkx.MultiGraph
         GeneWalk Network
-    nv : dict
-        node vectors (loaded from fnv_prefix and Nreps)
-    srd : dict
-        similarity random (null) distributions (loaded from fnull_dist)
-    outdfs : list of pandas.DataFrame
-        pandas DataFrames that will generate the final result of GeneWalk
+    genes : list of dict
+        List of gene references for relevant genes
+    nvs : list of dict
+        Node vectors
+    null_dist : dict
+        Similarity random (null) distributions
     """
-
-    # TODO: mouse gene mapping are loaded here to enable outputting the MGI
-    #  IDs and symbols for mouse genes. This could be refactored to use INDRA's
-    #  mappings and perhaps structured better in the code.
     def __init__(self, graph, genes, nvs, null_dist):
         self.graph = graph
         self.genes = genes
@@ -84,8 +70,7 @@ class GeneWalk(object):
             go_attribs.append(go_attrib)
         return go_attribs
 
-
-    def generate_output(self, alpha_FDR=1):
+    def generate_output(self, alpha_fdr=1):
         """Main function of GeneWalk object that generates the final output
         list
 
@@ -119,6 +104,8 @@ class GeneWalk(object):
                 mean_qval = np.mean([attr['qval'] for attr in go_attribs])
                 ste_qval = (np.std([attr['qval'] for attr in go_attribs]) /
                             np.sqrt(len(self.nvs)))
+                if mean_qval > alpha_fdr:
+                    continue
                 row = [gene_attribs['hgnc_symbol'],
                        gene_attribs['hgnc_id'],
                        go_attribs['go_name'],
