@@ -84,6 +84,11 @@ if __name__ == '__main__':
     parser.add_argument('--alpha_fdr', default=1, type=float,
                         help='The false discovery rate to use when '
                              'calculating the final statistics.')
+    parser.add_argument('--save_dw', default=False, type=bool,
+                        help='If True, the full DeepWalk object for each '
+                             'repeat is saved in the project folder. This can '
+                             'be useful for debugging but the files are '
+                             'typically very large.')
     args = parser.parse_args()
 
     # Now we run the relevant stage of processing
@@ -98,7 +103,8 @@ if __name__ == '__main__':
             DW = run_walk(MG.graph)
 
             # Pickle the node vectors (embeddings) and DW object
-            save_pickle(DW, project_folder, 'genewalk_dw_%d' % i)
+            if args.save_dw:
+                save_pickle(DW, project_folder, 'genewalk_dw_%d' % i)
             nv = copy.deepcopy(DW.model.wv)
             save_pickle(nv, project_folder, 'genewalk_dw_nv_%d' % i)
 
@@ -111,7 +117,8 @@ if __name__ == '__main__':
             DW = run_walk(RG)
 
             # Pickle the node vectors (embeddings) and DW object
-            save_pickle(DW, project_folder, 'genewalk_dw_rand_%d' % i)
+            if args.save_dw:
+                save_pickle(DW, project_folder, 'genewalk_dw_rand_%d' % i)
             nv = copy.deepcopy(DW.model.wv)
             save_pickle(nv, project_folder, 'genewalk_dw_nv_rand_%d' % i)
 
