@@ -9,9 +9,6 @@ logger = logging.getLogger('genewalk.resources')
 home_dir = os.path.expanduser('~/')
 resource_dir = os.path.join(home_dir, 'genewalk', 'resources')
 
-logger.addHandler(logging.FileHandler(os.path.join(resource_dir, '%s.log' %
-                                                   logger.name)))
-
 if not os.path.isdir(resource_dir):
     try:
         os.makedirs(resource_dir)
@@ -56,3 +53,10 @@ def get_pc():
                   'PathwayCommons11.All.hgnc.sif.gz')
         download_gz(fname,url_pc)
     return fname
+
+
+if __name__ == '__main__':
+    # Download all the resources if this script is run directly
+    get_go_obo()
+    get_goa_gaf()
+    get_pc()
