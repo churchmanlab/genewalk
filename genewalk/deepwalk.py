@@ -47,6 +47,7 @@ class DeepWalk(object):
         (= starting point) sampled by an (unbiased) random walk over the
         networkx MultiGraph.
         """
+        logger.info('generate random walks')
         start = time.time()
         g_view = nx.nodes(self.graph)
         for u in g_view:
@@ -65,6 +66,8 @@ class DeepWalk(object):
                                     time.time() - start))
                     self._graph_walk(count, u)
                     count += 1
+        end = time.time()
+        logger.info('DW.get_walks done %.2f' % (end - start))  # in sec
 
     def _graph_walk(self, idx, u):
         """Generates walks (sentences) sampled by an (unbiased) random walk
@@ -123,7 +126,11 @@ class DeepWalk(object):
             randomly downsampled, useful range is (0, 1e-5). parameter t in eq
             5 Mikolov et al. For GeneWalk this is set to 0.
         """
+        logger.info('generate node vectors')
+        start = time.time()
         self.model = Word2Vec(sentences=self.walks, sg=sg, size=size,
                               window=window, min_count=min_count,
                               negative=negative, workers=workers,
                               sample=sample)
+        end = time.time()
+        logger.info('DW.word2vec done %.2f' % (end - start))  # in sec
