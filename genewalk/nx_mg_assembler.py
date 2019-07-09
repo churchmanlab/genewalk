@@ -18,23 +18,18 @@ logger = logging.getLogger('genewalk.nx_mg_assembler')
 
 def load_network(network_type, network_file, genes):
     if network_type == 'pc':
-        MG = Nx_MG_Assembler_PC(genes)
-        logger.info('Adding gene nodes from Pathway Commons.')
+        MG = PcNxMgAssembler(genes)
         MG.MG_from_PC()
-        logger.info('Number of PC originating nodes %d' %
-                    nx.number_of_nodes(MG.graph))
-        logger.info('Adding GO nodes.')
-        MG.add_GOannotations()
-        MG.add_GOontology()
+        MG.add_go_annotations()
+        MG.add_go_ontology()
     elif network_type == 'indra':
         logger.info('Loading %s' % network_file)
         with open(network_file, 'rb') as f:
             stmts = pickle.load(f)
 
-        MG = Nx_MG_Assembler_INDRA(stmts)
+        MG = IndraNxMgAssembler(stmts)
         del stmts
 
-        logger.info('Adding nodes from INDRA stmts.')
         MG.MG_from_INDRA()
 
         # TODO: implement generic FamPlex construction for statements
@@ -44,17 +39,16 @@ def load_network(network_type, network_file, genes):
         logger.info('Number of INDRA originating nodes %d.' %
                     nx.number_of_nodes(MG.graph))
 
-        logger.info('Adding GO nodes.')
-        MG.add_GOannotations()
-        MG.add_GOontology()
+        MG.add_go_annotations()
+        MG.add_go_ontology()
     elif network_type == 'edge_list':
         logger.info('Loading user-provided GeneWalk Network from %s.' %
                     network_file)
-        MG = Nx_MG_Assembler_fromUser(network_file, gwn_format='el')
+        MG = UserNxMgAssembler(network_file, gwn_format='el')
     elif network_type == 'sif':
         logger.info('Loading user-provided GeneWalk Network from %s.' %
                     network_file)
-        MG = Nx_MG_Assembler_fromUser(network_file, gwn_format='sif')
+        MG = UserNxMgAssembler(network_file, gwn_format='sif')
     else:
         raise ValueError('Unknown network_type: %s' % network_type)
     return MG
@@ -64,11 +58,12 @@ class NxMgAssembler(object):
     def __init__(self):
         pass
 
-    def add_GOannotations(self):
+    def add_go_annotations(self):
         """Add to self.graph the GO annotations (GO:IDs) of proteins (ie, the
         subset of self.graph nodes that contain UniprotKB:ID) in the form of
         labeled edges (see _GOA_from_UP for details) and new nodes (GO:IDs).
         """
+        logger.info('Adding GO nodes.')
         self.GOA = pd.read_csv(get_goa_gaf(), sep='\t', skiprows=23, dtype=str,
                                header=None,
                                names=['DB',
@@ -107,7 +102,7 @@ class NxMgAssembler(object):
                         self._add_edge(n,GOID,eattr)
             j = j + 1
 
-    def add_GOontology(self):
+    def add_go_ontology(self):
         """Add to self.graph the GO ontology (GO:IDs and their relations) in
         the form of labeled edge (relation type, eg is_a) and new nodes
         (GO:IDs).
@@ -115,15 +110,15 @@ class NxMgAssembler(object):
         for goid in self.OGO.keys():
             GOT=self.OGO[goid]
             if GOT.is_obsolete is False:
-                self._add_GOnode(GOT.id,'0')
+                self._add_GOnode(GOT.id, '0')
                 for pa in GOT.parents:
                     if pa.is_obsolete is False:
-                        self._add_GOnode(pa.id,'0')
-                        self._add_edge(GOT.id,pa.id,'GO:is_a')
+                        self._add_GOnode(pa.id, '0')
+                        self._add_edge(GOT.id,pa.id, 'GO:is_a')
 
 
-class Nx_MG_Assembler_PC(NgMxAssembler):
-    """The Nx_MG_Assembler_PC assembles a GeneWalk Network with gene reactions
+class PcNxMgAssembler(NxMgAssembler):
+    """The PcNxMgAssembler assembles a GeneWalk Network with gene reactions
     from Pathway Commons and GO ontology and annotations into a networkx
     (undirected)  MultiGraph including edge attributes.
 
@@ -153,6 +148,7 @@ class Nx_MG_Assembler_PC(NgMxAssembler):
         """Assemble a nx.MultiGraph from the Pathway Commons sif file
         (nodeA <relationship type> nodeB).
         """
+        logger.info('Adding gene nodes from Pathway Commons.')
         gwn_df = pd.read_csv(get_pc(), sep='\t', dtype=str, header=None)
         col_mapper = {}
         col_mapper[0] = 'source'
@@ -174,50 +170,8 @@ class Nx_MG_Assembler_PC(NgMxAssembler):
         nx.set_node_attributes(pc_sub, gene2up_dict, 'UP')
         # make a copy to unfreeze graph
         self.graph = nx.MultiGraph(pc_sub)
-
-    def add_GOannotations(self):
-        """Add to self.graph the GO annotations (GO:IDs) of proteins (ie, the
-        subset of self.graph nodes that contain UniprotKB:ID) in the form of
-        labeled edges (see _GOA_from_UP for details) and new nodes (GO:IDs).
-        """
-        self.GOA = pd.read_csv(get_goa_gaf(), sep='\t', skiprows=23,
-                               dtype=str, header=None,
-                               names=['DB',
-                                      'DB_ID',
-                                      'DB_Symbol',
-                                      'Qualifier',
-                                      'GO_ID',
-                                      'DB_Reference',
-                                      'Evidence_Code',
-                                      'With_From',
-                                      'Aspect',
-                                      'DB_Object_Name',
-                                      'DB_Object_Synonym',
-                                      'DB_Object_Type',
-                                      'Taxon',
-                                      'Date',
-                                      'Assigned',
-                                      'Annotation_Extension',
-                                      'Gene_Product_Form_ID'])
-        self.GOA = self.GOA.sort_values(by=['DB_ID','GO_ID'])
-        self.OGO = GODag(get_go_obo())
-        IN_nodes = list(nx.nodes(self.graph))
-        N = len(IN_nodes)
-        j = 0  # counter for duration
-        for n in IN_nodes:
-            if j % 100 == 0:
-                logger.info("%d / %d" % (j , N))
-            # node is INDRA gene/protein
-            if 'UP' in self.graph.node[n].keys():
-                UP = self.graph.node[n]['UP']
-                GOan = self._GOA_from_UP(UP)
-                for i in GOan.index:
-                    GOID = GOan['GO_ID'][i]
-                    eattr = GOan['Qualifier'][i]
-                    if self.OGO[GOID].is_obsolete is False:
-                        self._add_GOnode(GOID, '0')
-                        self._add_edge(n, GOID, eattr)
-            j = j + 1
+        logger.info('Number of PC originating nodes %d' %
+                    nx.number_of_nodes(self.graph))
 
     def _GOA_from_UP(self, UP):
         # UP matching GOIDs and Qualif
@@ -236,7 +190,7 @@ class Nx_MG_Assembler_PC(NgMxAssembler):
                    value=pd.Series('GOan', index=SEL.index))
         return SEL.drop(columns=['Evidence_Code'])
 
-    def _add_GOnode(self, GOID):
+    def _add_GOnode(self, GOID, indra=None):
         GOT = self.OGO[GOID]
         nameGO = GOT.name
         nameGO = nameGO.replace(" ","_")
@@ -256,8 +210,8 @@ class Nx_MG_Assembler_PC(NgMxAssembler):
         nx.write_graphml(self.graph, os.path.join(folder, filepath + '.xml'))
 
 
-class Nx_MG_Assembler_INDRA(NgMxAssembler):
-    """The Nx_MG_Assembler_INDRA assembles INDRA Statements and GO ontology /
+class IndraNxMgAssembler(NxMgAssembler):
+    """The IndraNxMgAssembler assembles INDRA Statements and GO ontology /
     annotations into a networkx (undirected) MultiGraph including edge
     attributes. This code is based on INDRA's SifAssembler
     http://indra.readthedocs.io/en/latest/_modules/indra/assemblers/sif_assembler.html
@@ -289,9 +243,10 @@ class Nx_MG_Assembler_INDRA(NgMxAssembler):
         """Assemble the graph from the assembler's list of INDRA Statements. 
         Edge attribute are given by statement type and index in list of stmts
         """
+        logger.info('Adding nodes from INDRA stmts.')
         N=len(self.stmts)
         for i in range(N):
-            if i % 1000 == 0:
+            if N > 1000  and (i % 1000 == 0):
                 logger.info("%d / %d" % (i, N))
             st = self.stmts[i]
             # Get all agents in the statement
@@ -405,8 +360,8 @@ class Nx_MG_Assembler_INDRA(NgMxAssembler):
         nx.write_graphml(self.graph, folder + filename + '.xml')
 
 
-class Nx_MG_Assembler_fromUser(object):
-    """The Nx_MG_Assembler_fromUser loads a user-provided GeneWalk Network from
+class UserNxMgAssembler(object):
+    """The UserNxMgAssembler loads a user-provided GeneWalk Network from
     file.
 
     Parameters
