@@ -18,19 +18,22 @@ default_base_folder = os.path.join(os.path.expanduser('~/'), 'genewalk')
 
 def create_project_folder(base_folder, project):
     project_folder = os.path.join(base_folder, project)
+    logger.info('Creating project folder at %s' % project_folder)
     if not os.path.exists(project_folder):
-     os.makedirs(project_folder)
+        os.makedirs(project_folder)
     return project_folder
 
 
 def save_pickle(obj, project_folder, prefix):
     fname = os.path.join(project_folder, '%s.pkl' % prefix)
+    logger.info('Saving into %s...' % fname)
     with open(fname, 'wb') as fh:
-        pickle.dump(fh, obj, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(obj, fh, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def load_pickle(project_folder, prefix):
     fname = os.path.join(project_folder, '%s.pkl' % prefix)
+    logger.info('Loading %s...' % fname)
     with open(fname, 'rb') as fh:
         return pickle.load(fh)
 
@@ -68,17 +71,18 @@ if __name__ == '__main__':
     parser.add_argument('--base_folder', default=default_base_folder,
                         help='The base folder used to store GeneWalk '
                              'temporary and result files for a given project.')
-    parser.add_argument('--network_source', default='PC',
+    parser.add_argument('--network_source', default='pc',
                         help='The source of the network to be used.'
-                             'Possible values are: PC, INDRA, and user. In '
-                             'case of INDRA, and user, the network_file '
-                             'argument must be specified.')
+                             'Possible values are: pc, indra, edge_list, and '
+                             'sif. In case of indra, edge_list, and sif, '
+                             'the network_file argument must be specified.')
     parser.add_argument('--network_file', default=None,
-                        help='If network_source is INDRA, this argument '
+                        help='If network_source is indra, this argument '
                              'points to a Python pickle file in which a list '
                              'of INDRA Statements constituting the network '
-                             'is contained. In case network_source is user, '
-                             'the network_file argument points to a CSV file '
+                             'is contained. In case network_source is '
+                             'edge_list or sif, '
+                             'the network_file argument points to a text file '
                              'representing the network.')
     parser.add_argument('--nproc', default=1, type=int,
                         help='The number of processors to use in a '
@@ -93,7 +97,7 @@ if __name__ == '__main__':
 
     # Now we run the relevant stage of processing
     project_folder = create_project_folder(args.base_folder, args.project)
-    if args.stage == 'node_vectors':
+    if args.stage in ('all', 'node_vectors'):
         genes = read_gene_list(args.genes, args.id_type)
         save_pickle(genes, project_folder, 'genewalk_genes')
         MG = load_network(args.network_source, args.network_file, genes)
@@ -107,7 +111,7 @@ if __name__ == '__main__':
             nv = copy.deepcopy(DW.model.wv)
             save_pickle(nv, project_folder, 'genewalk_dw_nv_%d' % i)
 
-    if args.stage == 'null_distribution':
+    if args.stage in ('all', 'null_distribution'):
         MG = load_pickle(project_folder, 'genewalk_mg')
         srs = []
         for i in args.nreps:
@@ -125,13 +129,13 @@ if __name__ == '__main__':
         srd = get_srd(srs)
         save_pickle(srd, project_folder, 'genewalk_dw_rand_simdists')
 
-    if args.stage == 'statistics':
-        genes = load_pickle(project_folder, 'genewalk_genes')
-        null_dist = load_pickle(project_folder, 'genewalk_dw_rand_simdists')
+    if args.stage in ('all', 'statistics'):
         MG = load_pickle(project_folder, 'genewalk_mg')
-        nvs = [load_pickle(project_folder, 'genewalk_dw_nv_rand_%d' % (i + 1)
+        genes = load_pickle(project_folder, 'genewalk_genes')
+        nvs = [load_pickle(project_folder, 'genewalk_dw_nv_rand_%d' % (i + 1))
                for i in range(args.nreps)]
-        GW = GeneWalk(path=args.path, fgenes=args.genes)
+        null_dist = load_pickle(project_folder, 'genewalk_dw_rand_simdists')
+        GW = GeneWalk(MG, genes, nvs, null_dist)
         df = GW.generate_output(alpha_FDR=args.alpha_fdr)
         fname = os.path.join(project_folder, 'genewalk_results.csv')
         df.to_csv(fname, index=False)
