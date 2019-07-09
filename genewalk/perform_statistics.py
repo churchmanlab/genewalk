@@ -1,14 +1,9 @@
-import os
-import copy
 import logging
-import argparse
 import pandas as pd
 import numpy as np
-import pickle as pkl
 import networkx as nx
 import statsmodels.stats.multitest
-from indra.databases import hgnc_client
-from genewalk.get_indra_stmts import load_genes
+
 
 logger = logging.getLogger('genewalk.perform_statistics')
 
@@ -80,8 +75,8 @@ class GeneWalk(object):
             go_attrib['ncon_go'] = self.graph[go_node_id]
             go_attrib['go_name'] = self.graph[go_node_id]['name']
             go_attrib['pval'] = \
-                self.P_sim(sim_score, min(go_attrib['ncon_go'],
-                                          gene_attribs['ncon_gene']))
+                self.psim(sim_score, min(go_attrib['ncon_go'],
+                                         gene_attribs['ncon_gene']))
             _, go_attrib['qval'] = \
                 statsmodels.stats.multitest.fdrcorrection(go_attrib['pval'],
                                                           self.alpha_FDR,
@@ -114,7 +109,7 @@ class GeneWalk(object):
                     else:
                         go_attrib_dict[go_attribs['go_id']] = [go_attribs]
 
-            for go_id, go_attribs in go_attrib_dict.items()
+            for go_id, go_attribs in go_attrib_dict.items():
                 mean_sim = np.mean([attr['sim_score'] for attr in go_attribs])
                 ste_sim = (np.std([attr['sim_score'] for attr in go_attribs]) /
                            np.sqrt(len(self.nvs)))
@@ -134,112 +129,19 @@ class GeneWalk(object):
                        mean_pval, ste_pval,
                        mean_qval, ste_qval]
                 rows.append(row)
+        header = ['hgnc_symbol', 'hgnc_id', 'go_name', 'go_id', 'ncon_gene',
+                  'ncon_go', 'mean_sim', 'ste_sim', 'mean_pval', 'ste_pval',
+                  'mean_qval', 'ste_qval']
+        df = pd.DataFrame.from_records(rows, columns=header)
+        return df
 
-
-
-
-
-        #Merge all self.Nrep experimentals to calculate mean and sem statistics
-        self.outdfs[self.Nreps+1]=copy.deepcopy(self.outdfs[1])
-        for rep in range(2,self.Nreps+1):
-            if self.mouse_genes: 
-                COLUMNS=['MGI','Symbol','mapped HGNC','mapped Symbol',
-                        'GO description','GO:ID',
-                        'N_con(gene)','N_con(GO)']
-            else:#human genes
-                COLUMNS=['HGNC','Symbol',
-                        'GO description','GO:ID',
-                        'N_con(gene)','N_con(GO)']
-            self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].merge(self.outdfs[rep],on=COLUMNS,how='outer')
-        self.outdfs[self.Nreps+1].insert(loc=len(COLUMNS),column='mean:sim',
-                    value=self.outdfs[self.Nreps+1][[str(r)+':similarity' for r in range(1,self.Nreps+1)]].mean(axis=1))
-        self.outdfs[self.Nreps+1].insert(loc=len(COLUMNS)+1,column='sem:sim',
-                    value=self.outdfs[self.Nreps+1][[str(r)+':similarity' for r in \
-                                                          range(1,self.Nreps+1)]].std(axis=1)/np.sqrt(self.Nreps))
-        self.outdfs[self.Nreps+1].insert(loc=len(COLUMNS)+2,column='mean:pval',
-                    value=self.outdfs[self.Nreps+1][[str(r)+':pval' for r in range(1,self.Nreps+1)]].mean(axis=1))
-        self.outdfs[self.Nreps+1].insert(loc=len(COLUMNS)+3,column='sem:pval',
-                    value=self.outdfs[self.Nreps+1][[str(r)+':pval' for r in \
-                                                          range(1,self.Nreps+1)]].std(axis=1)/np.sqrt(self.Nreps))
-        self.outdfs[self.Nreps+1].insert(loc=len(COLUMNS)+4,column='mean:padj',
-                    value=self.outdfs[self.Nreps+1][[str(r)+':padj' for r in range(1,self.Nreps+1)]].mean(axis=1))
-        self.outdfs[self.Nreps+1].insert(loc=len(COLUMNS)+5,column='sem:padj',
-                    value=self.outdfs[self.Nreps+1][[str(r)+':padj' for r in \
-                                                          range(1,self.Nreps+1)]].std(axis=1)/np.sqrt(self.Nreps))   
-        if self.mouse_genes:
-            self.outdfs[self.Nreps+1]['MGI'] = self.outdfs[self.Nreps+1]['MGI'].astype("category")
-            self.outdfs[self.Nreps+1]['MGI'].cat.set_categories(self.mdf['MGI'].unique(), inplace=True)
-            self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].sort_values(by=['MGI','Symbol',
-                                                                                'mean:padj','GO description'])
-        else:#human genes
-            self.outdfs[self.Nreps+1]['HGNC'] = self.outdfs[self.Nreps+1]['HGNC'].astype("category")
-            self.outdfs[self.Nreps+1]['HGNC'].cat.set_categories(pd.Series(self.hgncid).unique(), inplace=True)
-            self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].sort_values(by=['HGNC','mean:padj','GO description'])    
-        self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].drop([str(r)+':similarity' for r in range(1,self.Nreps+1)],axis=1)
-        self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].drop([str(r)+':pval' for r in range(1,self.Nreps+1)],axis=1)
-        self.outdfs[self.Nreps+1]=self.outdfs[self.Nreps+1].drop([str(r)+':padj' for r in range(1,self.Nreps+1)],axis=1)
-        return self.outdfs[self.Nreps+1]
-
-    def P_sim(self, sim, N_con):
+    def psim(self, sim, ncon):
         # Gets the p-value by comparing the experimental similarity value
         # to the null distribution.
         # TODO: is searchsorted the slow step here?
-        dist_key = 'd'+str(np.floor(np.log2(N_con)))
-        RANK = np.searchsorted(self.srd[dist_key], sim, side='left',
+        dist_key = 'd' + str(np.floor(np.log2(ncon)))
+        rank = np.searchsorted(self.srd[dist_key], sim, side='left',
                                sorter=None)
-        PCT_RANK = float(RANK)/len(self.srd[dist_key])
-        pval = 1-PCT_RANK
+        pct_rank = float(rank) / len(self.srd[dist_key])
+        pval = 1 - pct_rank
         return pval
-
-    def get_GO_df(self, geneoi, N_gene_con, alpha_FDR):
-        N_GO_CON = []
-        PVAL = []
-        FDR = []
-        DES = []
-        GO_con2gene = set(self.graph[geneoi]).intersection(self.GO_nodes)
-        simdf = pd.DataFrame(self.nv.most_similar(geneoi,
-                                                  topn=len(self.nv.vocab)),
-                             columns=['GO:ID','similarity'])
-        simdf=simdf[simdf['GO:ID'].isin(GO_con2gene)]
-
-        for i in simdf.index:
-            N_GO_con = len(self.graph[simdf['GO:ID'][i]])
-            N_GO_CON.append(N_GO_con)
-            DES.append(self.graph.node[simdf['GO:ID'][i]]['name'])
-            pval = self.P_sim(simdf['similarity'][i],min(N_GO_con,N_gene_con))
-            PVAL.append(pval)
-        simdf.insert(loc=0,column='GO description',
-                     value=pd.Series(DES, index=simdf.index))
-        simdf.insert(loc=2,column='N_con(GO)',
-                     value=pd.Series(N_GO_CON, index=simdf.index))
-        simdf.insert(loc=4,column='pval',
-                     value=pd.Series(PVAL, index=simdf.index))
-        BOOL,q_val = \
-            statsmodels.stats.multitest.fdrcorrection(simdf['pval'],
-                                                      alpha=alpha_FDR,
-                                                      method='indep')
-        simdf.insert(loc=5, column='padj',
-                     value=pd.Series(q_val, index=simdf.index))
-        if alpha_FDR < 1:
-            return simdf[simdf['padj'] < alpha_FDR]
-        else:
-            return simdf
-
-
-if __name__ == '__main__':
-    # Handle command line arguments
-    # TODO: implement CLI with documentation here
-    parser = argparse.ArgumentParser(
-        description='Choose a path to the gene list.')
-    parser.add_argument('--path', default='~/genewalk/')
-    parser.add_argument('--genes', default='gene_list.csv')
-    parser.add_argument('--alpha_FDR', default=1)
-    parser.add_argument('--mouse_genes',default=False)
-    parser.add_argument('--filename_out',default='GeneWalk.csv')
-    args = parser.parse_args()
-    log_handler = logging.FileHandler(os.path.join(args.path, 'LogErr',
-                                                   '%s.log' % logger.name))
-    logger.addHandler(log_handler)
-    GW = GeneWalk(path=args.path, fgenes=args.genes,
-                  mouse_genes=args.mouse_genes)
-    GW.generate_output(alpha_FDR=args.alpha_FDR, fname_out=args.filename_out)
