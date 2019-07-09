@@ -38,10 +38,21 @@ if __name__ == '__main__':
                         help='The base folder used to store GeneWalk '
                              'temporary and result files for a given project.')
     parser.add_argument('--network_source', default='PC',
-                        help='The source of the network to be used.')
+                        help='The source of the network to be used.'
+                             'Possible values are: PC, INDRA, and user. In '
+                             'case of INDRA, and user, the network_file '
+                             'argument must be specified.')
+    parser.add_argument('--network_file', default=None,
+                        help='If network_source is INDRA, this argument '
+                             'points to a Python pickle file in which a list '
+                             'of INDRA Statements constituting the network '
+                             'is contained. In case network_source is user, '
+                             'the network_file argument points to a CSV file '
+                             'representing the network.')
     parser.add_argument('--nproc', default=1, type=int,
                         help='The number of processors to use in a '
                              'multiprocessing environment.')
     parser.add_argument('--nreps', default=10, type=int,
                         help='The number of repeats to run when calculating '
                              'node vectors, and the null distribution.')
+    args = parser.parse_args()
