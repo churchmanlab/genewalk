@@ -26,6 +26,7 @@ def main():
           install_requires=install_list,
           tests_require=['nose'],
           include_package_data=True,
+          entry_points={'console_scripts': ['genewalk = genewalk.cli:main']},
         )
 
 
