@@ -60,21 +60,77 @@ def load_network(network_type, network_file, genes):
     return MG
 
 
-class Nx_MG_Assembler_PC(object):
+class NxMgAssembler(object):
+    def __init__(self):
+        pass
+
+    def add_GOannotations(self):
+        """Add to self.graph the GO annotations (GO:IDs) of proteins (ie, the
+        subset of self.graph nodes that contain UniprotKB:ID) in the form of
+        labeled edges (see _GOA_from_UP for details) and new nodes (GO:IDs).
+        """
+        self.GOA = pd.read_csv(get_goa_gaf(), sep='\t', skiprows=23, dtype=str,
+                               header=None,
+                               names=['DB',
+                                      'DB_ID',
+                                      'DB_Symbol',
+                                      'Qualifier',
+                                      'GO_ID',
+                                      'DB_Reference',
+                                      'Evidence_Code',
+                                      'With_From',
+                                      'Aspect',
+                                      'DB_Object_Name',
+                                      'DB_Object_Synonym',
+                                      'DB_Object_Type',
+                                      'Taxon',
+                                      'Date',
+                                      'Assigned',
+                                      'Annotation_Extension',
+                                      'Gene_Product_Form_ID'])
+        self.GOA = self.GOA.sort_values(by=['DB_ID','GO_ID'])
+        self.OGO = GODag(get_go_obo())  # dict
+        nodes = list(nx.nodes(self.graph))
+        N = len(nodes)
+        j = 0  # counter for duration
+        for n in nodes:
+            if j % 100 == 0:
+                logger.info("%d / %d" % (j , N))
+            if 'UP' in self.graph.node[n].keys():  # node is PC gene/protein
+                UP = self.graph.node[n]['UP']
+                GOan = self._GOA_from_UP(UP)
+                for i in GOan.index:
+                    GOID = GOan['GO_ID'][i]
+                    eattr = GOan['Qualifier'][i]
+                    if self.OGO[GOID].is_obsolete is False:
+                        self._add_GOnode(GOID)
+                        self._add_edge(n,GOID,eattr)
+            j = j + 1
+
+    def add_GOontology(self):
+        """Add to self.graph the GO ontology (GO:IDs and their relations) in
+        the form of labeled edge (relation type, eg is_a) and new nodes
+        (GO:IDs).
+        """
+        for goid in self.OGO.keys():
+            GOT=self.OGO[goid]
+            if GOT.is_obsolete is False:
+                self._add_GOnode(GOT.id,'0')
+                for pa in GOT.parents:
+                    if pa.is_obsolete is False:
+                        self._add_GOnode(pa.id,'0')
+                        self._add_edge(GOT.id,pa.id,'GO:is_a')
+
+
+class Nx_MG_Assembler_PC(NgMxAssembler):
     """The Nx_MG_Assembler_PC assembles a GeneWalk Network with gene reactions
     from Pathway Commons and GO ontology and annotations into a networkx
     (undirected)  MultiGraph including edge attributes.
 
     Parameters
     ----------
-    fgenes : str
-        path to text file with input list (without header) containing
-        genes of interest. For human genes (default), use HGNC identifiers
-        (preferred, eg HGNC:7553) or current human HGNC gene symbols (eg MYC).
-        In case of mouse genes use MGD identifiers (eg MGI:97250).
-    mouse_genes : Optional[bool]
-        Set to True in case the gene list contains mouse genes. Default: False
-    
+    genes : list
+
     Attributes
     ----------
     graph : networkx.MultiGraph
@@ -124,58 +180,45 @@ class Nx_MG_Assembler_PC(object):
         subset of self.graph nodes that contain UniprotKB:ID) in the form of
         labeled edges (see _GOA_from_UP for details) and new nodes (GO:IDs).
         """
-        self.GOA = pd.read_csv(get_goa_gaf(), sep='\t', skiprows=23, dtype=str,
-                               header=None,
-                        names=['DB',
-                               'DB_ID',
-                               'DB_Symbol',
-                               'Qualifier',
-                               'GO_ID',
-                               'DB_Reference',
-                               'Evidence_Code',
-                               'With_From',
-                               'Aspect',
-                               'DB_Object_Name',
-                               'DB_Object_Synonym',
-                               'DB_Object_Type',
-                               'Taxon',
-                               'Date',
-                               'Assigned',
-                               'Annotation_Extension',
-                               'Gene_Product_Form_ID'])
+        self.GOA = pd.read_csv(get_goa_gaf(), sep='\t', skiprows=23,
+                               dtype=str, header=None,
+                               names=['DB',
+                                      'DB_ID',
+                                      'DB_Symbol',
+                                      'Qualifier',
+                                      'GO_ID',
+                                      'DB_Reference',
+                                      'Evidence_Code',
+                                      'With_From',
+                                      'Aspect',
+                                      'DB_Object_Name',
+                                      'DB_Object_Synonym',
+                                      'DB_Object_Type',
+                                      'Taxon',
+                                      'Date',
+                                      'Assigned',
+                                      'Annotation_Extension',
+                                      'Gene_Product_Form_ID'])
         self.GOA = self.GOA.sort_values(by=['DB_ID','GO_ID'])
-        self.OGO = GODag(get_go_obo())  # dict
-        PC_nodes = list(nx.nodes(self.graph))
-        N = len(PC_nodes)
+        self.OGO = GODag(get_go_obo())
+        IN_nodes = list(nx.nodes(self.graph))
+        N = len(IN_nodes)
         j = 0  # counter for duration
-        for n in PC_nodes: 
+        for n in IN_nodes:
             if j % 100 == 0:
                 logger.info("%d / %d" % (j , N))
-            if 'UP' in self.graph.node[n].keys():  # node is PC gene/protein
+            # node is INDRA gene/protein
+            if 'UP' in self.graph.node[n].keys():
                 UP = self.graph.node[n]['UP']
                 GOan = self._GOA_from_UP(UP)
                 for i in GOan.index:
                     GOID = GOan['GO_ID'][i]
                     eattr = GOan['Qualifier'][i]
                     if self.OGO[GOID].is_obsolete is False:
-                        self._add_GOnode(GOID)
-                        self._add_edge(n,GOID,eattr)
+                        self._add_GOnode(GOID, '0')
+                        self._add_edge(n, GOID, eattr)
             j = j + 1
-                     
-    def add_GOontology(self):
-        """Add to self.graph the GO ontology (GO:IDs and their relations) in
-        the form of labeled edge (relation type, eg is_a) and new nodes
-        (GO:IDs).
-        """
-        for goid in self.OGO.keys():
-            GOT = self.OGO[goid]
-            if GOT.is_obsolete is False:
-                self._add_GOnode(GOT.id)
-                for pa in GOT.parents:
-                    if pa.is_obsolete is False:
-                        self._add_GOnode(pa.id)
-                        self._add_edge(GOT.id,pa.id,'GO:is_a')
-    
+
     def _GOA_from_UP(self, UP):
         # UP matching GOIDs and Qualif
         SEL = \
@@ -211,11 +254,9 @@ class Nx_MG_Assembler_PC(object):
     
     def save_graph(self, folder='~/genewalk/', filepath='gwn'):
         nx.write_graphml(self.graph, os.path.join(folder, filepath + '.xml'))
-        
-        
 
-        
-class Nx_MG_Assembler_INDRA(object):
+
+class Nx_MG_Assembler_INDRA(NgMxAssembler):
     """The Nx_MG_Assembler_INDRA assembles INDRA Statements and GO ontology /
     annotations into a networkx (undirected) MultiGraph including edge
     attributes. This code is based on INDRA's SifAssembler
@@ -284,64 +325,6 @@ class Nx_MG_Assembler_INDRA(object):
             t = FPLX[1][i]
             edge_attr = 'FPLX:is_a'
             self._add_edge(s, t, edge_attr)
-
-    def add_GOannotations(self):
-        """Add to self.graph the GO annotations (GO:IDs) of proteins (ie, the
-        subset of self.graph nodes that contain UniprotKB:ID) in the form of
-        labeled edges (see _GOA_from_UP for details) and new nodes (GO:IDs).
-        """
-        self.GOA = pd.read_csv(get_goa_gaf(), sep='\t', skiprows=23,
-                               dtype=str, header=None,
-                 names=['DB',
-                        'DB_ID',
-                        'DB_Symbol',
-                        'Qualifier',
-                        'GO_ID',
-                        'DB_Reference',
-                        'Evidence_Code',
-                        'With_From',
-                        'Aspect',
-                        'DB_Object_Name',
-                        'DB_Object_Synonym',
-                        'DB_Object_Type',
-                        'Taxon',
-                        'Date',
-                        'Assigned',
-                        'Annotation_Extension',
-                        'Gene_Product_Form_ID'])
-        self.GOA = self.GOA.sort_values(by=['DB_ID','GO_ID'])
-        self.OGO = GODag(get_go_obo())
-        IN_nodes = list(nx.nodes(self.graph))
-        N = len(IN_nodes)
-        j = 0  # counter for duration
-        for n in IN_nodes: 
-            if j % 100 == 0:
-                logger.info("%d / %d" % (j , N))
-            # node is INDRA gene/protein
-            if 'UP' in self.graph.node[n].keys():
-                UP = self.graph.node[n]['UP']
-                GOan = self._GOA_from_UP(UP)
-                for i in GOan.index:
-                    GOID = GOan['GO_ID'][i]
-                    eattr = GOan['Qualifier'][i]
-                    if self.OGO[GOID].is_obsolete is False:
-                        self._add_GOnode(GOID, '0')
-                        self._add_edge(n, GOID, eattr)
-            j = j + 1
-
-    def add_GOontology(self):
-        """Add to self.graph the GO ontology (GO:IDs and their relations) in
-        the form of labeled edge (relation type, eg is_a) and new nodes
-        (GO:IDs).
-        """
-        for goid in self.OGO.keys():
-            GOT=self.OGO[goid]
-            if GOT.is_obsolete is False:
-                self._add_GOnode(GOT.id,'0')
-                for pa in GOT.parents:
-                    if pa.is_obsolete is False:
-                        self._add_GOnode(pa.id,'0')
-                        self._add_edge(GOT.id,pa.id,'GO:is_a')
 
     def _GOA_from_UP(self, UP):
         # UP matching GOIDs and Qualif
