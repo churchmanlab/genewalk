@@ -28,7 +28,7 @@ def save_pickle(obj, project_folder, prefix):
     fname = os.path.join(project_folder, '%s.pkl' % prefix)
     logger.info('Saving into %s...' % fname)
     with open(fname, 'wb') as fh:
-        pickle.dump(obj, fh, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(obj, fh)
 
 
 def load_pickle(project_folder, prefix):
@@ -40,16 +40,7 @@ def load_pickle(project_folder, prefix):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description=('Choose a folder where files will be generated '
-                     '(default: ~/genewalk/ ). Define filename of list with '
-                     'genes of interest (default: gene_list.csv). '
-                     'Decide which data_source is used: Pathway Commons '
-                     '(default: PC), indra, or a user-provided network from '
-                     'file (fromUser). Set mouse_genes to True '
-                     '(default: False) if the gene_list contains MGI '
-                     'identifiers instead of human genes. '
-                     'A GeneWalk Network is then assembled and network '
-                     'representation learning performed.'))
+        description='Run GeneWalk on a list of genes provided in a text file.')
     parser.add_argument('--project', help='A name for the project which '
                                           'determines the folder within the '
                                           'base folder in which the '
@@ -101,10 +92,10 @@ if __name__ == '__main__':
         genes = read_gene_list(args.genes, args.id_type)
         save_pickle(genes, project_folder, 'genewalk_genes')
         MG = load_network(args.network_source, args.network_file, genes)
-        save_pickle(MG, project_folder, 'genewalk_mg')
-        for i in args.nreps:
+        save_pickle(MG.graph, project_folder, 'genewalk_mg')
+        for i in range(args.nreps):
             logger.info('%s/%s' % (i + 1, args.nreps))
-            DW = run_walk(MG)
+            DW = run_walk(MG.graph)
 
             # Pickle the node vectors (embeddings) and DW object
             save_pickle(DW, project_folder, 'genewalk_dw_%d' % i)
