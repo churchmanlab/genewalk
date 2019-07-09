@@ -6,6 +6,8 @@ import argparse
 from genewalk.nx_mg_assembler import load_network
 from genewalk.gene_lists import read_gene_list
 from genewalk.deepwalk import run_walk
+from genewalk.null_distributions import get_rand_graph, \
+    get_null_distributions, get_srd
 
 
 logger = logging.getLogger('genewalk.cli')
@@ -24,6 +26,12 @@ def save_pickle(obj, project_folder, prefix):
     fname = os.path.join(project_folder, '%s.pkl' % prefix)
     with open(fname, 'wb') as fh:
         pickle.dump(fh, obj, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def load_pickle(project_folder, prefix):
+    fname = os.path.join(project_folder, '%s.pkl' % prefix)
+    with open(fname, 'rb') as fh:
+        return pickle.load(fh)
 
 
 if __name__ == '__main__':
@@ -95,4 +103,19 @@ if __name__ == '__main__':
             save_pickle(nv, project_folder, 'genewalk_dw_nv_%d' % i)
 
     if args.stage == 'null_distribution':
+        MG = load_pickle(project_folder, 'genewalk_mg')
+        srs = []
+        for i in args.nreps:
+            logger.info('%s/%s' % (i + 1, args.nreps))
+            RG = get_rand_graph(MG)
+            DW = run_walk(RG)
 
+            # Pickle the node vectors (embeddings) and DW object
+            save_pickle(DW, project_folder, 'genewalk_dw_rand_%d' % i)
+            nv = copy.deepcopy(DW.model.wv)
+            save_pickle(nv, project_folder, 'genewalk_dw_nv_rand_%d' % i)
+
+            sr = get_null_distributions(RG, nv)
+            srs.append(sr)
+        srd = get_srd(srs)
+        save_pickle(srd, project_folder, 'genewalk_dw_rand_simdists')
