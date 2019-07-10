@@ -135,7 +135,7 @@ class NxMgAssembler(object):
     def add_go_ontology(self):
         """Add edges between GO nodes based on the GO ontology."""
         logger.info('Adding GO ontology edges to graph.')
-        for go_term in list(go_dag.values())[:5]:
+        for go_term in list(go_dag.values()):
             if go_term.is_obsolete:
                 continue
             self.graph.add_node(go_term.id,
