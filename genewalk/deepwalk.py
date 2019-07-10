@@ -93,11 +93,10 @@ class DeepWalk(object):
         u : str
             starting node
         """
-        self.walks[idx] = ['NA' for _ in range(self.wl)]
-        self.walks[idx][0] = u
+        self.walks[idx] = [u]
         for i in range(1, self.wl):
-            self.walks[idx][i] = random.choice(list(self.graph[u]))
-            u = self.walks[idx][i]
+            u = random.choice(list(self.graph[u]))
+            self.walks[idx].append(u)
 
     # TODO: set worker size depending on the number of processors,
     #  do a benchmark on a large machine to see how much workers defined
