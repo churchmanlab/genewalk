@@ -1,8 +1,13 @@
 import logging
+default_logger_format = ('%(levelname)s: [%(asctime)s] %(name)s'
+                         ' - %(message)s')
+default_date_format = '%Y-%m-%d %H:%M:%S'
 
-logging.basicConfig(format=('%(levelname)s: [%(asctime)s] %(name)s'
-                            ' - %(message)s'),
-                    level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')#,
-#                     handlers=logging.FileHandler('/n/groups/churchman/ri23/test.log'))#somehow this does not work yet
+logging.basicConfig(format=default_logger_format, level=logging.INFO,
+                    datefmt=default_date_format)
+
+
+logger = logging.getLogger('genewalk')
+
 
 __version__ = '0.0.1'

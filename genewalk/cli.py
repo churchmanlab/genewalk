@@ -9,6 +9,8 @@ from genewalk.deepwalk import run_walks
 from genewalk.null_distributions import get_rand_graph, \
     get_null_distributions, get_srd
 from genewalk.perform_statistics import GeneWalk
+from genewalk import logger as root_logger, default_logger_format, \
+    default_date_format
 
 
 logger = logging.getLogger('genewalk.cli')
@@ -104,6 +106,15 @@ if __name__ == '__main__':
 
     # Now we run the relevant stage of processing
     project_folder = create_project_folder(args.base_folder, args.project)
+
+    # Add a logger specific to the project and processing stage
+    log_file = os.path.join(project_folder, 'genewalk_%s.log' % args.stage)
+    formatter = logging.Formatter(default_logger_format,
+                                  datefmt=default_date_format)
+    project_log_handler = logging.FileHandler(log_file)
+    project_log_handler.setFormatter(formatter)
+    root_logger.addHandler(project_log_handler)
+
     if args.stage in ('all', 'node_vectors'):
         genes = read_gene_list(args.genes, args.id_type)
         save_pickle(genes, project_folder, 'genes')
