@@ -125,7 +125,7 @@ class NxMgAssembler(object):
                                     name=go_term.name.replace(' ', '_'),
                                     go=go_term.id, source='go')
                 # TODO: do we need qualifiers here as labels?
-                self.graph.add_edge(gene['HGNC'], go_term.id,
+                self.graph.add_edge(gene['HGNC_SYMBOL'], go_term.id,
                                     label='assoc_with')
 
     def add_go_ontology(self):
@@ -146,7 +146,8 @@ class NxMgAssembler(object):
                 self.graph.add_node(go_term.id,
                                     name=go_term.name.replace(' ', '_'),
                                     go=go_term.id, source='go')
-                self.graph.add_edge(go_term.id, parent_term.id, label='GO:is_a')
+                self.graph.add_edge(go_term.id, parent_term.id,
+                                    label='GO:is_a')
 
     def save_graph(self, fname):
         nx.write_graphml(self.graph, fname)
