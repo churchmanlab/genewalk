@@ -77,26 +77,10 @@ class DeepWalk(object):
                     if count % 10000 == 0:
                         logger.info('%d/%d walks done in %.2fs.' %
                                     (count, self.nwalks, time.time() - start))
-                    self._graph_walk(count, u)
+                    self.walks[count] = run_single_walk(self.graph, u, self.wl)
                     count += 1
         end = time.time()
         logger.info('DW.get_walks done %.2f' % (end - start))  # in sec
-
-    def _graph_walk(self, idx, u):
-        """Generates walks (sentences) sampled by an (unbiased) random walk
-        over the networkx MultiGraph: node and edge names for the sentences.
-
-        Parameters
-        ----------
-        idx : int
-            index of walk in self.walks that will form corpus for word2vec
-        u : str
-            starting node
-        """
-        self.walks[idx] = [u]
-        for i in range(1, self.wl):
-            u = random.choice(list(self.graph[u]))
-            self.walks[idx].append(u)
 
     # TODO: set worker size depending on the number of processors,
     #  do a benchmark on a large machine to see how much workers defined
@@ -146,3 +130,21 @@ class DeepWalk(object):
                               sample=sample)
         end = time.time()
         logger.info('DW.word2vec done %.2f' % (end - start))  # in sec
+
+
+def run_single_walk(graph, start_node, length):
+    """Generates walks (sentences) sampled by an (unbiased) random walk
+    over the networkx MultiGraph: node and edge names for the sentences.
+
+    Parameters
+    ----------
+    idx : int
+        index of walk in self.walks that will form corpus for word2vec
+    u : str
+        starting node
+    """
+    path = [start_node]
+    for i in range(1, length):
+        start_node = random.choice(list(graph[start_node]))
+        path.append(start_node)
+    return path
