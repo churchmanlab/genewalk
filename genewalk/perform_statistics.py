@@ -25,13 +25,13 @@ class GeneWalk(object):
     Parameters
     ----------
     graph : networkx.MultiGraph
-        GeneWalk Network
+        GeneWalk network for which the statistics are calculated.
     genes : list of dict
-        List of gene references for relevant genes
+        List of gene references for relevant genes.
     nvs : list of dict
-        Node vectors
+        Node vectors for nodes in the graph.
     null_dist : dict
-        Similarity random (null) distributions
+        Similarity random (null) distributions.
     """
     def __init__(self, graph, genes, nvs, null_dist):
         self.graph = graph
@@ -42,6 +42,7 @@ class GeneWalk(object):
         self.gene_nodes = set([g['HGNC_SYMBOL'] for g in self.genes])
 
     def get_gene_attribs(self, gene):
+        """Return an attribute dict for a given gene."""
         return {
             'hgnc_symbol': gene['HGNC_SYMBOL'],
             'hgnc_id': gene['HGNC'],
@@ -49,6 +50,7 @@ class GeneWalk(object):
         }
 
     def get_go_attribs(self, gene_attribs, nv, alpha_fdr):
+        """Return GO entries and their attributes for a given gene."""
         gene_node_id = gene_attribs['hgnc_symbol']
         connected = set(self.graph[gene_node_id]) & self.go_nodes
         similar = nv.most_similar(gene_node_id, topn=len(nv.vocab))
@@ -70,16 +72,20 @@ class GeneWalk(object):
             go_attribs.append(go_attrib)
         return go_attribs
 
-    def generate_output(self, alpha_fdr=1):
+    def generate_output(self, alpha_fdr=1, base_id_type='hgnc_symbol'):
         """Main function of GeneWalk object that generates the final output
         list
 
         Parameters
         ----------
-        alpha_fdr
-            significance level for FDR [0,1] (default=1, i.e. all GO
+        alpha_fdr : Optional[float]
+            Significance level for FDR [0,1] (default=1, i.e. all GO
             terms are output). If set to a lower value, only annotated GO
             terms with mean padj < alpha_FDR are output.
+        base_id_type : Optional[str]
+            The type of gene IDs that were the basis of doing the analysis.
+            In case of mgi_id, we prepend a column to the table for MGI IDs.
+            Default: hgnc_symbol
         """
         rows = []
         for gene in self.genes:
@@ -116,6 +122,9 @@ class GeneWalk(object):
                            mean_sim, ste_sim,
                            mean_pval, ste_pval,
                            mean_qval, ste_qval]
+                    # If we're dealing with mouse genes, prepend the MGI ID
+                    if base_id_type == 'mgi_id':
+                        row = [gene.get('MGI', '')] + row
                     rows.append(row)
         header = ['hgnc_symbol', 'hgnc_id', 'go_name', 'go_id', 'ncon_gene',
                   'ncon_go', 'mean_sim', 'ste_sim', 'mean_pval', 'ste_pval',
@@ -124,6 +133,7 @@ class GeneWalk(object):
         return df
 
     def psim(self, sim, ncon):
+        # TODO: add docstrings here
         # Gets the p-value by comparing the experimental similarity value
         # to the null distribution.
         # TODO: is searchsorted the slow step here?
