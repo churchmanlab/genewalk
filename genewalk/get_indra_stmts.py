@@ -5,7 +5,6 @@ and familiex/complexes of interest, as well as targeted biological processes.
 It downloads the relevant Statement objects for reference and dumps them into
 a pickle file.
 """
-import os
 import pandas
 import pickle
 import logging
@@ -164,17 +163,12 @@ if __name__ == '__main__':
     #  the repo (or on S3) and parameterize here to be able to load them.
     parser = argparse.ArgumentParser(
         description='Choose a file with a list of genes to get a SIF for.')
-    parser.add_argument('--path')
     parser.add_argument('--df', default='data/stmt_df.pkl')
     parser.add_argument('--genes', default='data/JQ1_HGNCidForINDRA.csv')
     parser.add_argument('--mouse_genes')
     parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
-    parser.add_argument('--fplx', default='data/JQ1_HGNCidForINDRA_fplx.txt')
     args = parser.parse_args()
-    log_handler = logging.FileHandler(os.path.join(args.path,
-                                                   '%s.log' % logger.name))
-    logger.addHandler(log_handler)
-    
+
     # Load genes and get FamPlex terms
     if args.mouse_genes:
         genes = load_mouse_genes(args.mouse_genes)
@@ -189,4 +183,3 @@ if __name__ == '__main__':
     stmts = download_statements(df)
     # Dump the Statements into a pickle file
     dump_pickle(stmts, args.stmts)
-    fplx_links = get_famplex_links(df, args.fplx)

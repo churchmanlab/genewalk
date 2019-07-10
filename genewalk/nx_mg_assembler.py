@@ -1,5 +1,3 @@
-import re
-import os
 import pickle
 import logging
 import itertools
@@ -18,23 +16,23 @@ logger = logging.getLogger('genewalk.nx_mg_assembler')
 
 def load_network(network_type, network_file, genes):
     if network_type == 'pc':
-        MG = PcNxMgAssembler(genes)
+        mg = PcNxMgAssembler(genes)
     elif network_type == 'indra':
         logger.info('Loading %s' % network_file)
         with open(network_file, 'rb') as fh:
             stmts = pickle.load(fh)
-        MG = IndraNxMgAssembler(stmts)
+        mg = IndraNxMgAssembler(stmts)
     elif network_type == 'edge_list':
         logger.info('Loading user-provided GeneWalk Network from %s.' %
                     network_file)
-        MG = UserNxMgAssembler(network_file, gwn_format='el')
+        mg = UserNxMgAssembler(network_file, gwn_format='el')
     elif network_type == 'sif':
         logger.info('Loading user-provided GeneWalk Network from %s.' %
                     network_file)
-        MG = UserNxMgAssembler(network_file, gwn_format='sif')
+        mg = UserNxMgAssembler(network_file, gwn_format='sif')
     else:
         raise ValueError('Unknown network_type: %s' % network_type)
-    return MG
+    return mg
 
 
 def _load_goa_gaf():
@@ -69,23 +67,7 @@ def _load_goa_gaf():
     return goa
 
 
-def _build_go_ontology():
-    go_ontology = {}
-    for go_term in go_dag.values():
-        if go_term.is_obsolete:
-            continue
-        for parent_term in go_term.parents:
-            if parent_term.is_obsolete:
-                continue
-            if go_term.id in go_ontology:
-                go_ontology[go_term.id].append(parent_term.id)
-            else:
-                go_ontology[go_term.id] = [parent_term.id]
-    return go_ontology
-
-
 go_dag = GODag(get_go_obo())
-go_ontology = _build_go_ontology()
 goa = _load_goa_gaf()
 
 
@@ -313,8 +295,10 @@ class UserNxMgAssembler(object):
     def __init__(self, filepath='~/genewalk/gwn.txt', gwn_format='el'):
         self.graph = nx.MultiGraph()
         self.filepath = filepath
+        self.gwn_format = gwn_format
+        self.add_network_edges()
         
-    def MG_from_file(self):
+    def add_network_edges(self):
         """Assemble the GeneWalk Network from the user-provided file path."""
         gwn_df = pd.read_csv(self.filepath, dtype=str, header=None)
         col_mapper = {}

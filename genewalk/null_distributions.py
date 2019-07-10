@@ -1,7 +1,5 @@
-"""This module constructs a set of random graphs, for a given number of
-repeats, where the degree distribution matches that of an input GeneWalk
-network. For each random graph, DeepWalk is run, and the null distribution
-of cosine similarities is constructed from all DeepWalk outputs."""
+"""This module implements functions related to the construction of a null
+distribution for GeneWalk networks."""
 import random
 import logging
 import numpy as np
@@ -11,7 +9,20 @@ logger = logging.getLogger('genewalk.get_null_distributions')
 
 
 def get_rand_graph(mg):
+    """Return a random graph with the same degree distribution as the input.
+
+    Parameters
+    ----------
+    mg : networkx.MultiGraph
+        An input graph based on which a random graph is generated.
+
+    Returns
+    -------
+    networkx.MultiGraph
+        A random graph whose degree distribution matches that of the output.
+    """
     random.seed(a=None)
+    # TODO: do we really want to seed here?
     gseed = random.randint(0, 1e12)
     logger.info('gseed: %s' % gseed)
     # this is not randomized: order is same
@@ -26,10 +37,10 @@ def get_rand_graph(mg):
 
 
 def get_null_distributions(rg, nv):
+    # TODO: add docstrings here
     srd = {}
     # Generate null distributions from random node vectors
-    g_view = nx.nodes(rg)
-    for node in g_view:
+    for node in nx.nodes(rg):
         connections = list(rg[node])
         # only get sims for non self connections
         if node in connections:
@@ -51,6 +62,7 @@ def get_null_distributions(rg, nv):
 
 
 def get_srd(srs):
+    # TODO: add docstrings here
     # similarity (random) null distributions
     # key structure: of srd: 'd'+str(#connections of a node)
     srd = {}
