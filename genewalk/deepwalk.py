@@ -74,6 +74,7 @@ class DeepWalk(object):
                                          niter=self.niter,
                                          walk_length=self.wl)
             res = pool.map(walk_fun, nx.nodes(self.graph))
+            self.walks = _flatten_list(res)
         end = time.time()
         logger.info('Running random walks done in %.2fs' % (end - start))
 
@@ -151,3 +152,10 @@ def run_walks_for_node(node, graph, niter, walk_length):
         walk = run_single_walk(graph, node, walk_length)
         walks.append(walk)
     return walks
+
+
+def _flatten_list(ll):
+    flat_list = []
+    for l in ll:
+        flat_list += l
+    return flat_list
