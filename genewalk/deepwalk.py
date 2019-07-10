@@ -43,8 +43,6 @@ class DeepWalk(object):
     ----------
     walks : list
         A list of walks.
-    nwalks : int
-        Total number of random walks that were sampled.
     """
     def __init__(self, graph, walk_length=default_walk_length,
                  niter=default_niter):
@@ -52,7 +50,6 @@ class DeepWalk(object):
         self.walks = []
         self.wl = walk_length
         self.niter = niter
-        self.nwalks = 0
         self.model = None
 
     def get_walks(self):
@@ -60,24 +57,14 @@ class DeepWalk(object):
         (= starting point) sampled by an (unbiased) random walk over the
         networkx MultiGraph.
         """
-        logger.info('Generating random walks...')
-
-        # The number of walks is the number of iterations times the sum of the
-        # number of edges for each node
-        self.nwalks = self.niter * sum([len(self.graph[node]) for node in
-                                        nx.nodes(self.graph)])
-
+        logger.info('Running random walks...')
         self.walks = []
         start = time.time()
         for count, node in enumerate(nx.nodes(self.graph)):
-            for _ in range(self.niter * len(self.graph[node])):
-                if count % 10000 == 0:
-                    logger.info('%d/%d walks done in %.2fs.' %
-                                (count, self.nwalks, time.time() - start))
-                walk = run_single_walk(self.graph, node, self.wl)
-                self.walks.append(walk)
+            walks = run_walks_for_node(self.graph, node, self.niter, self.wl)
+            self.walks.extend(walks)
         end = time.time()
-        logger.info('Running walks done in %.2fs' % (end - start))
+        logger.info('Running random walks done in %.2fs' % (end - start))
 
     # TODO: set worker size depending on the number of processors,
     #  do a benchmark on a large machine to see how much workers defined
@@ -145,3 +132,11 @@ def run_single_walk(graph, start_node, length):
         start_node = random.choice(list(graph[start_node]))
         path.append(start_node)
     return path
+
+
+def run_walks_for_node(graph, node, niter, walk_length):
+    walks = []
+    for _ in range(niter * len(graph[node])):
+        walk = run_single_walk(graph, node, walk_length)
+        walks.append(walk)
+    return walks
