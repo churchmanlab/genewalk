@@ -19,15 +19,6 @@ default_walk_length = 10
 default_niter = 100
 
 
-def run_walk(graph, **kwargs):
-    dw_args = {'walk_length': kwargs.pop('walk_length', default_walk_length),
-               'niter': kwargs.pop('niter', default_niter)}
-    DW = DeepWalk(graph, **dw_args)
-    DW.get_walks(kwargs.get('workers', 1))
-    DW.word2vec(**kwargs)
-    return DW
-
-
 class DeepWalk(object):
     """Perform DeepWalk (node2vec), i.e., unbiased random walk over nodes
     on an undirected networkx MultiGraph.
@@ -37,9 +28,11 @@ class DeepWalk(object):
     graph : networkx.MultiGraph
         A networkx multigraph to be used as the basis for DeepWalk.
     walk_length : Optional[int]
-        Default: 10
+        The length of each random walk on the graph. Default: 10
     niter : Optional[int]
-        Default: 100
+        The number of iterations for each node to run (this is multiplied by
+        the number of neighbors of the node when determining the overall number
+        of walks to start from a given node). Default: 100
 
     Attributes
     ----------
@@ -55,14 +48,21 @@ class DeepWalk(object):
         self.model = None
 
     def get_walks(self, workers=1):
-        """Generate collection of graph walks: one for each node
-        (= starting point) sampled by an (unbiased) random walk over the
-        networkx MultiGraph.
+        """Generates walks (sentences) sampled by an (unbiased) random walk
+        over the networkx MultiGraph.
+
+        Parameters
+        ----------
+        workers : Optional[int]
+            The number of workers to use when running random walks. If greater
+            than 1, multiprocessing is used to speed up random walk generation.
+            Default: 1
         """
         logger.info('Running random walks...')
         self.walks = []
         start = time.time()
         nodes = nx.nodes(self.graph)
+        # In case we don't parallelize
         if workers == 1:
             for count, node in enumerate(nodes):
                 walks = run_walks_for_node(node, self.graph, self.niter,
@@ -70,6 +70,7 @@ class DeepWalk(object):
                 self.walks.extend(walks)
                 logger.info('Walks for %d/%d nodes complete in %.2fs' %
                             (count + 1, len(nodes), time.time() - start))
+        # In case we parallelize
         else:
             pool = multiprocessing.Pool(workers)
             walk_fun = functools.partial(run_walks_for_node,
@@ -91,66 +92,69 @@ class DeepWalk(object):
         end = time.time()
         logger.info('Running random walks done in %.2fs' % (end - start))
 
-    # TODO: set worker size depending on the number of processors,
-    #  do a benchmark on a large machine to see how much workers defined
-    #  here speed up the process. If it scales well, we can do
-    #  parallelization at this level only.
     def word2vec(self, sg=1, size=8, window=1, min_count=1, negative=5,
                  workers=4, sample=0):
         """Set the model based on Word2Vec
         Source: https://radimrehurek.com/gensim/models/word2vec.html
 
+        Note that his function sets the model attribute if the DeepWalk object
+        and doesn't return a value.
+
         Parameters
         ----------
-        sentences : iterable of iterables
-            The sentences iterable can be simply a list of lists of tokens,
-            but for larger corpora, consider an iterable that streams the
-            sentences directly from disk/network.
-        sg : int {1, 0}
+        sg : Optional[int] {1, 0}
             Defines the training algorithm. If 1, skip-gram is employed;
             otherwise, CBOW is used. For GeneWalk this is set to 1.
-        size : int
+        size : Optional[int]
             Dimensionality of the node vectors. Default for GeneWalk is 8.
-        window : int
+        window : Optional[int]
             a.k.a. context size. Maximum distance between the current and
             predicted word within a sentence. For GeneWalk this is set to 1
             to assess directly connected nodes only.
-        min_count : int
+        min_count : Optional[int]
             Ignores all words with total frequency lower than this. For
             GeneWalk this is set to 0.
-        negative : int
+        negative : Optional[int]
             If > 0, negative sampling will be used, the int for negative
             specifies how many "noise words" should be drawn (usually between
             5-20). If set to 0, no negative sampling is used.
             Default for GeneWalk is 5.
-        workers : int
+        workers : Optional[int]
             Use these many worker threads to train the model (=faster training
             with multicore machines).
-        sample : float
+        sample : Optional[float]
             The threshold for configuring which higher-frequency words are
             randomly downsampled, useful range is (0, 1e-5). parameter t in eq
             5 Mikolov et al. For GeneWalk this is set to 0.
         """
-        logger.info('generate node vectors')
+        logger.info('Generating node vectors...')
         start = time.time()
         self.model = Word2Vec(sentences=self.walks, sg=sg, size=size,
                               window=window, min_count=min_count,
                               negative=negative, workers=workers,
                               sample=sample)
         end = time.time()
-        logger.info('DW.word2vec done %.2f' % (end - start))  # in sec
+        logger.info('Generating node vectors done in %.2fs'
+                    % (end - start))
 
 
 def run_single_walk(graph, start_node, length):
-    """Generates walks (sentences) sampled by an (unbiased) random walk
-    over the networkx MultiGraph: node and edge names for the sentences.
+    """Run a single random walk on a graph from a given start node.
 
     Parameters
     ----------
-    idx : int
-        index of walk in self.walks that will form corpus for word2vec
-    u : str
-        starting node
+    graph : networks.MultiGraph
+        The graph on which the random walk is to be run.
+    start_node : str
+        The identifier of the node from which the random walk starts.
+    length : int
+        The length of the random walk.
+
+    Returns
+    -------
+    list of str
+        A path of the given length, with each element corresponding to a node
+        along the path.
     """
     path = [start_node]
     for i in range(1, length):
@@ -160,8 +164,53 @@ def run_single_walk(graph, start_node, length):
 
 
 def run_walks_for_node(node, graph, niter, walk_length):
+    """Run all random walks starting from a given node.
+
+    Parameters
+    ----------
+    node : str
+        The identifier of the node from which the walks start.
+    graph : networks.MultiGraph
+        The graph on which the random walks are to be run.
+    niter : int
+        The number of iterations to run.
+    walk_length : int
+        The length of the walk.
+
+    Returns
+    -------
+    list of list of str
+        A list of random walks starting from the given node.
+    """
     walks = []
     for _ in range(niter * len(graph[node])):
         walk = run_single_walk(graph, node, walk_length)
         walks.append(walk)
     return walks
+
+
+def run_walks(graph, **kwargs):
+    """Run random walks and get node vectors on a given graph.
+
+    Parameters
+    ----------
+    graph : networkx.MultiGraph
+        The graph on which random walks are going to be run and node vectors
+        calculated.
+    **kwargs
+        Key word arguments passed as the arguments of the DeepWalk constructor,
+        ass well as the get_walks method and the word2vec method. See the
+        DeepWalk class documentation for more information on these.
+
+    Returns
+    -------
+    :py:class:`genewalk.deepwalk.DeepWalk`
+        A DeepWalk instance whose walks attribute contains the list
+        of random walks produced on the graph.
+    """
+    dw_args = {'walk_length': kwargs.pop('walk_length', default_walk_length),
+               'niter': kwargs.pop('niter', default_niter)}
+    DW = DeepWalk(graph, **dw_args)
+    DW.get_walks(kwargs.get('workers', 1))
+    DW.word2vec(**kwargs)
+    return DW

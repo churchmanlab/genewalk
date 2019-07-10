@@ -5,7 +5,7 @@ import logging
 import argparse
 from genewalk.nx_mg_assembler import load_network
 from genewalk.gene_lists import read_gene_list
-from genewalk.deepwalk import run_walk
+from genewalk.deepwalk import run_walks
 from genewalk.null_distributions import get_rand_graph, \
     get_null_distributions, get_srd
 from genewalk.perform_statistics import GeneWalk
@@ -111,7 +111,7 @@ if __name__ == '__main__':
         save_pickle(MG.graph, project_folder, 'multi_graph')
         for i in range(args.nreps_graph):
             logger.info('%s/%s' % (i + 1, args.nreps_graph))
-            DW = run_walk(MG.graph, workers=args.nproc)
+            DW = run_walks(MG.graph, workers=args.nproc)
 
             # Pickle the node vectors (embeddings) and DW object
             if args.save_dw:
@@ -126,7 +126,7 @@ if __name__ == '__main__':
         for i in range(args.nreps_null):
             logger.info('%s/%s' % (i + 1, args.nreps_null))
             RG = get_rand_graph(MG)
-            DW = run_walk(RG, workers=args.nproc)
+            DW = run_walks(RG, workers=args.nproc)
 
             # Pickle the node vectors (embeddings) and DW object
             if args.save_dw:
@@ -147,6 +147,7 @@ if __name__ == '__main__':
                for i in range(args.nreps_graph)]
         null_dist = load_pickle(project_folder, 'deep_walk_rand_simdists')
         GW = GeneWalk(MG, genes, nvs, null_dist)
-        df = GW.generate_output(alpha_fdr=args.alpha_fdr)
+        df = GW.generate_output(alpha_fdr=args.alpha_fdr,
+                                base_id_type=args.id_type)
         fname = os.path.join(project_folder, 'results.csv')
         df.to_csv(fname, index=False, float_format='%.3e')
