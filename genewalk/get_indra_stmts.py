@@ -117,8 +117,8 @@ def get_famplex_links(df, fname):
 
 
 def get_famplex_links_from_stmts(stmts):
-    genes_appearing = {}
-    fplx_appearing = {}
+    genes_appearing = set()
+    fplx_appearing = set()
     for stmt in stmts:
         agents = [a for a in stmt.agent_list() if a is not None]
         if len(agents) < 2:

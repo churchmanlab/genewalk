@@ -97,6 +97,8 @@ class NxMgAssembler(object):
     @staticmethod
     def _get_go_terms_for_gene(gene):
         # Filter to rows with the given gene's UniProt ID
+        if 'UP' not in gene:
+            return []
         df = goa[goa['DB_ID'] == gene['UP']]
         go_ids = sorted(list(set(df['GO_ID'])))
         return go_ids
@@ -217,11 +219,13 @@ class IndraNxMgAssembler(NxMgAssembler):
         A GeneWalk Network that is assembled by this assembler.
     """
     def __init__(self, genes, stmts):
+        self.indra_nodes = set()
         self.stmts = stmts
         super().__init__(genes)
+        self.add_go_ontology()
+        self.add_go_annotations()
         self.add_indra_edges()
         self.add_fplx_edges()
-        self.indra_nodes = {}
 
     def add_indra_edges(self):
         """Assemble the graph from the assembler's list of INDRA Statements. 
@@ -237,15 +241,16 @@ class IndraNxMgAssembler(NxMgAssembler):
             if len(agents) < 2:
                 continue
             # Create a label that is unique to the statement and its type
-            edge_key = '%d_%s' % (i, type(st).__name__)
+            edge_type = type(st).__name__
+            edge_key = '%d_%s' % (i, edge_type)
             # Iterate over all the agent combinations and add edge
             for a, b in itertools.combinations(agents, 2):
                 a_node = self.add_agent_node(a)
                 b_node = self.add_agent_node(b)
-                self.graph.add_edge(a_node, b_node, label=edge_key)
+                self.graph.add_edge(a_node, b_node, key=edge_key,
+                                    label=edge_type)
         logger.info('Number of INDRA originating nodes %d.' %
                     len(self.indra_nodes))
-
 
     def add_fplx_edges(self):
         """Add to self.graph an edge (label: 'FPLX:is_a') between the gene
