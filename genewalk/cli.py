@@ -47,18 +47,24 @@ if __name__ == '__main__':
                                           'intermediate and final results '
                                           'are written. Must contain only '
                                           'characters that are valid in '
-                                          'folder names.')
+                                          'folder names.',
+                        required=True)
     parser.add_argument('--genes', help='Path to a text file with a list of '
                                         'differentially expressed genes. The'
                                         'type of gene identifiers used in '
                                         'the text file are provided in the '
-                                        'id_type argument.')
+                                        'id_type argument.',
+                        required=True)
     parser.add_argument('--id_type',
                         help='The type of gene IDs provided in the text file '
                              'in the genes argument. Possible values are: '
-                             'hgnc_symbol, hgnc_id, and mgi_id.')
+                             'hgnc_symbol, hgnc_id, and mgi_id.',
+                        choices=['hgnc_symbol', 'hgnc_id', 'mgi_id'],
+                        required=True)
     parser.add_argument('--stage', default='all',
-                        help='The stage of processing to run.')
+                        help='The stage of processing to run.',
+                        choices=['all', 'node_vectors', 'null_distribution',
+                                 'statistics'])
     parser.add_argument('--base_folder', default=default_base_folder,
                         help='The base folder used to store GeneWalk '
                              'temporary and result files for a given project.')
@@ -66,7 +72,8 @@ if __name__ == '__main__':
                         help='The source of the network to be used.'
                              'Possible values are: pc, indra, edge_list, and '
                              'sif. In case of indra, edge_list, and sif, '
-                             'the network_file argument must be specified.')
+                             'the network_file argument must be specified.',
+                        choices=['pc', 'indra', 'edge_list', 'sif'])
     parser.add_argument('--network_file', default=None,
                         help='If network_source is indra, this argument '
                              'points to a Python pickle file in which a list '
