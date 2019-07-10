@@ -7,7 +7,9 @@ attribute of the instance.
 import time
 import random
 import logging
+import functools
 import networkx as nx
+import multiprocessing
 from gensim.models import Word2Vec
 
 
@@ -52,7 +54,7 @@ class DeepWalk(object):
         self.niter = niter
         self.model = None
 
-    def get_walks(self):
+    def get_walks(self, workers=1):
         """Generate collection of graph walks: one for each node
         (= starting point) sampled by an (unbiased) random walk over the
         networkx MultiGraph.
@@ -60,9 +62,18 @@ class DeepWalk(object):
         logger.info('Running random walks...')
         self.walks = []
         start = time.time()
-        for count, node in enumerate(nx.nodes(self.graph)):
-            walks = run_walks_for_node(self.graph, node, self.niter, self.wl)
-            self.walks.extend(walks)
+        if workers == 1:
+            for node in nx.nodes(self.graph):
+                walks = run_walks_for_node(node, self.graph, self.niter,
+                                           self.wl)
+                self.walks.extend(walks)
+        else:
+            pool = multiprocessing.Pool(workers)
+            walk_fun = functools.partial(run_walks_for_node,
+                                         graph=self.graph,
+                                         niter=self.niter,
+                                         walk_length=self.wl)
+            res = pool.map(walk_fun, nx.nodes(self.graph))
         end = time.time()
         logger.info('Running random walks done in %.2fs' % (end - start))
 
@@ -134,7 +145,7 @@ def run_single_walk(graph, start_node, length):
     return path
 
 
-def run_walks_for_node(graph, node, niter, walk_length):
+def run_walks_for_node(node, graph, niter, walk_length):
     walks = []
     for _ in range(niter * len(graph[node])):
         walk = run_single_walk(graph, node, walk_length)
