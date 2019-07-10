@@ -85,9 +85,13 @@ if __name__ == '__main__':
     parser.add_argument('--nproc', default=1, type=int,
                         help='The number of processors to use in a '
                              'multiprocessing environment.')
-    parser.add_argument('--nreps', default=10, type=int,
+    parser.add_argument('--nreps_graph', default=10, type=int,
                         help='The number of repeats to run when calculating '
-                             'node vectors, and the null distribution.')
+                             'node vectors on the "real" network graph.')
+    parser.add_argument('--nreps_null', default=15, type=int,
+                        help='The number of repeats to run when calculating '
+                             'node vectors on the random network graphs '
+                             'for constructing the null distribution.')
     parser.add_argument('--alpha_fdr', default=1, type=float,
                         help='The false discovery rate to use when '
                              'calculating the final statistics.')
@@ -105,8 +109,8 @@ if __name__ == '__main__':
         save_pickle(genes, project_folder, 'genes')
         MG = load_network(args.network_source, args.network_file, genes)
         save_pickle(MG.graph, project_folder, 'multi_graph')
-        for i in range(args.nreps):
-            logger.info('%s/%s' % (i + 1, args.nreps))
+        for i in range(args.nreps_graph):
+            logger.info('%s/%s' % (i + 1, args.nreps_graph))
             DW = run_walk(MG.graph, workers=args.nproc)
 
             # Pickle the node vectors (embeddings) and DW object
@@ -118,8 +122,8 @@ if __name__ == '__main__':
     if args.stage in ('all', 'null_distribution'):
         MG = load_pickle(project_folder, 'multi_graph')
         srs = []
-        for i in range(args.nreps):
-            logger.info('%s/%s' % (i + 1, args.nreps))
+        for i in range(args.nreps_null):
+            logger.info('%s/%s' % (i + 1, args.nreps_null))
             RG = get_rand_graph(MG)
             DW = run_walk(RG, workers=args.nproc)
 
@@ -140,9 +144,9 @@ if __name__ == '__main__':
         genes = load_pickle(project_folder, 'genes')
         nvs = [load_pickle(project_folder, 'deep_walk_node_vectors_rand_%d' %
                                             (i + 1))
-               for i in range(args.nreps)]
+               for i in range(args.nreps_null)]
         null_dist = load_pickle(project_folder, 'deep_walk_rand_simdists')
         GW = GeneWalk(MG, genes, nvs, null_dist)
-        df = GW.generate_output(alpha_FDR=args.alpha_fdr)
+        df = GW.generate_output(alpha_fdr=args.alpha_fdr)
         fname = os.path.join(project_folder, 'results.csv')
         df.to_csv(fname, index=False)

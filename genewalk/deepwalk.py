@@ -165,10 +165,3 @@ def run_walks_for_node(node, graph, niter, walk_length):
         walk = run_single_walk(graph, node, walk_length)
         walks.append(walk)
     return walks
-
-
-def _flatten_list(ll):
-    flat_list = []
-    for l in ll:
-        flat_list += l
-    return flat_list
