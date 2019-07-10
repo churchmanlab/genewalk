@@ -5,8 +5,10 @@ import logging
 import itertools
 import pandas as pd
 import networkx as nx
+from indra.databases import go_client
 from goatools.obo_parser import GODag
 from genewalk.resources import get_go_obo, get_goa_gaf, get_pc
+from genewalk.get_indra_stmts import get_famplex_links_from_stmts
 
 logger = logging.getLogger('genewalk.nx_mg_assembler')
 
@@ -19,23 +21,9 @@ def load_network(network_type, network_file, genes):
         MG = PcNxMgAssembler(genes)
     elif network_type == 'indra':
         logger.info('Loading %s' % network_file)
-        with open(network_file, 'rb') as f:
-            stmts = pickle.load(f)
-
+        with open(network_file, 'rb') as fh:
+            stmts = pickle.load(fh)
         MG = IndraNxMgAssembler(stmts)
-        del stmts
-
-        MG.MG_from_INDRA()
-
-        # TODO: implement generic FamPlex construction for statements
-        ffplx = 'INDRA_fplx.txt'
-        MG.add_FPLXannotations(os.path.join(args.path, ffplx))
-
-        logger.info('Number of INDRA originating nodes %d.' %
-                    nx.number_of_nodes(MG.graph))
-
-        MG.add_go_annotations()
-        MG.add_go_ontology()
     elif network_type == 'edge_list':
         logger.info('Loading user-provided GeneWalk Network from %s.' %
                     network_file)
@@ -123,7 +111,7 @@ class NxMgAssembler(object):
                     continue
                 self.graph.add_node(go_term.id,
                                     name=go_term.name.replace(' ', '_'),
-                                    go=go_term.id, source='go')
+                                    GO=go_term.id, source='go')
                 # TODO: do we need qualifiers here as labels?
                 self.graph.add_edge(gene['HGNC_SYMBOL'], go_term.id,
                                     label='assoc_with')
@@ -139,15 +127,18 @@ class NxMgAssembler(object):
                 continue
             self.graph.add_node(go_term.id,
                                 name=go_term.name.replace(' ', '_'),
-                                go=go_term.id, source='go')
+                                GO=go_term.id, source='go')
             for parent_term in go_term.parents:
                 if parent_term.is_obsolete:
                     continue
                 self.graph.add_node(go_term.id,
                                     name=go_term.name.replace(' ', '_'),
-                                    go=go_term.id, source='go')
+                                    GO=go_term.id, source='go')
                 self.graph.add_edge(go_term.id, parent_term.id,
                                     label='GO:is_a')
+
+    def node2edges(self, node_key):
+        return self.graph.edges(node_key, keys=True)
 
     def save_graph(self, fname):
         nx.write_graphml(self.graph, fname)
@@ -207,9 +198,6 @@ class PcNxMgAssembler(NxMgAssembler):
                     nx.number_of_nodes(pc_graph))
         self.graph = nx.compose(self.graph, pc_graph)
 
-    def node2edges(self, node_key):
-        return self.graph.edges(node_key, keys=True)
-
 
 class IndraNxMgAssembler(NxMgAssembler):
     """The IndraNxMgAssembler assembles INDRA Statements and GO ontology /
@@ -219,7 +207,7 @@ class IndraNxMgAssembler(NxMgAssembler):
 
     Parameters
     ----------
-    stmts : Optional[list[indra.statements.Statement]]
+    stmts : list[indra.statements.Statement]
         A list of INDRA Statements to be added to the assembler's list
         of Statements.
 
@@ -227,124 +215,64 @@ class IndraNxMgAssembler(NxMgAssembler):
     ----------
     graph : networkx.MultiGraph
         A GeneWalk Network that is assembled by this assembler.
-    GOA : pandas.DataFrame
-        GO annotation in pd.dataframe format
-    OGO : goatools.GODag
-        GO ontology, GODag object (see goatools)
     """
-    def __init__(self, stmts=None):
-        self.stmts = [] if stmts is None else stmts
-        self.graph = nx.MultiGraph()
-        self.GOA = []
-        self.OGO = []
-        self.EC_GOA=['EXP', 'IDA', 'IPI', 'IMP', 'IGI', 'IEP', 'HTP', 'HDA',
-                     'HMP', 'HGI', 'HEP', 'IBA', 'IBD']
+    def __init__(self, genes, stmts):
+        self.stmts = stmts
+        super().__init__(genes)
+        self.add_indra_edges()
+        self.add_fplx_edges()
+        self.indra_nodes = {}
 
-    def MG_from_INDRA(self):
+    def add_indra_edges(self):
         """Assemble the graph from the assembler's list of INDRA Statements. 
         Edge attribute are given by statement type and index in list of stmts
         """
-        logger.info('Adding nodes from INDRA stmts.')
-        N=len(self.stmts)
-        for i in range(N):
-            if N > 1000  and (i % 1000 == 0):
-                logger.info("%d / %d" % (i, N))
-            st = self.stmts[i]
+        logger.info('Adding nodes from INDRA statements.')
+        for i, st in enumerate(self.stmts):
             # Get all agents in the statement
-            agents = st.agent_list()
-            # Filter out None Agent
-            agents = [a for a in agents if a is not None]
+            agents = [a for a in st.agent_list() if a is not None]
             # Only include edges for statements with at least 2 Agents
             # excludes (irrelevant) stmt types: Translocation, ActiveForm,
             # SelfModification
             if len(agents) < 2:
                 continue
-            edge_attr = str(i)+'_'+type(st).__name__
+            # Create a label that is unique to the statement and its type
+            edge_key = '%d_%s' % (i, type(st).__name__)
             # Iterate over all the agent combinations and add edge
             for a, b in itertools.combinations(agents, 2):
-                self._add_INnode_edge(a, b, edge_attr)
+                a_node = self.add_agent_node(a)
+                b_node = self.add_agent_node(b)
+                self.graph.add_edge(a_node, b_node, label=edge_key)
+        logger.info('Number of INDRA originating nodes %d.' %
+                    len(self.indra_nodes))
 
-    def add_FPLXannotations(self,filename):
+
+    def add_fplx_edges(self):
         """Add to self.graph an edge (label: 'FPLX:is_a') between the gene
         family to member annotation edges.
-
-        Parameters
-        ----------
-        filename : str specifying the .csv file with list of tuples with the
-        first element of the tuple a child gene name or FamPlex entry, and the
-        second element a parent FamPlex entry, e.g. ('KRAS', 'RAS')
         """
-        FPLX = pd.read_csv(filename, sep=',', dtype=str, header=None)
-        # Add protein family/complex links
-        for i in FPLX.index:
-            s = FPLX[0][i]
-            t = FPLX[1][i]
-            edge_attr = 'FPLX:is_a'
-            self._add_edge(s, t, edge_attr)
+        links = get_famplex_links_from_stmts(self.stmts)
+        for s, t in links:
+            self.graph.add_edge(s, t, label='FPLX:is_a')
 
-    def _GOA_from_UP(self, UP):
-        # UP matching GOIDs and Qualif
-        SEL = \
-            self.GOA[self.GOA['DB_ID'] == UP][['GO_ID','Evidence_Code']].drop_duplicates()
-        for i in SEL.index:
-            if (SEL['Evidence_Code'][i] in self.EC_GOA) & (SEL['GO_ID'][i] in
-                                                           self.OGO):
-                pass
-            else:
-                # Insufficient evidence for annotation or not present in OGO:
-                # obsolete GO:ID, so drop.
-                SEL = SEL.drop(i)
-        # add new column
-        SEL.insert(loc=1, column='Qualifier',
-                   value=pd.Series('GOan', index=SEL.index))
-        return SEL.drop(columns=['Evidence_Code'])
-
-    def _add_INnode_edge(self, s, t, attributes):
-        if s is not None:
-            s = self._add_INnode(s)
-            t = self._add_INnode(t)
-            self._add_edge(s, t, attributes)
-
-    def _add_INnode(self, ag):
-        if 'GO' in ag.db_refs:
-            node_key = ag.db_refs['GO']
-            # double check if GO: is present in GO:ID
-            if re.search(r'GO:', node_key) is None:
-                node_key = 'GO:' + node_key
-            self._add_GOnode(node_key, '1')
-            # copy over any other identifiers (UP,HGNC,GO,TXT,ChEBI etc)
-            # as node attr.
-            for attr in ag.db_refs.keys():
-                if attr != 'GO':
-                    self.graph.node[node_key][attr]=ag.db_refs[attr]
+    def add_agent_node(self, agent):
+        go_id = agent.db_refs.get('GO')
+        if go_id:
+            go_id = go_id if go_id.startswith('GO:') else 'GO:%s' % go_id
+            node_key = go_id
+            name = go_client.get_go_label(go_id)
+            self.graph.add_node(node_key, name=name.replace(' ', '_'),
+                                source='indra', **agent.db_refs)
         else:
-            node_key = ag.name
-            self.graph.add_node(node_key,name=node_key,INDRA='1')
-            # copy over the identifiers (UP,HGNC,TXT,ChEBI etc) as node
-            # attribute
-            for attr in ag.db_refs.keys():
-                self.graph.node[node_key][attr]=ag.db_refs[attr]
+            node_key = agent.name
+            self.graph.add_node(node_key, name=agent.name, **agent.db_refs,
+                                source='indra')
+        self.indra_nodes.add(node_key)
         return node_key
-
-    def _add_GOnode(self, GOID, indra):
-        GOT = self.OGO[GOID]
-        nameGO = GOT.name
-        nameGO = nameGO.replace(" ", "_")
-        self.graph.add_node(GOID, name=nameGO, GO=GOID) # nx ensures no
-        # duplicate nodes with same key will be created
-        # not yet present, so assign origin: INDRA or GOA/OGO
-        if 'INDRA' not in self.graph.node[GOID].keys():
-            self.graph.node[GOID]['INDRA'] = indra
-
-    def _add_edge(self, s, t, edge_attributes=None):
-        if edge_attributes is None:
-            self.graph.add_edge(s, t, label='NA')
-        else:
-            self.graph.add_edge(s, t, label=edge_attributes)
 
     def node2stmts(self, node_key):
         matching_stmts = []
-        node_name=self.graph.node[node_key]['name']
+        node_name = self.graph.node[node_key]['name']
         for stmt in self.stmts:
             for agent in stmt.agent_list():
                 if agent is not None:
@@ -353,12 +281,6 @@ class IndraNxMgAssembler(NxMgAssembler):
                         matching_stmts.append(stmt)
                         break
         return matching_stmts
-
-    def node2edges(self, node_key):
-        return self.graph.edges(node_key, keys=True)
-
-    def save_graph(self, folder='~/genewalk/', filename='gwn'):
-        nx.write_graphml(self.graph, folder + filename + '.xml')
 
 
 class UserNxMgAssembler(object):

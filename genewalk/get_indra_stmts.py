@@ -31,10 +31,13 @@ def load_genes(fname):
 
 def load_mouse_genes(fname):
     """Return a list of human genes based on a table of mouse genes."""
-    df = pandas.read_csv(fname)#assumes the csv has headers
+    # assumes the csv has headers
+    df = pandas.read_csv(fname)
     for c in df.columns:
-        if c.startswith('MGI'):#assumes the first column starting with MGI is the relevant one with MGI:IDs
-            df=df.rename(columns={c: 'MGI'})
+        # assumes the first column starting with MGI is the relevant one
+        # with MGI:IDs
+        if c.startswith('MGI'):
+            df = df.rename(columns={c: 'MGI'})
             break
     mgi_ids = df['MGI']
     genes = []
@@ -107,6 +110,28 @@ def get_famplex_links(df, fname):
                        set(df[df.agB_ns == 'HGNC'].agB_name))
     fplx_appearing = (set(df[df.agA_ns == 'FPLX'].agA_id) |
                       set(df[df.agB_ns == 'FPLX'].agB_id))
+    links = get_famplex_links_from_lists(genes_appearing, fplx_appearing)
+    with open(fname, 'w') as fh:
+        for link in links:
+            fh.write('%s,%s\n' % link)
+
+
+def get_famplex_links_from_stmts(stmts):
+    genes_appearing = {}
+    fplx_appearing = {}
+    for stmt in stmts:
+        agents = [a for a in stmt.agent_list() if a is not None]
+        if len(agents) < 2:
+            continue
+        for agent in agents:
+            if 'HGNC' in agent.db_refs:
+                genes_appearing.add(agent.name)
+            elif 'FPLX' in agent.db_refs:
+                fplx_appearing.add(agent.name)
+    return get_famplex_links_from_lists(genes_appearing, fplx_appearing)
+
+
+def get_famplex_links_from_lists(genes_appearing, fplx_appearing):
     links = []
     for gene in genes_appearing:
         parent_ids = get_gene_parents(gene)
@@ -119,9 +144,6 @@ def get_famplex_links(df, fname):
         parent_ids = [eh.ns_id_from_uri(par_uri)[1] for par_uri in parents]
         parents_appearing = fplx_appearing & set(parent_ids)
         links += [(fplx_child, parent) for parent in parents_appearing]
-    with open(fname, 'w') as fh:
-        for link in links:
-            fh.write('%s,%s\n' % link)
     return links
 
 
@@ -138,8 +160,11 @@ def download_statements(df):
 
 if __name__ == '__main__':
     # Handle command line arguments
+    # TODO: make specific sets of statements for the use cases available in
+    #  the repo (or on S3) and parameterize here to be able to load them.
     parser = argparse.ArgumentParser(
         description='Choose a file with a list of genes to get a SIF for.')
+    parser.add_argument('--path')
     parser.add_argument('--df', default='data/stmt_df.pkl')
     parser.add_argument('--genes', default='data/JQ1_HGNCidForINDRA.csv')
     parser.add_argument('--mouse_genes')
@@ -147,7 +172,6 @@ if __name__ == '__main__':
     parser.add_argument('--fplx', default='data/JQ1_HGNCidForINDRA_fplx.txt')
     args = parser.parse_args()
     log_handler = logging.FileHandler(os.path.join(args.path,
-                                                   'LogErr',
                                                    '%s.log' % logger.name))
     logger.addHandler(log_handler)
     
