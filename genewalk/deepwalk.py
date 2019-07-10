@@ -61,26 +61,23 @@ class DeepWalk(object):
         networkx MultiGraph.
         """
         logger.info('Generating random walks...')
-        start = time.time()
-        g_view = nx.nodes(self.graph)
-        for u in g_view:
-            self.nwalks = self.nwalks + len(self.graph[u])
-        self.nwalks = self.nwalks * self.niter
 
-        self.walks = [[] for _ in range(self.nwalks)]
-        count = 0  # row index for self.walks
-        g_view = nx.nodes(self.graph)
-        for u in g_view:
-            N_neighbor = len(self.graph[u])
-            for i in range(self.niter):
-                for k in range(N_neighbor):
-                    if count % 10000 == 0:
-                        logger.info('%d/%d walks done in %.2fs.' %
-                                    (count, self.nwalks, time.time() - start))
-                    self.walks[count] = run_single_walk(self.graph, u, self.wl)
-                    count += 1
+        # The number of walks is the number of iterations times the sum of the
+        # number of edges for each node
+        self.nwalks = self.niter * sum([len(self.graph[node]) for node in
+                                        nx.nodes(self.graph)])
+
+        self.walks = []
+        start = time.time()
+        for count, node in enumerate(nx.nodes(self.graph)):
+            for _ in range(self.niter * len(self.graph[node])):
+                if count % 10000 == 0:
+                    logger.info('%d/%d walks done in %.2fs.' %
+                                (count, self.nwalks, time.time() - start))
+                walk = run_single_walk(self.graph, node, self.wl)
+                self.walks.append(walk)
         end = time.time()
-        logger.info('DW.get_walks done %.2f' % (end - start))  # in sec
+        logger.info('Running walks done in %.2fs' % (end - start))
 
     # TODO: set worker size depending on the number of processors,
     #  do a benchmark on a large machine to see how much workers defined
