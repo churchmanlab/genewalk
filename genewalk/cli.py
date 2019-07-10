@@ -118,7 +118,7 @@ if __name__ == '__main__':
     if args.stage in ('all', 'null_distribution'):
         MG = load_pickle(project_folder, 'multi_graph')
         srs = []
-        for i in args.nreps:
+        for i in range(args.nreps):
             logger.info('%s/%s' % (i + 1, args.nreps))
             RG = get_rand_graph(MG)
             DW = run_walk(RG, workers=args.nproc)
