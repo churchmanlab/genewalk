@@ -23,7 +23,7 @@ def run_walk(graph, **kwargs):
     dw_args = {'walk_length': kwargs.pop('walk_length', default_walk_length),
                'niter': kwargs.pop('niter', default_niter)}
     DW = DeepWalk(graph, **dw_args)
-    DW.get_walks()
+    DW.get_walks(kwargs.get('workers', 1))
     DW.word2vec(**kwargs)
     return DW
 
@@ -62,19 +62,32 @@ class DeepWalk(object):
         logger.info('Running random walks...')
         self.walks = []
         start = time.time()
+        nodes = nx.nodes(self.graph)
         if workers == 1:
-            for node in nx.nodes(self.graph):
+            for count, node in enumerate(nodes):
                 walks = run_walks_for_node(node, self.graph, self.niter,
                                            self.wl)
                 self.walks.extend(walks)
+                logger.info('Walks for %d/%d nodes complete in %.2fs' %
+                            (count + 1, len(nodes), time.time() - start))
         else:
             pool = multiprocessing.Pool(workers)
             walk_fun = functools.partial(run_walks_for_node,
                                          graph=self.graph,
                                          niter=self.niter,
                                          walk_length=self.wl)
-            res = pool.map(walk_fun, nx.nodes(self.graph))
-            self.walks = _flatten_list(res)
+            self.walks = []
+            for count, res in enumerate(
+                    pool.imap_unordered(walk_fun, nx.nodes(self.graph),
+                                        chunksize=100)):
+                self.walks += res
+                logger.info('Walks for %d/%d nodes complete in %.2fs' %
+                            (count + 1, len(nodes), time.time() - start))
+            logger.debug("Closing pool...")
+            pool.close()
+            logger.debug("Joining pool...")
+            pool.join()
+            logger.debug("Pool closed and joined.")
         end = time.time()
         logger.info('Running random walks done in %.2fs' % (end - start))
 
