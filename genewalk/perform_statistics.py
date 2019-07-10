@@ -39,18 +39,18 @@ class GeneWalk(object):
         self.nvs = nvs
         self.srd = null_dist
         self.go_nodes = set(nx.get_node_attributes(self.graph, 'GO'))
-        self.gene_nodes = set([g['HGNC_ID'] for g in self.genes])
+        self.gene_nodes = set([g['HGNC_SYMBOL'] for g in self.genes])
 
     def get_gene_attribs(self, gene):
         return {
             'hgnc_symbol': gene['HGNC_SYMBOL'],
-            'hgnc_id': gene['HGNC_ID'],
-            'ncon_gene': len(self.graph[gene['HGNC_ID']])
+            'hgnc_id': gene['HGNC'],
+            'ncon_gene': len(self.graph[gene['HGNC_SYMBOL']])
         }
 
-    def get_go_attribs(self, gene_attribs, nv):
-        gene_node_id = gene_attribs['HGNC_ID']
-        connected = set(self.graph[gene_node_id]) & self.GO_nodes
+    def get_go_attribs(self, gene_attribs, nv, alpha_fdr):
+        gene_node_id = gene_attribs['hgnc_symbol']
+        connected = set(self.graph[gene_node_id]) & self.go_nodes
         similar = nv.most_similar(gene_node_id, topn=len(nv.vocab))
         connected_similar = [s for s in similar if s[0] in connected]
         go_attribs = []
@@ -58,14 +58,14 @@ class GeneWalk(object):
             go_attrib = {}
             go_attrib['sim_score'] = sim_score
             go_attrib['go_id'] = go_node_id
-            go_attrib['ncon_go'] = self.graph[go_node_id]
-            go_attrib['go_name'] = self.graph[go_node_id]['name']
+            go_attrib['ncon_go'] = len(self.graph[go_node_id])
+            go_attrib['go_name'] = self.graph.nodes[go_node_id]['name']
             go_attrib['pval'] = \
                 self.psim(sim_score, min(go_attrib['ncon_go'],
                                          gene_attribs['ncon_gene']))
             _, go_attrib['qval'] = \
                 statsmodels.stats.multitest.fdrcorrection(go_attrib['pval'],
-                                                          self.alpha_FDR,
+                                                          alpha_fdr,
                                                           method='indep')
             go_attribs.append(go_attrib)
         return go_attribs
@@ -76,16 +76,16 @@ class GeneWalk(object):
 
         Parameters
         ----------
-        alpha_FDR
+        alpha_fdr
             significance level for FDR [0,1] (default=1, i.e. all GO
             terms are output). If set to a lower value, only annotated GO
             terms with mean padj < alpha_FDR are output.
         """
         rows = []
-        for node in self.gene_nodes:
-            gene_attribs = self.get_gene_attribs(node)
-            all_go_attribs = [self.get_go_attribs(gene_attribs, nv) for nv in
-                              self.nvs]
+        for gene in self.genes:
+            gene_attribs = self.get_gene_attribs(gene)
+            all_go_attribs = [self.get_go_attribs(gene_attribs, nv, alpha_fdr)
+                              for nv in self.nvs]
             go_attrib_dict = {}
             for go_attrib_list in all_go_attribs:
                 for go_attribs in go_attrib_list:
@@ -106,16 +106,17 @@ class GeneWalk(object):
                             np.sqrt(len(self.nvs)))
                 if mean_qval > alpha_fdr:
                     continue
-                row = [gene_attribs['hgnc_symbol'],
-                       gene_attribs['hgnc_id'],
-                       go_attribs['go_name'],
-                       go_attribs['go_id'],
-                       gene_attribs['ncon_gene'],
-                       go_attribs['ncon_go'],
-                       mean_sim, ste_sim,
-                       mean_pval, ste_pval,
-                       mean_qval, ste_qval]
-                rows.append(row)
+                for go_attrib in go_attribs:
+                    row = [gene_attribs['hgnc_symbol'],
+                           gene_attribs['hgnc_id'],
+                           go_attrib['go_name'],
+                           go_attrib['go_id'],
+                           gene_attribs['ncon_gene'],
+                           go_attrib['ncon_go'],
+                           mean_sim, ste_sim,
+                           mean_pval, ste_pval,
+                           mean_qval, ste_qval]
+                    rows.append(row)
         header = ['hgnc_symbol', 'hgnc_id', 'go_name', 'go_id', 'ncon_gene',
                   'ncon_go', 'mean_sim', 'ste_sim', 'mean_pval', 'ste_pval',
                   'mean_qval', 'ste_qval']

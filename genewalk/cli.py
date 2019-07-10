@@ -115,9 +115,10 @@ if __name__ == '__main__':
 
             # Pickle the node vectors (embeddings) and DW object
             if args.save_dw:
-                save_pickle(DW, project_folder, 'deep_walk_%d' % i)
+                save_pickle(DW, project_folder, 'deep_walk_%d' % (i + 1))
             nv = copy.deepcopy(DW.model.wv)
-            save_pickle(nv, project_folder, 'deep_walk_node_vectors_%d' % i)
+            save_pickle(nv, project_folder,
+                        'deep_walk_node_vectors_%d' % (i + 1))
 
     if args.stage in ('all', 'null_distribution'):
         MG = load_pickle(project_folder, 'multi_graph')
@@ -129,11 +130,10 @@ if __name__ == '__main__':
 
             # Pickle the node vectors (embeddings) and DW object
             if args.save_dw:
-                save_pickle(DW, project_folder, 'deep_walk_rand_%d' % i)
+                save_pickle(DW, project_folder, 'deep_walk_rand_%d' % (i + 1))
             nv = copy.deepcopy(DW.model.wv)
             save_pickle(nv, project_folder, 'deep_walk_node_vectors_rand_%d'
-                                            % i)
-
+                                            % (i + 1))
             sr = get_null_distributions(RG, nv)
             srs.append(sr)
         srd = get_srd(srs)
@@ -142,11 +142,11 @@ if __name__ == '__main__':
     if args.stage in ('all', 'statistics'):
         MG = load_pickle(project_folder, 'multi_graph')
         genes = load_pickle(project_folder, 'genes')
-        nvs = [load_pickle(project_folder, 'deep_walk_node_vectors_rand_%d' %
-                                            (i + 1))
-               for i in range(args.nreps_null)]
+        nvs = [load_pickle(project_folder,
+                           'deep_walk_node_vectors_%d' % (i + 1))
+               for i in range(args.nreps_graph)]
         null_dist = load_pickle(project_folder, 'deep_walk_rand_simdists')
         GW = GeneWalk(MG, genes, nvs, null_dist)
         df = GW.generate_output(alpha_fdr=args.alpha_fdr)
         fname = os.path.join(project_folder, 'results.csv')
-        df.to_csv(fname, index=False)
+        df.to_csv(fname, index=False, float_format='%.3e')
