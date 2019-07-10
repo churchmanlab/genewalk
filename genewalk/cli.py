@@ -102,45 +102,47 @@ if __name__ == '__main__':
     project_folder = create_project_folder(args.base_folder, args.project)
     if args.stage in ('all', 'node_vectors'):
         genes = read_gene_list(args.genes, args.id_type)
-        save_pickle(genes, project_folder, 'genewalk_genes')
+        save_pickle(genes, project_folder, 'genes')
         MG = load_network(args.network_source, args.network_file, genes)
-        save_pickle(MG.graph, project_folder, 'genewalk_mg')
+        save_pickle(MG.graph, project_folder, 'multi_graph')
         for i in range(args.nreps):
             logger.info('%s/%s' % (i + 1, args.nreps))
-            DW = run_walk(MG.graph)
+            DW = run_walk(MG.graph, workers=args.nproc)
 
             # Pickle the node vectors (embeddings) and DW object
             if args.save_dw:
-                save_pickle(DW, project_folder, 'genewalk_dw_%d' % i)
+                save_pickle(DW, project_folder, 'deep_walk_%d' % i)
             nv = copy.deepcopy(DW.model.wv)
-            save_pickle(nv, project_folder, 'genewalk_dw_nv_%d' % i)
+            save_pickle(nv, project_folder, 'deep_walk_node_vectors_%d' % i)
 
     if args.stage in ('all', 'null_distribution'):
-        MG = load_pickle(project_folder, 'genewalk_mg')
+        MG = load_pickle(project_folder, 'multi_graph')
         srs = []
         for i in args.nreps:
             logger.info('%s/%s' % (i + 1, args.nreps))
             RG = get_rand_graph(MG)
-            DW = run_walk(RG)
+            DW = run_walk(RG, workers=args.nproc)
 
             # Pickle the node vectors (embeddings) and DW object
             if args.save_dw:
-                save_pickle(DW, project_folder, 'genewalk_dw_rand_%d' % i)
+                save_pickle(DW, project_folder, 'deep_walk_rand_%d' % i)
             nv = copy.deepcopy(DW.model.wv)
-            save_pickle(nv, project_folder, 'genewalk_dw_nv_rand_%d' % i)
+            save_pickle(nv, project_folder, 'deep_walk_node_vectors_rand_%d'
+                                            % i)
 
             sr = get_null_distributions(RG, nv)
             srs.append(sr)
         srd = get_srd(srs)
-        save_pickle(srd, project_folder, 'genewalk_dw_rand_simdists')
+        save_pickle(srd, project_folder, 'deep_walk_rand_simdists')
 
     if args.stage in ('all', 'statistics'):
-        MG = load_pickle(project_folder, 'genewalk_mg')
-        genes = load_pickle(project_folder, 'genewalk_genes')
-        nvs = [load_pickle(project_folder, 'genewalk_dw_nv_rand_%d' % (i + 1))
+        MG = load_pickle(project_folder, 'multi_graph')
+        genes = load_pickle(project_folder, 'genes')
+        nvs = [load_pickle(project_folder, 'deep_walk_node_vectors_rand_%d' %
+                                            (i + 1))
                for i in range(args.nreps)]
-        null_dist = load_pickle(project_folder, 'genewalk_dw_rand_simdists')
+        null_dist = load_pickle(project_folder, 'deep_walk_rand_simdists')
         GW = GeneWalk(MG, genes, nvs, null_dist)
         df = GW.generate_output(alpha_FDR=args.alpha_fdr)
-        fname = os.path.join(project_folder, 'genewalk_results.csv')
+        fname = os.path.join(project_folder, 'results.csv')
         df.to_csv(fname, index=False)
