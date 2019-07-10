@@ -17,9 +17,6 @@ logger = logging.getLogger('genewalk.nx_mg_assembler')
 def load_network(network_type, network_file, genes):
     if network_type == 'pc':
         MG = PcNxMgAssembler(genes)
-        MG.MG_from_PC()
-        MG.add_go_annotations()
-        MG.add_go_ontology()
     elif network_type == 'indra':
         logger.info('Loading %s' % network_file)
         with open(network_file, 'rb') as f:
@@ -112,7 +109,7 @@ class NxMgAssembler(object):
     @staticmethod
     def _get_go_terms_for_gene(gene):
         # Filter to rows with the given gene's UniProt ID
-        df = goa[goa['UP'] == gene['UP']]
+        df = goa[goa['DB_ID'] == gene['UP']]
         go_ids = sorted(list(set(df['GO_ID'])))
         return go_ids
 
