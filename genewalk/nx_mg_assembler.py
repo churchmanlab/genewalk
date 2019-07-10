@@ -15,6 +15,23 @@ logger = logging.getLogger('genewalk.nx_mg_assembler')
 # refactored to derive from a single assembler class
 
 def load_network(network_type, network_file, genes):
+    """Return a network assembler of the given type based on a set of genes.
+
+    Parameters
+    ----------
+    network_type : str
+        The type of the network to be constructed.
+    network_file : str
+        The path to a file containing information to construct the network.
+    genes : list
+        A list of gene references.
+
+    Returns
+    -------
+    :py:class:`genewalk.nx_mg_assembler.NxMgAssembler`
+        An instance of an NxMgAssembler containing the assembled networkx
+        MultiGraph as its graph attribute.
+    """
     if network_type == 'pc':
         mg = PcNxMgAssembler(genes)
     elif network_type == 'indra':
@@ -36,6 +53,7 @@ def load_network(network_type, network_file, genes):
 
 
 def _load_goa_gaf():
+    """Load the gene/GO annotations as a pandas data frame."""
     goa_ec = {'EXP', 'IDA', 'IPI', 'IMP', 'IGI', 'IEP', 'HTP', 'HDA', 'HMP',
               'HGI', 'HEP', 'IBA', 'IBD'}
     goa = pd.read_csv(get_goa_gaf(), sep='\t', skiprows=23, dtype=str,
@@ -72,6 +90,19 @@ goa = _load_goa_gaf()
 
 
 class NxMgAssembler(object):
+    """Class which assembles a networkx MultiGraph based on a list of genes.
+
+    Parameters
+    ----------
+    genes : list of dict
+        A list of gene references based on which the graph is assembled.
+
+    Attributes
+    ----------
+    graph : networkx.MultiGraph
+        The assembled graph containing links for interactions between genes,
+        GO annotations for genes, and the GO ontology.
+    """
     def __init__(self, genes):
         self.genes = genes
         self.graph = nx.MultiGraph()
@@ -86,6 +117,7 @@ class NxMgAssembler(object):
         return go_ids
 
     def add_go_annotations(self):
+        """Add edges between gene nodes and GO nodes based on GO annotations."""
         logger.info('Adding GO annotations for genes to graph.')
         for gene in self.genes:
             go_ids = self._get_go_terms_for_gene(gene)
@@ -101,12 +133,9 @@ class NxMgAssembler(object):
                                     label='assoc_with')
 
     def add_go_ontology(self):
-        """Add to self.graph the GO ontology (GO:IDs and their relations) in
-        the form of labeled edge (relation type, eg is_a) and new nodes
-        (GO:IDs).
-        """
+        """Add edges between GO nodes based on the GO ontology."""
         logger.info('Adding GO ontology edges to graph.')
-        for go_term in go_dag.values():
+        for go_term in list(go_dag.values())[:5]:
             if go_term.is_obsolete:
                 continue
             self.graph.add_node(go_term.id,
@@ -122,9 +151,17 @@ class NxMgAssembler(object):
                                     label='GO:is_a')
 
     def node2edges(self, node_key):
+        """Return the edges corresponding to a node."""
         return self.graph.edges(node_key, keys=True)
 
     def save_graph(self, fname):
+        """Save the file into a GraphML file.
+
+        Parameters
+        ----------
+        fname : str
+            The name of the file to save the graph into.
+        """
         nx.write_graphml(self.graph, fname)
 
 
@@ -135,16 +172,13 @@ class PcNxMgAssembler(NxMgAssembler):
 
     Parameters
     ----------
-    genes : list
+    genes : list fo dict
+        A list of gene references based on which the network is assembled.
 
     Attributes
     ----------
     graph : networkx.MultiGraph
         A GeneWalk Network that is assembled by this assembler.
-    GOA : pandas.DataFrame
-        GO annotation in pd.dataframe format
-    OGO : goatools.GODag
-        GO ontology, GODag object (see goatools) 
     """
     def __init__(self, genes):
         super().__init__(genes)
@@ -153,9 +187,7 @@ class PcNxMgAssembler(NxMgAssembler):
         self.add_pc_edges()
 
     def add_pc_edges(self):
-        """Assemble a nx.MultiGraph from the Pathway Commons sif file
-        (nodeA <relationship type> nodeB).
-        """
+        """Add edges between gene nodes based on PathwayCommons interactions."""
         logger.info('Adding gene edges from Pathway Commons to graph.')
         gwn_df = pd.read_csv(get_pc(), sep='\t', dtype=str, header=None)
         col_mapper = {}
@@ -210,8 +242,7 @@ class IndraNxMgAssembler(NxMgAssembler):
         self.add_fplx_edges()
 
     def add_indra_edges(self):
-        """Assemble the graph from the assembler's list of INDRA Statements. 
-        Edge attribute are given by statement type and index in list of stmts
+        """Add edges between gene nodes and GO nodes based on INDRA Statements.
         """
         logger.info('Adding nodes from INDRA statements.')
         for i, st in enumerate(self.stmts):
@@ -235,14 +266,14 @@ class IndraNxMgAssembler(NxMgAssembler):
                     len(self.indra_nodes))
 
     def add_fplx_edges(self):
-        """Add to self.graph an edge (label: 'FPLX:is_a') between the gene
-        family to member annotation edges.
+        """Add edges between gene nodes and families/complexes they are part of.
         """
         links = get_famplex_links_from_stmts(self.stmts)
         for s, t in links:
             self.graph.add_edge(s, t, label='FPLX:is_a')
 
     def add_agent_node(self, agent):
+        """Add a node corresponding to an INDRA Agent."""
         go_id = agent.db_refs.get('GO')
         if go_id:
             go_id = go_id if go_id.startswith('GO:') else 'GO:%s' % go_id
@@ -258,6 +289,7 @@ class IndraNxMgAssembler(NxMgAssembler):
         return node_key
 
     def node2stmts(self, node_key):
+        """Return the INDRA Statements given the key of a graph node."""
         matching_stmts = []
         node_name = self.graph.node[node_key]['name']
         for stmt in self.stmts:
@@ -271,14 +303,13 @@ class IndraNxMgAssembler(NxMgAssembler):
 
 
 class UserNxMgAssembler(object):
-    """The UserNxMgAssembler loads a user-provided GeneWalk Network from
-    file.
+    """Loads a user-provided GeneWalk Network from a given file.
 
     Parameters
     ----------
-    filepath : Optional[str]
+    filepath : str
         Path to the user-provided genewalk network file, assumed to contain
-        gene symbols and GO:IDs. See gwn_format for supported format details.
+        gene symbols and GO IDs. See gwn_format for supported format details.
     gwn_format : Optional[str]
         'el' (default, edge list: nodeA nodeB (if more columns
         present: interpreted as edge attributes) \
@@ -290,9 +321,7 @@ class UserNxMgAssembler(object):
     graph : networkx.MultiGraph
         A GeneWalk Network that is loaded by this assembler.
     """
-    # TODO: reimplement this as a method in main assembler class?
-    # TODO: gwn_format is unused here
-    def __init__(self, filepath='~/genewalk/gwn.txt', gwn_format='el'):
+    def __init__(self, filepath, gwn_format='el'):
         self.graph = nx.MultiGraph()
         self.filepath = filepath
         self.gwn_format = gwn_format
@@ -323,6 +352,3 @@ class UserNxMgAssembler(object):
         self.graph = nx.from_pandas_edgelist(gwn_df, 'source', 'target',
                                              edge_attr=edge_attributes,
                                              create_using=nx.MultiGraph)
-
-    def node2edges(self, node_key):
-        return self.graph.edges(node_key,keys=True)        
