@@ -68,8 +68,9 @@ class DeepWalk(object):
                 walks = run_walks_for_node(node, self.graph, self.niter,
                                            self.wl)
                 self.walks.extend(walks)
-                logger.info('Walks for %d/%d nodes complete in %.2fs' %
-                            (count + 1, len(nodes), time.time() - start))
+                if (count + 1) % 100 == 0:
+                    logger.info('Walks for %d/%d nodes complete in %.2fs' %
+                                (count + 1, len(nodes), time.time() - start))
         # In case we parallelize
         else:
             pool = multiprocessing.Pool(workers)
@@ -80,10 +81,11 @@ class DeepWalk(object):
             self.walks = []
             for count, res in enumerate(
                     pool.imap_unordered(walk_fun, nx.nodes(self.graph),
-                                        chunksize=100)):
+                                        chunksize=1000)):
                 self.walks += res
-                logger.info('Walks for %d/%d nodes complete in %.2fs' %
-                            (count + 1, len(nodes), time.time() - start))
+                if (count + 1) % 100 == 0:
+                    logger.info('Walks for %d/%d nodes complete in %.2fs' %
+                                (count + 1, len(nodes), time.time() - start))
             logger.debug("Closing pool...")
             pool.close()
             logger.debug("Joining pool...")
