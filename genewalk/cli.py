@@ -44,7 +44,8 @@ def load_pickle(project_folder, prefix):
 def main():
     # TODO: make sure default values show up in the help message and README
     parser = argparse.ArgumentParser(
-        description='Run GeneWalk on a list of genes provided in a text file.')
+        description='Run GeneWalk on a list of genes provided in a text '
+                    'file.')
     parser.add_argument('--project', help='A name for the project which '
                                           'determines the folder within the '
                                           'base folder in which the '
@@ -66,17 +67,20 @@ def main():
                         choices=['hgnc_symbol', 'hgnc_id', 'mgi_id'],
                         required=True)
     parser.add_argument('--stage', default='all',
-                        help='The stage of processing to run.',
+                        help='The stage of processing to run. Default: '
+                             '%(default)s',
                         choices=['all', 'node_vectors', 'null_distribution',
                                  'statistics'])
     parser.add_argument('--base_folder', default=default_base_folder,
                         help='The base folder used to store GeneWalk '
-                             'temporary and result files for a given project.')
+                             'temporary and result files for a given project.'
+                             ' Default: %(default)s')
     parser.add_argument('--network_source', default='pc',
                         help='The source of the network to be used.'
                              'Possible values are: pc, indra, edge_list, and '
                              'sif. In case of indra, edge_list, and sif, '
-                             'the network_file argument must be specified.',
+                             'the network_file argument must be specified.'
+                             ' Default: %(default)s',
                         choices=['pc', 'indra', 'edge_list', 'sif'])
     parser.add_argument('--network_file', default=None,
                         help='If network_source is indra, this argument '
@@ -88,29 +92,33 @@ def main():
                              'representing the network.')
     parser.add_argument('--nproc', default=1, type=int,
                         help='The number of processors to use in a '
-                             'multiprocessing environment.')
+                             'multiprocessing environment. Default: '
+                             '%(default)s')
     parser.add_argument('--nreps_graph', default=10, type=int,
                         help='The number of repeats to run when calculating '
-                             'node vectors on the GeneWalk graph.')
+                             'node vectors on the GeneWalk graph. '
+                             'Default: %(default)s')
     parser.add_argument('--nreps_null', default=15, type=int,
                         help='The number of repeats to run when calculating '
                              'node vectors on the random network graphs '
-                             'for constructing the null distribution.')
+                             'for constructing the null distribution. '
+                             'Default: %(default)s')
     parser.add_argument('--alpha_fdr', default=1, type=float,
                         help='The false discovery rate to use when '
                              'outputting the final statistics table. '
                              'If 1 (default), all similarities are output, '
                              'otherwise only the ones whose false discovery '
-                             'rate are below this parameter are included.')
+                             'rate are below this parameter are included. '
+                             'Default: %(default)s')
     parser.add_argument('--save_dw', default=False, type=bool,
                         help='If True, the full DeepWalk object for each '
                              'repeat is saved in the project folder. This can '
                              'be useful for debugging but the files are '
-                             'typically very large.')
+                             'typically very large. Default: %(default)s')
     parser.add_argument('--random_seed', default=None, type=int,
-                        help='If provided, the random number generator will be '
-                             'seeded with the given value. This should only be '
-                             'used if the goal is to deterministically '
+                        help='If provided, the random number generator is '
+                             'seeded with the given value. This should only '
+                             'be used if the goal is to deterministically '
                              'reproduce a prior result obtained with the same '
                              'random seed.')
     args = parser.parse_args()
