@@ -62,6 +62,8 @@ def map_hgnc_ids(hgnc_ids):
     """Return references based on a list of HGNC IDs."""
     refs = []
     for hgnc_id in hgnc_ids:
+        if hgnc_id.startswith('HGNC:'):
+            hgnc_id = hgnc_id[5:]
         ref = {'HGNC_SYMBOL': None, 'HGNC': hgnc_id, 'UP': None}
         hgnc_name = hgnc_client.get_hgnc_name(hgnc_id)
         if not hgnc_name:
