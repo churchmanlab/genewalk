@@ -184,6 +184,7 @@ def main():
         df = GW.generate_output(alpha_fdr=args.alpha_fdr,
                                 base_id_type=args.id_type)
         fname = os.path.join(project_folder, 'genewalk_results.csv')
+        logger.info('Saving final results into %s' % fname)
         df.to_csv(fname, index=False, float_format='%.3e')
 
 

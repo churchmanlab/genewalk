@@ -101,34 +101,37 @@ class GeneWalk(object):
                         go_attrib_dict[go_attribs['go_id']] = [go_attribs]
 
             for go_id, go_attribs in go_attrib_dict.items():
+                mean_padj = np.mean([attr['qval'] for attr in go_attribs])
+                sem_padj = (np.std([attr['qval'] for attr in go_attribs]) /
+                            np.sqrt(len(self.nvs)))
                 mean_sim = np.mean([attr['sim_score'] for attr in go_attribs])
-                ste_sim = (np.std([attr['sim_score'] for attr in go_attribs]) /
+                sem_sim = (np.std([attr['sim_score'] for attr in go_attribs]) /
                            np.sqrt(len(self.nvs)))
                 mean_pval = np.mean([attr['pval'] for attr in go_attribs])
-                ste_pval = (np.std([attr['pval'] for attr in go_attribs]) /
+                sem_pval = (np.std([attr['pval'] for attr in go_attribs]) /
                             np.sqrt(len(self.nvs)))
-                mean_qval = np.mean([attr['qval'] for attr in go_attribs])
-                ste_qval = (np.std([attr['qval'] for attr in go_attribs]) /
-                            np.sqrt(len(self.nvs)))
-                if mean_qval > alpha_fdr:
-                    continue
-                for go_attrib in go_attribs:
+                if mean_padj < alpha_fdr or alpha_fdr == 1:
                     row = [gene_attribs['hgnc_symbol'],
                            gene_attribs['hgnc_id'],
-                           go_attrib['go_name'],
-                           go_attrib['go_id'],
+                           go_attribs[0]['go_name'],
+                           go_attribs[0]['go_id'],
                            gene_attribs['ncon_gene'],
-                           go_attrib['ncon_go'],
-                           mean_sim, ste_sim,
-                           mean_pval, ste_pval,
-                           mean_qval, ste_qval]
+                           go_attribs[0]['ncon_go'],
+                           mean_padj, sem_padj,
+                           mean_pval, sem_pval,
+                           mean_sim, sem_sim,
+                           ]
                     # If we're dealing with mouse genes, prepend the MGI ID
                     if base_id_type == 'mgi_id':
                         row = [gene.get('MGI', '')] + row
                     rows.append(row)
-        header = ['hgnc_symbol', 'hgnc_id', 'go_name', 'go_id', 'ncon_gene',
-                  'ncon_go', 'mean_sim', 'ste_sim', 'mean_pval', 'ste_pval',
-                  'mean_qval', 'ste_qval']
+        header = ['hgnc_symbol', 'hgnc_id',
+                  'go_name', 'go_id',
+                  'ncon_gene', 'ncon_go',
+                  'mean_padj', 'sem_padj',
+                  'mean_pval', 'sem_pval',
+                  'mean_sim', 'sem_sim',
+                  ]
         df = pd.DataFrame.from_records(rows, columns=header)
         return df
 
