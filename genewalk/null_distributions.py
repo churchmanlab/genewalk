@@ -21,14 +21,10 @@ def get_rand_graph(mg):
     networkx.MultiGraph
         A random graph whose degree distribution matches that of the output.
     """
-    random.seed(a=None)
-    # TODO: do we really want to seed here?
-    gseed = random.randint(0, 1e12)
-    logger.info('gseed: %s' % gseed)
     # this is not randomized: order is same
     d_seq = sorted([mg.degree(n) for n in mg.nodes()], reverse=True)
     # creates random multigraph with same degree sequence
-    rg = nx.configuration_model(d_seq, seed=gseed)
+    rg = nx.configuration_model(d_seq)
     # the node labels are numbers which gives problems in word2vec
     # so adjust 0 to n0
     mapping = {n: 'n%s' % n for n in rg.nodes()}

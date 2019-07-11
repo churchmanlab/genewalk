@@ -4,6 +4,8 @@ from indra.databases import hgnc_client
 
 logger = logging.getLogger('genewalk.gene_lists')
 
+# TODO: map to MGI symbols if the original genes were mouse genes
+
 
 def read_gene_list(fname, id_type):
     """Return references for genes from a file with the given ID type.

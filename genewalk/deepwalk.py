@@ -93,7 +93,7 @@ class DeepWalk(object):
         logger.info('Running random walks done in %.2fs' % (end - start))
 
     def word2vec(self, sg=1, size=8, window=1, min_count=1, negative=5,
-                 workers=4, sample=0):
+                 workers=1, sample=0):
         """Set the model based on Word2Vec
         Source: https://radimrehurek.com/gensim/models/word2vec.html
 
