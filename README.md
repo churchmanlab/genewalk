@@ -52,15 +52,16 @@ required arguments:
 
 optional arguments:
   --stage {all,node_vectors,null_distribution,statistics}
-                        The stage of processing to run.
+                        The stage of processing to run. Default: all
   --base_folder BASE_FOLDER
                         The base folder used to store GeneWalk temporary and
-                        result files for a given project.
+                        result files for a given project. Default:
+                        ~/genewalk
   --network_source {pc,indra,edge_list,sif}
                         The source of the network to be used.Possible values
                         are: pc, indra, edge_list, and sif. In case of indra,
                         edge_list, and sif, the network_file argument must be
-                        specified.
+                        specified. Default: pc
   --network_file NETWORK_FILE
                         If network_source is indra, this argument points to a
                         Python pickle file in which a list of INDRA Statements
@@ -69,22 +70,26 @@ optional arguments:
                         argument points to a text file representing the
                         network.
   --nproc NPROC         The number of processors to use in a multiprocessing
-                        environment.
+                        environment. Default: 1
   --nreps_graph NREPS_GRAPH
                         The number of repeats to run when calculating node
-                        vectors on the "real" network graph.
+                        vectors on the GeneWalk graph. Default: 10
   --nreps_null NREPS_NULL
                         The number of repeats to run when calculating node
                         vectors on the random network graphs for constructing
-                        the null distribution.
+                        the null distribution. Default: 15
   --alpha_fdr ALPHA_FDR
-                        The false discovery rate to use when calculating the
-                        final statistics.
+                        The false discovery rate to use when outputting the
+                        final statistics table. If 1 (default), all
+                        similarities are output, otherwise only the ones whose
+                        false discovery rate are below this parameter are
+                        included. Default: 1
   --save_dw SAVE_DW     If True, the full DeepWalk object for each repeat is
                         saved in the project folder. This can be useful for
                         debugging but the files are typically very large.
+                        Default: False
   --random_seed RANDOM_SEED
-                        If given, the random number generator will be seeded
+                        If provided, the random number generator is seeded
                         with the given value. This should only be used if the
                         goal is to deterministically reproduce a prior result
                         obtained with the same random seed.
@@ -99,7 +104,7 @@ genewalk --project test1 --genes gene_list.txt --id_type hgnc_symbol
 ### Gene list file
 GeneWalk always requires a text file with a list of genes as input. These are
 typically differentially expressed genes in a given experimental setting.
-GeneWalk supports gene list files containing HGNC symbols, HGNC IDs, or MGI
+GeneWalk supports gene list files containing HGNC gene symbols, HGNC IDs, or MGI
 IDs. Each line in the file contains a gene identifier of one of these types.
 
 
