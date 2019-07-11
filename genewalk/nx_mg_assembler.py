@@ -11,9 +11,6 @@ from genewalk.get_indra_stmts import get_famplex_links_from_stmts
 logger = logging.getLogger('genewalk.nx_mg_assembler')
 
 
-# TODO: these assemblers have a lot of code duplications, they could be
-# refactored to derive from a single assembler class
-
 def load_network(network_type, network_file, genes):
     """Return a network assembler of the given type based on a set of genes.
 
@@ -85,10 +82,6 @@ def _load_goa_gaf():
     return goa
 
 
-go_dag = GODag(get_go_obo())
-goa = _load_goa_gaf()
-
-
 class NxMgAssembler(object):
     """Class which assembles a networkx MultiGraph based on a list of genes.
 
@@ -103,16 +96,18 @@ class NxMgAssembler(object):
         The assembled graph containing links for interactions between genes,
         GO annotations for genes, and the GO ontology.
     """
+
     def __init__(self, genes):
         self.genes = genes
         self.graph = nx.MultiGraph()
+        self.go_dag = GODag(get_go_obo())
+        self.goa = _load_goa_gaf()
 
-    @staticmethod
-    def _get_go_terms_for_gene(gene):
+    def _get_go_terms_for_gene(self, gene):
         # Filter to rows with the given gene's UniProt ID
         if 'UP' not in gene:
             return []
-        df = goa[goa['DB_ID'] == gene['UP']]
+        df = self.goa[self.goa['DB_ID'] == gene['UP']]
         go_ids = sorted(list(set(df['GO_ID'])))
         return go_ids
 
@@ -122,7 +117,7 @@ class NxMgAssembler(object):
         for gene in self.genes:
             go_ids = self._get_go_terms_for_gene(gene)
             for go_id in go_ids:
-                go_term = go_dag[go_id]
+                go_term = self.go_dag[go_id]
                 if go_term.is_obsolete:
                     continue
                 self.graph.add_node(go_term.id,
@@ -135,7 +130,7 @@ class NxMgAssembler(object):
     def add_go_ontology(self):
         """Add edges between GO nodes based on the GO ontology."""
         logger.info('Adding GO ontology edges to graph.')
-        for go_term in list(go_dag.values()):
+        for go_term in list(self.go_dag.values()):
             if go_term.is_obsolete:
                 continue
             self.graph.add_node(go_term.id,

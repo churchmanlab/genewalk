@@ -41,9 +41,8 @@ def load_pickle(project_folder, prefix):
         return pickle.load(fh)
 
 
-# TODO: make sure default values show up in the help message and README
-
-if __name__ == '__main__':
+def main():
+    # TODO: make sure default values show up in the help message and README
     parser = argparse.ArgumentParser(
         description='Run GeneWalk on a list of genes provided in a text file.')
     parser.add_argument('--project', help='A name for the project which '
@@ -178,3 +177,7 @@ if __name__ == '__main__':
                                 base_id_type=args.id_type)
         fname = os.path.join(project_folder, 'genewalk_results.csv')
         df.to_csv(fname, index=False, float_format='%.3e')
+
+
+if __name__ == '__main__':
+    main()
