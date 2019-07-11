@@ -20,7 +20,7 @@ pip install git+https://github.com/churchmanlab/genewalk
 ## Using GeneWalk
 
 ### GeneWalk command line interface
-Once installed, GeneWalk can be run fromt the command line as `genewalk`, with
+Once installed, GeneWalk can be run from the command line as `genewalk`, with
 a set of required and optional arguments. The required arguments include the
 project name, a path to a text file containing a list of genes, and an argument
 specifying the types of genes in the file.
@@ -70,14 +70,24 @@ optional arguments:
                         network.
   --nproc NPROC         The number of processors to use in a multiprocessing
                         environment.
-  --nreps NREPS         The number of repeats to run when calculating node
-                        vectors, and the null distribution.
+  --nreps_graph NREPS_GRAPH
+                        The number of repeats to run when calculating node
+                        vectors on the "real" network graph.
+  --nreps_null NREPS_NULL
+                        The number of repeats to run when calculating node
+                        vectors on the random network graphs for constructing
+                        the null distribution.
   --alpha_fdr ALPHA_FDR
                         The false discovery rate to use when calculating the
                         final statistics.
   --save_dw SAVE_DW     If True, the full DeepWalk object for each repeat is
                         saved in the project folder. This can be useful for
                         debugging but the files are typically very large.
+  --random_seed RANDOM_SEED
+                        If given, the random number generator will be seeded
+                        with the given value. This should only be used if the
+                        goal is to deterministically reproduce a prior result
+                        obtained with the same random seed.
 
 ```
 
@@ -98,7 +108,7 @@ GeneWalk automatically creates a `genewalk` folder in the user's home folder.
 When running GeneWalk, one of the required inputs is a project name.
 A sub-folder is created for the given project name where all intermediate and
 final results are stored. The files stored in the project folder are:
-- results.csv - The main results table, a comma-separated values text file.
+- genewalk_results.csv - The main results table, a comma-separated values text file.
 - genes.pkl - A processed representation of the given gene list.
 - multi_graph.pkl - A networkx MultiGraph which was assembled based on the
 given list of genes, an interaction network, GO annotations, and the GO
@@ -111,12 +121,13 @@ ontology.
 
 ### Stages of analysis
 Given a list of genes, GeneWalk runs three stages of analysis:
-1. Learning node vector representations by running DeepWalk on an assembled
-graph, over a specified set of repeats.
-2. Learning random node vector representations by running DeepWalk on a
-randomly scrambled version of the assembled graph, over a specified set of repeats.
+1. Assembling a GeneWalk network and learning node vector representations
+by running DeepWalk on this network, for a specified number of repeats.
+2. Learning random node vector representations by running DeepWalk on a set of
+randomly scrambled versions of the GeneWalk network, for a specified number of
+repeats.
 3. Calculating statistics of similarities between genes and GO terms, and
-outputting results in a table.
+outputting  the GeneWalk results in a table.
 
 GeneWalk can either be run once to complete all these stages, or called separately
 for each stage.
