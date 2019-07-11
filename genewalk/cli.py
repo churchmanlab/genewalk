@@ -1,6 +1,7 @@
 import os
 import copy
 import pickle
+import random
 import logging
 import argparse
 from genewalk.nx_mg_assembler import load_network
@@ -39,6 +40,8 @@ def load_pickle(project_folder, prefix):
     with open(fname, 'rb') as fh:
         return pickle.load(fh)
 
+
+# TODO: make sure default values show up in the help message and README
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -89,19 +92,28 @@ if __name__ == '__main__':
                              'multiprocessing environment.')
     parser.add_argument('--nreps_graph', default=10, type=int,
                         help='The number of repeats to run when calculating '
-                             'node vectors on the "real" network graph.')
+                             'node vectors on the GeneWalk graph.')
     parser.add_argument('--nreps_null', default=15, type=int,
                         help='The number of repeats to run when calculating '
                              'node vectors on the random network graphs '
                              'for constructing the null distribution.')
     parser.add_argument('--alpha_fdr', default=1, type=float,
                         help='The false discovery rate to use when '
-                             'calculating the final statistics.')
+                             'outputting the final statistics table. '
+                             'If 1 (default), all similarities are output, '
+                             'otherwise only the ones whose false discovery '
+                             'rate are below this parameter are included.')
     parser.add_argument('--save_dw', default=False, type=bool,
                         help='If True, the full DeepWalk object for each '
                              'repeat is saved in the project folder. This can '
                              'be useful for debugging but the files are '
                              'typically very large.')
+    parser.add_argument('--random_seed', default=None, type=int,
+                        help='If provided, the random number generator will be '
+                             'seeded with the given value. This should only be '
+                             'used if the goal is to deterministically '
+                             'reproduce a prior result obtained with the same '
+                             'random seed.')
     args = parser.parse_args()
 
     # Now we run the relevant stage of processing
@@ -114,6 +126,10 @@ if __name__ == '__main__':
     project_log_handler = logging.FileHandler(log_file)
     project_log_handler.setFormatter(formatter)
     root_logger.addHandler(project_log_handler)
+
+    if args.random_seed:
+        logger.info('Running with random seed %d' % args.random_seed)
+        random.seed(a=int(args.random_seed))
 
     if args.stage in ('all', 'node_vectors'):
         genes = read_gene_list(args.genes, args.id_type)
@@ -160,5 +176,5 @@ if __name__ == '__main__':
         GW = GeneWalk(MG, genes, nvs, null_dist)
         df = GW.generate_output(alpha_fdr=args.alpha_fdr,
                                 base_id_type=args.id_type)
-        fname = os.path.join(project_folder, 'results.csv')
+        fname = os.path.join(project_folder, 'genewalk_results.csv')
         df.to_csv(fname, index=False, float_format='%.3e')
