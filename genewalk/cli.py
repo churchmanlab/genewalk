@@ -12,7 +12,7 @@ from genewalk.null_distributions import get_rand_graph, \
 from genewalk.perform_statistics import GeneWalk
 from genewalk import logger as root_logger, default_logger_format, \
     default_date_format
-
+from genewalk.resources import ResourceManager
 
 logger = logging.getLogger('genewalk.cli')
 
@@ -138,10 +138,15 @@ def main():
         logger.info('Running with random seed %d' % args.random_seed)
         random.seed(a=int(args.random_seed))
 
+    # Make sure we have all the resource files
+    rm = ResourceManager(base_folder=args.base_folder)
+    rm.download_all()
+
     if args.stage in ('all', 'node_vectors'):
         genes = read_gene_list(args.genes, args.id_type)
         save_pickle(genes, project_folder, 'genes')
-        MG = load_network(args.network_source, args.network_file, genes)
+        MG = load_network(args.network_source, args.network_file, genes,
+                          resource_manager=rm)
         save_pickle(MG.graph, project_folder, 'multi_graph')
         for i in range(args.nreps_graph):
             logger.info('%s/%s' % (i + 1, args.nreps_graph))
