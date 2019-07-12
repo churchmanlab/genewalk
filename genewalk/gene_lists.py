@@ -87,13 +87,14 @@ def map_mgi_ids(mgi_ids):
     for mgi_id in mgi_ids:
         if mgi_id.startswith('MGI:'):
             mgi_id = mgi_id[4:]
-        ref = {'HGNC_SYMBOL': None, 'HGNC': hgnc_id, 'UP': None,
+        ref = {'HGNC_SYMBOL': None, 'HGNC': None, 'UP': None,
                'MGI': mgi_id}
         hgnc_id = hgnc_client.get_hgnc_from_mouse(mgi_id)
         if not hgnc_id:
             logger.warning('Could not get HGNC ID for MGI ID %s' %
                            mgi_id)
             continue
+        ref['HGNC'] = hgnc_id
         hgnc_name = hgnc_client.get_hgnc_name(hgnc_id)
         if not hgnc_name:
             logger.warning('Could not get HGNC name for ID %s' %
