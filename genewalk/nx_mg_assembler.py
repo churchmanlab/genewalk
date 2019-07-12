@@ -98,6 +98,7 @@ class NxMgAssembler(object):
                     if go_term.is_obsolete:
                         continue
                     self.graph.add_node(go_term.id,
+                                        name=go_term.name,
                                         GO=go_term.id, source='go')
                     self.graph.add_edge(gene['HGNC_SYMBOL'], go_term.id,
                                         label='GO:annotation')
@@ -109,11 +110,13 @@ class NxMgAssembler(object):
             if go_term.is_obsolete:
                 continue
             self.graph.add_node(go_term.id,
+                                name=go_term.name,
                                 GO=go_term.id, source='go')
             for parent_term in go_term.parents:
                 if parent_term.is_obsolete:
                     continue
                 self.graph.add_node(go_term.id,
+                                    name=go_term.name,
                                     GO=go_term.id, source='go')
                 self.graph.add_edge(go_term.id, parent_term.id,
                                     label='GO:is_a')
