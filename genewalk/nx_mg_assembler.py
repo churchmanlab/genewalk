@@ -117,15 +117,14 @@ class NxMgAssembler(object):
         for gene in self.genes:
             go_ids = self._get_go_terms_for_gene(gene)
             for go_id in go_ids:
-                go_term = self.go_dag[go_id]
-                if go_term.is_obsolete:
-                    continue
-                self.graph.add_node(go_term.id,
-                                    name=go_term.name.replace(' ', '_'),
-                                    GO=go_term.id, source='go')
-                # TODO: do we need qualifiers here as labels?
-                self.graph.add_edge(gene['HGNC_SYMBOL'], go_term.id,
-                                    label='assoc_with')
+                if go_id in self.go_dag:
+                    go_term = self.go_dag[go_id]
+                    if go_term.is_obsolete:
+                        continue
+                    self.graph.add_node(go_term.id,
+                                        GO=go_term.id, source='go')
+                    self.graph.add_edge(gene['HGNC_SYMBOL'], go_term.id,
+                                        label='GO:annotation')
 
     def add_go_ontology(self):
         """Add edges between GO nodes based on the GO ontology."""
@@ -134,13 +133,11 @@ class NxMgAssembler(object):
             if go_term.is_obsolete:
                 continue
             self.graph.add_node(go_term.id,
-                                name=go_term.name.replace(' ', '_'),
                                 GO=go_term.id, source='go')
             for parent_term in go_term.parents:
                 if parent_term.is_obsolete:
                     continue
                 self.graph.add_node(go_term.id,
-                                    name=go_term.name.replace(' ', '_'),
                                     GO=go_term.id, source='go')
                 self.graph.add_edge(go_term.id, parent_term.id,
                                     label='GO:is_a')
@@ -274,7 +271,7 @@ class IndraNxMgAssembler(NxMgAssembler):
             go_id = go_id if go_id.startswith('GO:') else 'GO:%s' % go_id
             node_key = go_id
             name = go_client.get_go_label(go_id)
-            self.graph.add_node(node_key, name=name.replace(' ', '_'),
+            self.graph.add_node(node_key, name=name,
                                 source='indra', **agent.db_refs)
         else:
             node_key = agent.name
