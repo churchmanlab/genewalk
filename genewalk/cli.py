@@ -4,6 +4,7 @@ import pickle
 import random
 import logging
 import argparse
+import gc
 from genewalk.nx_mg_assembler import load_network
 from genewalk.gene_lists import read_gene_list
 from genewalk.deepwalk import run_walks
@@ -42,7 +43,6 @@ def load_pickle(project_folder, prefix):
 
 
 def main():
-    # TODO: make sure default values show up in the help message and README
     parser = argparse.ArgumentParser(
         description='Run GeneWalk on a list of genes provided in a text '
                     'file.')
@@ -158,6 +158,10 @@ def main():
             nv = copy.deepcopy(DW.model.wv)
             save_pickle(nv, project_folder,
                         'deep_walk_node_vectors_%d' % (i + 1))
+
+            # Delete the DeepWalk object to clear memory
+            del DW
+            gc.collect()
 
     if args.stage in ('all', 'null_distribution'):
         MG = load_pickle(project_folder, 'multi_graph')
