@@ -177,6 +177,10 @@ def main():
             nv = copy.deepcopy(DW.model.wv)
             save_pickle(nv, project_folder, 'deep_walk_node_vectors_rand_%d'
                                             % (i + 1))
+            # Delete the DeepWalk object to clear memory
+            del DW
+            gc.collect()
+
             sr = get_null_distributions(RG, nv)
             srs.append(sr)
         srd = get_srd(srs)
