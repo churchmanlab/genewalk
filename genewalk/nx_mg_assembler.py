@@ -5,13 +5,13 @@ import pandas as pd
 import networkx as nx
 from indra.databases import go_client
 from goatools.obo_parser import GODag
-from genewalk.resources import get_go_obo, get_goa_gaf, get_pc
+from genewalk.resources import ResourceManager
 from genewalk.get_indra_stmts import get_famplex_links_from_stmts
 
 logger = logging.getLogger('genewalk.nx_mg_assembler')
 
 
-def load_network(network_type, network_file, genes):
+def load_network(network_type, network_file, genes, resource_manager=None):
     """Return a network assembler of the given type based on a set of genes.
 
     Parameters
@@ -22,6 +22,9 @@ def load_network(network_type, network_file, genes):
         The path to a file containing information to construct the network.
     genes : list
         A list of gene references.
+    resource_manager : Optional[:py:class:`genewalk.resources.ResourceManager`]
+        A resource manager object which, if specified, is used to get the
+        resource files. Otherwise, the default resource manager is used.
 
     Returns
     -------
@@ -29,13 +32,15 @@ def load_network(network_type, network_file, genes):
         An instance of an NxMgAssembler containing the assembled networkx
         MultiGraph as its graph attribute.
     """
+    if not resource_manager:
+        resource_manager = None
     if network_type == 'pc':
-        mg = PcNxMgAssembler(genes)
+        mg = PcNxMgAssembler(genes, resource_manager=resource_manager)
     elif network_type == 'indra':
         logger.info('Loading %s' % network_file)
         with open(network_file, 'rb') as fh:
             stmts = pickle.load(fh)
-        mg = IndraNxMgAssembler(stmts)
+        mg = IndraNxMgAssembler(stmts, resource_manager=resource_manager)
     elif network_type == 'edge_list':
         logger.info('Loading user-provided GeneWalk Network from %s.' %
                     network_file)
@@ -47,39 +52,6 @@ def load_network(network_type, network_file, genes):
     else:
         raise ValueError('Unknown network_type: %s' % network_type)
     return mg
-
-
-def _load_goa_gaf():
-    """Load the gene/GO annotations as a pandas data frame."""
-    goa_ec = {'EXP', 'IDA', 'IPI', 'IMP', 'IGI', 'IEP', 'HTP', 'HDA', 'HMP',
-              'HGI', 'HEP', 'IBA', 'IBD'}
-    goa = pd.read_csv(get_goa_gaf(), sep='\t', skiprows=23, dtype=str,
-                      header=None,
-                      names=['DB',
-                             'DB_ID',
-                             'DB_Symbol',
-                             'Qualifier',
-                             'GO_ID',
-                             'DB_Reference',
-                             'Evidence_Code',
-                             'With_From',
-                             'Aspect',
-                             'DB_Object_Name',
-                             'DB_Object_Synonym',
-                             'DB_Object_Type',
-                             'Taxon',
-                             'Date',
-                             'Assigned',
-                             'Annotation_Extension',
-                             'Gene_Product_Form_ID'])
-    goa = goa.sort_values(by=['DB_ID', 'GO_ID'])
-    # Filter out all "NOT" negative evidences
-    goa['Qualifier'].fillna('', inplace=True)
-    goa = goa[~goa['Qualifier'].str.startswith('NOT')]
-    # Filter to rows with evidence code corresponding to experimental
-    # evidence
-    goa = goa[goa['Evidence_Code'].isin(goa_ec)]
-    return goa
 
 
 class NxMgAssembler(object):
@@ -97,11 +69,15 @@ class NxMgAssembler(object):
         GO annotations for genes, and the GO ontology.
     """
 
-    def __init__(self, genes):
+    def __init__(self, genes, resource_manager=None):
         self.genes = genes
         self.graph = nx.MultiGraph()
-        self.go_dag = GODag(get_go_obo())
-        self.goa = _load_goa_gaf()
+        if not resource_manager:
+            self.resource_manager = ResourceManager()
+        else:
+            self.resource_manager = resource_manager
+        self.go_dag = GODag(self.resource_manager.get_go_obo())
+        self.goa = self._load_goa_gaf()
 
     def _get_go_terms_for_gene(self, gene):
         # Filter to rows with the given gene's UniProt ID
@@ -156,6 +132,39 @@ class NxMgAssembler(object):
         """
         nx.write_graphml(self.graph, fname)
 
+    def _load_goa_gaf(self):
+        """Load the gene/GO annotations as a pandas data frame."""
+        goa_ec = {'EXP', 'IDA', 'IPI', 'IMP', 'IGI', 'IEP', 'HTP', 'HDA', 'HMP',
+                  'HGI', 'HEP', 'IBA', 'IBD'}
+        goa = pd.read_csv(self.resource_manager.get_goa_gaf(), sep='\t',
+                          skiprows=23, dtype=str,
+                          header=None,
+                          names=['DB',
+                                 'DB_ID',
+                                 'DB_Symbol',
+                                 'Qualifier',
+                                 'GO_ID',
+                                 'DB_Reference',
+                                 'Evidence_Code',
+                                 'With_From',
+                                 'Aspect',
+                                 'DB_Object_Name',
+                                 'DB_Object_Synonym',
+                                 'DB_Object_Type',
+                                 'Taxon',
+                                 'Date',
+                                 'Assigned',
+                                 'Annotation_Extension',
+                                 'Gene_Product_Form_ID'])
+        goa = goa.sort_values(by=['DB_ID', 'GO_ID'])
+        # Filter out all "NOT" negative evidences
+        goa['Qualifier'].fillna('', inplace=True)
+        goa = goa[~goa['Qualifier'].str.startswith('NOT')]
+        # Filter to rows with evidence code corresponding to experimental
+        # evidence
+        goa = goa[goa['Evidence_Code'].isin(goa_ec)]
+        return goa
+
 
 class PcNxMgAssembler(NxMgAssembler):
     """The PcNxMgAssembler assembles a GeneWalk Network with gene reactions
@@ -172,8 +181,8 @@ class PcNxMgAssembler(NxMgAssembler):
     graph : networkx.MultiGraph
         A GeneWalk Network that is assembled by this assembler.
     """
-    def __init__(self, genes):
-        super().__init__(genes)
+    def __init__(self, genes, resource_manager=None):
+        super().__init__(genes, resource_manager)
         self.add_go_ontology()
         self.add_go_annotations()
         self.add_pc_edges()
@@ -181,7 +190,8 @@ class PcNxMgAssembler(NxMgAssembler):
     def add_pc_edges(self):
         """Add edges between gene nodes based on PathwayCommons interactions."""
         logger.info('Adding gene edges from Pathway Commons to graph.')
-        gwn_df = pd.read_csv(get_pc(), sep='\t', dtype=str, header=None)
+        gwn_df = pd.read_csv(self.resource_manager.get_pc(), sep='\t',
+                             dtype=str, header=None)
         col_mapper = {}
         col_mapper[0] = 'source'
         col_mapper[1] = 'rel_type'
@@ -224,10 +234,10 @@ class IndraNxMgAssembler(NxMgAssembler):
     graph : networkx.MultiGraph
         A GeneWalk Network that is assembled by this assembler.
     """
-    def __init__(self, genes, stmts):
+    def __init__(self, genes, stmts, resource_manager=None):
         self.indra_nodes = set()
         self.stmts = stmts
-        super().__init__(genes)
+        super().__init__(genes, resource_manager)
         self.add_go_ontology()
         self.add_go_annotations()
         self.add_indra_edges()
