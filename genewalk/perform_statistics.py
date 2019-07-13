@@ -43,21 +43,24 @@ class GeneWalk(object):
 
     def get_gene_attribs(self, gene):
         """Return an attribute dict for a given gene."""
+        if gene['HGNC_SYMBOL'] in self.graph:
+            ncon_gene = len(self.graph[gene['HGNC_SYMBOL']])
+        else: 
+            ncon_gene = np.nan
         return {
             'hgnc_symbol': gene['HGNC_SYMBOL'],
             'hgnc_id': gene['HGNC'],
-            'ncon_gene': len(self.graph[gene['HGNC_SYMBOL']])
+            'ncon_gene': ncon_gene
         }
 
     def get_go_attribs(self, gene_attribs, nv, alpha_fdr):
         """Return GO entries and their attributes for a given gene."""
         gene_node_id = gene_attribs['hgnc_symbol']
         connected = set(self.graph[gene_node_id]) & self.go_nodes
-        similar = nv.most_similar(gene_node_id, topn=len(nv.vocab))
-        connected_similar = [s for s in similar if s[0] in connected]
         go_attribs = []
-        for go_node_id, sim_score in connected_similar:
+        for go_node_id in connected:
             go_attrib = {}
+            sim_score = nv.similarity(gene_node_id,go_node_id)
             go_attrib['sim_score'] = sim_score
             go_attrib['go_id'] = go_node_id
             go_attrib['ncon_go'] = len(self.graph[go_node_id])
@@ -73,14 +76,14 @@ class GeneWalk(object):
         return go_attribs
 
     def generate_output(self, alpha_fdr=1, base_id_type='hgnc_symbol'):
-        """Main function of GeneWalk object that generates the final output
-        list
+        """Main function of GeneWalk object that generates the final 
+        GeneWalk output table (in csv format).
 
         Parameters
         ----------
         alpha_fdr : Optional[float]
             Significance level for FDR [0,1] (default=1, i.e. all GO
-            terms are output). If set to a lower value, only annotated GO
+            terms are output). If set to a lower value, only connected GO
             terms with mean padj < alpha_FDR are output.
         base_id_type : Optional[str]
             The type of gene IDs that were the basis of doing the analysis.
@@ -90,41 +93,71 @@ class GeneWalk(object):
         rows = []
         for gene in self.genes:
             gene_attribs = self.get_gene_attribs(gene)
-            all_go_attribs = [self.get_go_attribs(gene_attribs, nv, alpha_fdr)
-                              for nv in self.nvs]
-            go_attrib_dict = {}
-            for go_attrib_list in all_go_attribs:
-                for go_attribs in go_attrib_list:
-                    if go_attribs['go_id'] in go_attrib_dict:
-                        go_attrib_dict[go_attribs['go_id']].append(go_attribs)
-                    else:
-                        go_attrib_dict[go_attribs['go_id']] = [go_attribs]
+            if gene_attribs['ncon_gene'] > 0:
+                all_go_attribs = [self.get_go_attribs(gene_attribs, nv, alpha_fdr)
+                                  for nv in self.nvs]
+                if all_go_attribs:#gene has GO connections
+                    go_attrib_dict = {}
+                    for go_attrib_list in all_go_attribs:
+                        for go_attribs in go_attrib_list:
+                            if go_attribs['go_id'] in go_attrib_dict:
+                                go_attrib_dict[go_attribs['go_id']].append(go_attribs)
+                            else:
+                                go_attrib_dict[go_attribs['go_id']] = [go_attribs]
 
-            for go_id, go_attribs in go_attrib_dict.items():
-                mean_padj = np.mean([attr['qval'] for attr in go_attribs])
-                sem_padj = (np.std([attr['qval'] for attr in go_attribs]) /
-                            np.sqrt(len(self.nvs)))
-                mean_sim = np.mean([attr['sim_score'] for attr in go_attribs])
-                sem_sim = (np.std([attr['sim_score'] for attr in go_attribs]) /
-                           np.sqrt(len(self.nvs)))
-                mean_pval = np.mean([attr['pval'] for attr in go_attribs])
-                sem_pval = (np.std([attr['pval'] for attr in go_attribs]) /
-                            np.sqrt(len(self.nvs)))
-                if mean_padj < alpha_fdr or alpha_fdr == 1:
+                    for go_id, go_attribs in go_attrib_dict.items():
+                        mean_padj = np.mean([attr['qval'] for attr in go_attribs])
+                        sem_padj = (np.std([attr['qval'] for attr in go_attribs]) /
+                                    np.sqrt(len(self.nvs)))
+                        mean_sim = np.mean([attr['sim_score'] for attr in go_attribs])
+                        sem_sim = (np.std([attr['sim_score'] for attr in go_attribs]) /
+                                   np.sqrt(len(self.nvs)))
+                        mean_pval = np.mean([attr['pval'] for attr in go_attribs])
+                        sem_pval = (np.std([attr['pval'] for attr in go_attribs]) /
+                                    np.sqrt(len(self.nvs)))
+                        if mean_padj < alpha_fdr or alpha_fdr == 1:
+                            row = [gene_attribs['hgnc_symbol'],
+                                   gene_attribs['hgnc_id'],
+                                   go_attribs[0]['go_name'],
+                                   go_attribs[0]['go_id'],
+                                   gene_attribs['ncon_gene'],
+                                   go_attribs[0]['ncon_go'],
+                                   mean_padj, sem_padj,
+                                   mean_pval, sem_pval,
+                                   mean_sim, sem_sim,
+                               ]
+                            # If we're dealing with mouse genes, prepend the MGI ID
+                            if base_id_type == 'mgi_id':
+                                row = [gene.get('MGI', '')] + row
+                            rows.append(row)
+                elif alpha_fdr == 1:#case: no GO connections
                     row = [gene_attribs['hgnc_symbol'],
                            gene_attribs['hgnc_id'],
-                           go_attribs[0]['go_name'],
-                           go_attribs[0]['go_id'],
+                           '',
+                           '',
                            gene_attribs['ncon_gene'],
-                           go_attribs[0]['ncon_go'],
-                           mean_padj, sem_padj,
-                           mean_pval, sem_pval,
-                           mean_sim, sem_sim,
-                           ]
-                    # If we're dealing with mouse genes, prepend the MGI ID
+                           len(all_go_attribs),
+                           np.nan, np.nan,
+                           np.nan, np.nan,
+                           np.nan, np.nan,
+                       ]
                     if base_id_type == 'mgi_id':
                         row = [gene.get('MGI', '')] + row
                     rows.append(row)
+            elif alpha_fdr == 1:#case: no connections or not in graph
+                row = [gene_attribs['hgnc_symbol'],
+                       gene_attribs['hgnc_id'],
+                       '',
+                       '',
+                       gene_attribs['ncon_gene'],
+                       np.nan,
+                       np.nan, np.nan,
+                       np.nan, np.nan,
+                       np.nan, np.nan,
+                    ]
+                if base_id_type == 'mgi_id':
+                    row = [gene.get('MGI', '')] + row
+                rows.append(row)
         header = ['hgnc_symbol', 'hgnc_id',
                   'go_name', 'go_id',
                   'ncon_gene', 'ncon_go',
@@ -132,17 +165,22 @@ class GeneWalk(object):
                   'mean_pval', 'sem_pval',
                   'mean_sim', 'sem_sim',
                   ]
+        if base_id_type == 'mgi_id':
+            header = ['mgi_id'] + header
         df = pd.DataFrame.from_records(rows, columns=header)
+        df[base_id_type] = df[base_id_type].astype('category')
+        df[base_id_type].cat.set_categories(df[base_id_type].unique(), inplace=True)
+        df = df.sort_values(by=[base_id_type,'mean_padj','go_name']) 
         return df
 
     def psim(self, sim, ncon):
-        # TODO: add docstrings here
-        # Gets the p-value by comparing the experimental similarity value
-        # to the null distribution.
-        # TODO: is searchsorted the slow step here?
+        """
+        Determine the p-value of the experimental similarity by determining 
+        its percentile, i.e. the normalized rank, in the null distribution with 
+        random similarity values.
+        """
         dist_key = 'd' + str(np.floor(np.log2(ncon)))
-        rank = np.searchsorted(self.srd[dist_key], sim, side='left',
-                               sorter=None)
+        rank = np.searchsorted(self.srd[dist_key], sim)
         pct_rank = float(rank) / len(self.srd[dist_key])
         pval = 1 - pct_rank
         return pval
