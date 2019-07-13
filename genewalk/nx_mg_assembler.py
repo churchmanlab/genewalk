@@ -40,7 +40,7 @@ def load_network(network_type, network_file, genes, resource_manager=None):
         logger.info('Loading %s' % network_file)
         with open(network_file, 'rb') as fh:
             stmts = pickle.load(fh)
-        mg = IndraNxMgAssembler(stmts, resource_manager=resource_manager)
+        mg = IndraNxMgAssembler(genes,stmts, resource_manager=resource_manager)
     elif network_type == 'edge_list':
         logger.info('Loading user-provided GeneWalk Network from %s.' %
                     network_file)
