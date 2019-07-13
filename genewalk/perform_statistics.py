@@ -15,11 +15,8 @@ class GeneWalk(object):
     hits.
     If an input gene is not in the output file, this could have the following
     reasons:
-    1) No reaction statements could be retrieved from the data_source selected
-    in get_node_vectors.py (Pathway Commons, indra or fromUser).
-    2) No connected (annotated) GO terms are present in the GeneWalk Network.
-    3) (In case of mouse genes) no mapped human ortholog was identified.
-    4) (if alpha_FDR set to < 1) no annotated GO term were significant at the
+    1) (in case of mouse genes) no mapped human ortholog was identified.
+    2) (if alpha_FDR set to < 1) no GO terms were significant at the
     chosen significance level alpha_FDR.
 
     Parameters
