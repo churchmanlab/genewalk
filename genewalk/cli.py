@@ -161,7 +161,7 @@ def main():
                         'deep_walk_node_vectors_%d' % (i + 1))
 
             # Delete the DeepWalk object to clear memory
-            del DW
+            del DW, nv
             gc.collect()
 
     if args.stage in ('all', 'null_distribution'):
@@ -183,6 +183,9 @@ def main():
             gc.collect()
 
             sr = get_null_distributions(RG, nv)
+            del nv
+            gc.collect()
+
             srs.append(sr)
         srd = get_srd(srs)
         save_pickle(srd, project_folder, 'deep_walk_rand_simdists')
