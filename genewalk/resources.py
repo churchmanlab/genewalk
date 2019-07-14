@@ -61,7 +61,7 @@ def download_go(fname):
 
 def download_gz(fname, url, resource_folder):
     logger.info('Downloading %s and extracting into %s' % (url, fname))
-    gz_file = os.path.join(resource_folder, fname + '.gz')
+    gz_file = os.path.join(fname + '.gz')
     urllib.request.urlretrieve(url, gz_file)
     with gzip.open(gz_file, 'rb') as fin:
         with open(fname, 'wb') as fout:
