@@ -135,7 +135,7 @@ ontology.
 with the following column headers:
 - hgnc_id - human gene HGNC identifier
 - **hgnc_symbol** - human gene symbol
-- **go_name** - GO term text version
+- **go_name** - GO term name
 - go_id - GO term identifier
 - ncon_gene - number of connection to gene in GeneWalk network
 - ncon_go - number of connections to GO term in GeneWalk network
