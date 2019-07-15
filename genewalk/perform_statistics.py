@@ -167,6 +167,9 @@ class GeneWalk(object):
         df = pd.DataFrame.from_records(rows, columns=header)
         df[base_id_type] = df[base_id_type].astype('category')
         df[base_id_type].cat.set_categories(df[base_id_type].unique(), inplace=True)
+        #TODO: decide to require pandas v0.24 with installation of GeneWalk? 
+        df[['ncon_gene', 'ncon_go']] = df[['ncon_gene', 'ncon_go']].astype('str')
+        #df[['ncon_gene', 'ncon_go']] = df[['ncon_gene', 'ncon_go']].astype(pd.Int32Dtype())#better but works only for latest pandas v0.24:important to output as integer (with nan values), not float
         df = df.sort_values(by=[base_id_type,'mean_padj','go_name']) 
         return df
 
