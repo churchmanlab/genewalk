@@ -35,7 +35,7 @@ specifying the types of genes in the file.
 
 Example
 ```bash
-genewalk --project condition1 --genes gene_list.txt --id_type hgnc_symbol
+genewalk --project context1 --genes gene_list.txt --id_type hgnc_symbol
 ```
 
 Below is the full documentation of the command line interface:
@@ -112,11 +112,11 @@ optional arguments:
 
 ### Output files
 GeneWalk automatically creates a `genewalk` folder in the user's home folder 
-(unless the user has specified an alternative genewalk base_folder).
+(or the user specified base_folder).
 When running GeneWalk, one of the required inputs is a project name.
 A sub-folder is created for the given project name where all intermediate and
 final results are stored. The files stored in the project folder are:
-- genewalk_results.csv - The main results table, a comma-separated values text file.
+- *genewalk_results.csv* - The main results table, a comma-separated values text file.
 - genes.pkl - A processed representation of the given gene list.
 - multi_graph.pkl - A networkx MultiGraph which was assembled based on the
 given list of genes, an interaction network, GO annotations, and the GO
@@ -134,16 +134,18 @@ ontology.
 `genewalk_results.csv` is the main GeneWalk output table, a comma-separated values text file 
 with the following column headers:
 - hgnc_id - human gene HGNC identifier
-- hgnc_symbol - human gene symbol
-- go_name - GO term text version
+- *hgnc_symbol* - human gene symbol
+- *go_name* - GO term text version
 - go_id - GO term identifier
 - ncon_gene - number of connection to gene in GeneWalk network
 - ncon_go - number of connections to GO term in GeneWalk network
-- mean_padj - mean FDR adjusted p-value of gene - GO term similarities. This is the key statistic indicating
-how relevant the GO term to the gene in the particular biological context or tested condition. GeneWalk 
-determines an adjusted p-value estimate for each nreps_graph repeat analysis.
-The value presented here is the mean over all repeat values.
-- sem_padj - standard error on mean_padj from the nreps_graph repeat analyses.
+- *mean_padj* - mean false discovery rate (FDR) adjusted p-value of the similarity between gene and GO term.
+This is the key statistic indicating how relevant the GO term (function) is to the gene in the 
+particular biological context or tested condition. GeneWalk determines an adjusted p-value with 
+Benjamini Hochberg FDR correction for multiple tested of all connected GO term for each 
+nreps_graph repeat analysis. The value presented here is the average over all p-adjust values 
+from each repeat analysis. 
+- sem_padj - standard error on mean_padj estimate from the nreps_graph repeat analyses.
 - mean_pval - mean p-values of gene - GO term similarities, not FDR corrected for multiple testing.
 - sem_pval - standard error on mean_pval estimate.
 - mean_sim - mean of gene - GO term similarities.
