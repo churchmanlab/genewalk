@@ -34,7 +34,7 @@ class ResourceManager(object):
         if not os.path.exists(fname):
             url_pc = ('http://www.pathwaycommons.org/archives/PC2/v11/'
                       'PathwayCommons11.All.hgnc.sif.gz')
-            download_gz(fname, url_pc, self.resource_folder)
+            download_gz(fname, url_pc)
         return fname
 
     def _get_resource_folder(self):
@@ -59,9 +59,9 @@ def download_go(fname):
     urllib.request.urlretrieve(url, fname)
 
 
-def download_gz(fname, url, resource_folder):
+def download_gz(fname, url):
     logger.info('Downloading %s and extracting into %s' % (url, fname))
-    gz_file = os.path.join(fname + '.gz')
+    gz_file = fname + '.gz'
     urllib.request.urlretrieve(url, gz_file)
     with gzip.open(gz_file, 'rb') as fin:
         with open(fname, 'wb') as fout:
