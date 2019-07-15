@@ -25,7 +25,7 @@ class ResourceManager(object):
         if not os.path.exists(fname):
             url_goa = ('http://geneontology.org/gene-associations/'
                        'goa_human.gaf.gz')
-            download_gz(fname, url_goa, self.resource_folder)
+            download_gz(fname, url_goa)
         return fname
 
     def get_pc(self):
