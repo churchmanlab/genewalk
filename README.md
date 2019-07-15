@@ -1,11 +1,11 @@
 # GeneWalk
 
 GeneWalk determines for individual genes the functions that are relevant in a
-particular experimental condition. GeneWalk quantifies the similarity between
-vector representations of a gene and annotated GO terms through representation
-learning with random walks on a condition-specific gene regulatory network.
-Similarity significance is determined through comparison with node similarities
-from randomized networks. 
+particular biological context and experimental condition. GeneWalk quantifies 
+the similarity between vector representations of a gene and annotated GO terms 
+through representation learning with random walks on a condition-specific gene 
+regulatory network. Similarity significance is determined through comparison 
+with node similarities from randomized networks. 
 
 ## Install GeneWalk
 To install the latest release of GeneWalk (preferred):
@@ -19,11 +19,24 @@ pip install git+https://github.com/churchmanlab/genewalk
 
 ## Using GeneWalk
 
+### Gene list file
+GeneWalk always requires as input a text file containing a list with genes of interest 
+relevant to the biological context. For example, differentially expressed genes 
+from a sequencing experiment that compares an experimental versus control condition. 
+GeneWalk supports gene list files containing HGNC human gene symbols, 
+HGNC IDs, or MGI mouse gene IDs. Each line in the file contains a gene identifier of 
+one of these types.
+
 ### GeneWalk command line interface
 Once installed, GeneWalk can be run from the command line as `genewalk`, with
 a set of required and optional arguments. The required arguments include the
 project name, a path to a text file containing a list of genes, and an argument
 specifying the types of genes in the file.
+
+Example
+```bash
+genewalk --project condition1 --genes gene_list.txt --id_type hgnc_symbol
+```
 
 Below is the full documentation of the command line interface:
 
@@ -96,20 +109,10 @@ optional arguments:
 
 ```
 
-Example
-```bash
-genewalk --project test1 --genes gene_list.txt --id_type hgnc_symbol
-```
-
-### Gene list file
-GeneWalk always requires a text file with a list of genes as input. These are
-typically differentially expressed genes in a given experimental setting.
-GeneWalk supports gene list files containing HGNC gene symbols, HGNC IDs, or MGI
-IDs. Each line in the file contains a gene identifier of one of these types.
-
 
 ### Output files
-GeneWalk automatically creates a `genewalk` folder in the user's home folder.
+GeneWalk automatically creates a `genewalk` folder in the user's home folder 
+(unless the user has specified an alternative genewalk base_folder).
 When running GeneWalk, one of the required inputs is a project name.
 A sub-folder is created for the given project name where all intermediate and
 final results are stored. The files stored in the project folder are:
@@ -118,13 +121,40 @@ final results are stored. The files stored in the project folder are:
 - multi_graph.pkl - A networkx MultiGraph which was assembled based on the
 given list of genes, an interaction network, GO annotations, and the GO
 ontology.
-- deep_walk_*.pkl - A DeepWalk object for each analysis repeat on the graph.
-- deep_walk_rand_*.pkl - A DeepWalk object for each analysis repeat on a random graph.
 - deep_walk_node_vectors_*.pkl - A set of learned node vectors for each analysis repeat for the graph.
 - deep_walk_node_vectors_rand_*.pkl - A set of learned node vectors for each analysis repeat for a random graph.
 - deep_walk_rand_simdists.pkl - Distributions constructed from repeats.
+- deep_walk_*.pkl - A DeepWalk object for each analysis repeat on the graph 
+(only present if save_dw argument is set to True).
+- deep_walk_rand_*.pkl - A DeepWalk object for each analysis repeat on a random graph 
+(only present if save_dw argument is set to True).
 
-### Stages of analysis
+
+### GeneWalk results file description
+`genewalk_results.csv` is the main GeneWalk output table, a comma-separated values text file 
+with the following column headers:
+- hgnc_id - human gene HGNC identifier
+- hgnc_symbol - human gene symbol
+- go_name - GO term text version
+- go_id - GO term identifier
+- ncon_gene - number of connection to gene in GeneWalk network
+- ncon_go - number of connections to GO term in GeneWalk network
+- mean_padj - mean FDR adjusted p-value of gene - GO term similarities. This is the key statistic indicating
+how relevant the GO term to the gene in the particular biological context or tested condition. GeneWalk 
+determines an adjusted p-value estimate for each nreps_graph repeat analysis.
+The value presented here is the mean over all repeat values.
+- sem_padj - standard error on mean_padj from the nreps_graph repeat analyses.
+- mean_pval - mean p-values of gene - GO term similarities, not FDR corrected for multiple testing.
+- sem_pval - standard error on mean_pval estimate.
+- mean_sim - mean of gene - GO term similarities.
+- sem_sim - standard error on mean_sim estimate.
+- mgi_id - in case mouse gene MGI identifiers were provided as input, the GeneWalk results 
+table starts with an additional mgi_id column to indicate these mouse genes. In this
+case the corresponding hgnc_id and hgnc_symbol resemble its human ortholog
+gene used for the GeneWalk analysis.
+
+
+### Stages of GeneWalk algorithm
 Given a list of genes, GeneWalk runs three stages of analysis:
 1. Assembling a GeneWalk network and learning node vector representations
 by running DeepWalk on this network, for a specified number of repeats.
