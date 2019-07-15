@@ -167,8 +167,6 @@ class GeneWalk(object):
         df = pd.DataFrame.from_records(rows, columns=header)
         df[base_id_type] = df[base_id_type].astype('category')
         df[base_id_type].cat.set_categories(df[base_id_type].unique(), inplace=True)
-        df['ncon_gene'] = df['ncon_gene'].astype(str)
-        df['ncon_go'] = df['ncon_go'].astype(str)
         df = df.sort_values(by=[base_id_type,'mean_padj','go_name']) 
         return df
 
