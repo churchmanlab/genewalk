@@ -116,7 +116,7 @@ GeneWalk automatically creates a `genewalk` folder in the user's home folder
 When running GeneWalk, one of the required inputs is a project name.
 A sub-folder is created for the given project name where all intermediate and
 final results are stored. The files stored in the project folder are:
-- `**genewalk_results.csv**` - The main results table, a comma-separated values text file.
+- **`genewalk_results.csv`** - The main results table, a comma-separated values text file. See below for detailed description.
 - `genes.pkl` - A processed representation of the given gene list, in Python pickle (.pkl) binary file format.
 - `multi_graph.pkl` - A networkx MultiGraph which was assembled based on the
 given list of genes, an interaction network, GO annotations, and the GO
