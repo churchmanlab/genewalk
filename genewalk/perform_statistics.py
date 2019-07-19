@@ -2,8 +2,7 @@ import logging
 import pandas as pd
 import numpy as np
 import networkx as nx
-import statsmodels.stats.multitest
-
+from statsmodels.stats.multitest import fdrcorrection
 
 logger = logging.getLogger('genewalk.perform_statistics')
 
@@ -15,10 +14,10 @@ class GeneWalk(object):
     hits.
     If an input gene is not in the output file, this could have the following
     reasons:
-    1) (in case of mouse genes) no mapped human ortholog was identified.
-    2) (if alpha_FDR set to < 1) no GO terms were significant at the
-    chosen significance level alpha_FDR.
-
+    1) No corresponding HGNC gene symbol, HGNC:ID and/or UniProt:ID could be 
+    identified. All are required to map genes and assemble their GO annotations.
+    2) (in case of mouse genes) no mapped human ortholog was identified.
+    
     Parameters
     ----------
     graph : networkx.MultiGraph
@@ -55,6 +54,7 @@ class GeneWalk(object):
         gene_node_id = gene_attribs['hgnc_symbol']
         connected = set(self.graph[gene_node_id]) & self.go_nodes
         go_attribs = []
+        pvals=[]
         for go_node_id in connected:
             go_attrib = {}
             sim_score = nv.similarity(gene_node_id,go_node_id)
@@ -64,24 +64,23 @@ class GeneWalk(object):
             go_attrib['go_name'] = self.graph.nodes[go_node_id]['name']
             go_attrib['pval'] = \
                 self.psim(sim_score, min(go_attrib['ncon_go'],
-                                         gene_attribs['ncon_gene']))
-            _, go_attrib['qval'] = \
-                statsmodels.stats.multitest.fdrcorrection(go_attrib['pval'],
-                                                          alpha_fdr,
-                                                          method='indep')
-            go_attribs.append(go_attrib)
+                                         gene_attribs['ncon_gene']))            
+            pvals.append(go_attrib['pval'])
+            go_attribs.append(go_attrib)       
+        _, qvals = fdrcorrection(pvals,alpha=alpha_fdr,method='indep')
+        for idx in range(len(go_attribs)):
+            go_attribs[idx]['qval'] = qvals[idx] #append the qval
+            
         return go_attribs
 
-    def generate_output(self, alpha_fdr=1, base_id_type='hgnc_symbol'):
+    def generate_output(self, alpha_fdr=0.05, base_id_type='hgnc_symbol'):
         """Main function of GeneWalk object that generates the final 
         GeneWalk output table (in csv format).
 
         Parameters
         ----------
         alpha_fdr : Optional[float]
-            Significance level for FDR [0,1] (default=1, i.e. all GO
-            terms are output). If set to a lower value, only connected GO
-            terms with mean padj < alpha_FDR are output.
+            Significance level for FDR [0,1] (default = 0.05).
         base_id_type : Optional[str]
             The type of gene IDs that were the basis of doing the analysis.
             In case of mgi_id, we prepend a column to the table for MGI IDs.
@@ -112,22 +111,21 @@ class GeneWalk(object):
                         mean_pval = np.mean([attr['pval'] for attr in go_attribs])
                         sem_pval = (np.std([attr['pval'] for attr in go_attribs]) /
                                     np.sqrt(len(self.nvs)))
-                        if mean_padj < alpha_fdr or alpha_fdr == 1:
-                            row = [gene_attribs['hgnc_symbol'],
-                                   gene_attribs['hgnc_id'],
-                                   go_attribs[0]['go_name'],
-                                   go_attribs[0]['go_id'],
-                                   gene_attribs['ncon_gene'],
-                                   go_attribs[0]['ncon_go'],
-                                   mean_padj, sem_padj,
-                                   mean_pval, sem_pval,
-                                   mean_sim, sem_sim,
-                               ]
-                            # If we're dealing with mouse genes, prepend the MGI ID
-                            if base_id_type == 'mgi_id':
-                                row = [gene.get('MGI', '')] + row
-                            rows.append(row)
-                elif alpha_fdr == 1:#case: no GO connections
+                        row = [gene_attribs['hgnc_symbol'],
+                               gene_attribs['hgnc_id'],
+                               go_attribs[0]['go_name'],
+                               go_attribs[0]['go_id'],
+                               gene_attribs['ncon_gene'],
+                               go_attribs[0]['ncon_go'],
+                               mean_padj, sem_padj,
+                               mean_pval, sem_pval,
+                               mean_sim, sem_sim,
+                           ]
+                        # If we're dealing with mouse genes, prepend the MGI ID
+                        if base_id_type == 'mgi_id':
+                            row = [gene.get('MGI', '')] + row
+                        rows.append(row)
+                else:#case: no GO connections
                     row = [gene_attribs['hgnc_symbol'],
                            gene_attribs['hgnc_id'],
                            '',
@@ -141,7 +139,7 @@ class GeneWalk(object):
                     if base_id_type == 'mgi_id':
                         row = [gene.get('MGI', '')] + row
                     rows.append(row)
-            elif alpha_fdr == 1:#case: no connections or not in graph
+            else:#case: no connections or not in graph
                 row = [gene_attribs['hgnc_symbol'],
                        gene_attribs['hgnc_id'],
                        '',
@@ -167,9 +165,10 @@ class GeneWalk(object):
         df = pd.DataFrame.from_records(rows, columns=header)
         df[base_id_type] = df[base_id_type].astype('category')
         df[base_id_type].cat.set_categories(df[base_id_type].unique(), inplace=True)
-        #TODO: decide to require pandas v0.24 with installation of GeneWalk? 
+        #TODO: decide to require pandas v0.24 with installation of GeneWalk 
         df[['ncon_gene', 'ncon_go']] = df[['ncon_gene', 'ncon_go']].astype('str')
-        #df[['ncon_gene', 'ncon_go']] = df[['ncon_gene', 'ncon_go']].astype(pd.Int32Dtype())#better but works only for latest pandas v0.24:important to output as integer (with nan values), not float
+        #df[['ncon_gene', 'ncon_go']] = df[['ncon_gene', 'ncon_go']].astype(pd.Int32Dtype())
+        #better but works only for pandas >= v0.24:important to output as integer (with nan values)
         df = df.sort_values(by=[base_id_type,'mean_padj','go_name']) 
         return df
 
