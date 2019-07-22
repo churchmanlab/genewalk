@@ -27,13 +27,19 @@ def read_gene_list(fname, id_type):
         identifiers of the provided list of genes.
     """
     with open(fname, 'r') as fh:
-        lines = [line.strip() for line in fh.readlines()]
+        # This is to make the list unique while preserving
+        # the original order as much as possible
+        unique_lines = []
+        for line in fh.readlines():
+            line = line.strip()
+            if line not in unique_lines:
+                unique_lines.append(line)
     if id_type == 'hgnc_symbol':
-        return map_hgnc_symbols(lines)
+        return map_hgnc_symbols(unique_lines)
     elif id_type == 'hgnc_id':
-        return map_hgnc_ids(lines)
+        return map_hgnc_ids(unique_lines)
     elif id_type == 'mgi_id':
-        return map_mgi_ids(lines)
+        return map_mgi_ids(unique_lines)
     else:
         raise ValueError('Unknown id_type: %s' % id_type)
 
