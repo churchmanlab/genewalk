@@ -16,7 +16,9 @@ class GeneWalk(object):
     reasons:
     1) No corresponding HGNC gene symbol, HGNC:ID and/or UniProt:ID could be 
     identified. All are required to map genes and assemble their GO annotations.
-    2) (in case of mouse genes) no mapped human ortholog was identified.
+    2) (if alpha_FDR set to < 1) no GO terms were significant at the
+    chosen significance level alpha_FDR.
+    3) (in case of mouse genes) no mapped human ortholog was identified.
     
     Parameters
     ----------
@@ -73,14 +75,16 @@ class GeneWalk(object):
             
         return go_attribs
 
-    def generate_output(self, alpha_fdr=0.05, base_id_type='hgnc_symbol'):
+    def generate_output(self, alpha_fdr=1, base_id_type='hgnc_symbol'):
         """Main function of GeneWalk object that generates the final 
         GeneWalk output table (in csv format).
 
         Parameters
         ----------
         alpha_fdr : Optional[float]
-            Significance level for FDR [0,1] (default = 0.05).
+            Significance level for FDR [0,1] (default=1, i.e. all GO
+            terms and their statistics are output). If set to a lower value, only connected GO
+            terms with mean padj < alpha_FDR are output.
         base_id_type : Optional[str]
             The type of gene IDs that were the basis of doing the analysis.
             In case of mgi_id, we prepend a column to the table for MGI IDs.
@@ -111,21 +115,22 @@ class GeneWalk(object):
                         mean_pval = np.mean([attr['pval'] for attr in go_attribs])
                         sem_pval = (np.std([attr['pval'] for attr in go_attribs]) /
                                     np.sqrt(len(self.nvs)))
-                        row = [gene_attribs['hgnc_symbol'],
-                               gene_attribs['hgnc_id'],
-                               go_attribs[0]['go_name'],
-                               go_attribs[0]['go_id'],
-                               gene_attribs['ncon_gene'],
-                               go_attribs[0]['ncon_go'],
-                               mean_padj, sem_padj,
-                               mean_pval, sem_pval,
-                               mean_sim, sem_sim,
-                           ]
-                        # If we're dealing with mouse genes, prepend the MGI ID
-                        if base_id_type == 'mgi_id':
-                            row = [gene.get('MGI', '')] + row
-                        rows.append(row)
-                else:#case: no GO connections
+                        if mean_padj < alpha_fdr or alpha_fdr == 1:
+                            row = [gene_attribs['hgnc_symbol'],
+                                   gene_attribs['hgnc_id'],
+                                   go_attribs[0]['go_name'],
+                                   go_attribs[0]['go_id'],
+                                   gene_attribs['ncon_gene'],
+                                   go_attribs[0]['ncon_go'],
+                                   mean_padj, sem_padj,
+                                   mean_pval, sem_pval,
+                                   mean_sim, sem_sim,
+                               ]
+                            # If we're dealing with mouse genes, prepend the MGI ID
+                            if base_id_type == 'mgi_id':
+                                row = [gene.get('MGI', '')] + row
+                            rows.append(row)
+                elif alpha_fdr == 1:#case: no GO connections
                     row = [gene_attribs['hgnc_symbol'],
                            gene_attribs['hgnc_id'],
                            '',
@@ -139,7 +144,7 @@ class GeneWalk(object):
                     if base_id_type == 'mgi_id':
                         row = [gene.get('MGI', '')] + row
                     rows.append(row)
-            else:#case: no connections or not in graph
+            elif alpha_fdr == 1:#case: no connections or not in graph
                 row = [gene_attribs['hgnc_symbol'],
                        gene_attribs['hgnc_id'],
                        '',
