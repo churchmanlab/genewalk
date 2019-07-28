@@ -188,7 +188,7 @@ def main():
 
             srs.append(sr)
         srd = get_srd(srs)
-        save_pickle(srd, project_folder, 'deep_walk_rand_simdists')
+        save_pickle(srd, project_folder, 'gene_walk_rand_simdists')
 
     if args.stage in ('all', 'statistics'):
         MG = load_pickle(project_folder, 'multi_graph')
@@ -196,7 +196,7 @@ def main():
         nvs = [load_pickle(project_folder,
                            'deep_walk_node_vectors_%d' % (i + 1))
                for i in range(args.nreps_graph)]
-        null_dist = load_pickle(project_folder, 'deep_walk_rand_simdists')
+        null_dist = load_pickle(project_folder, 'gene_walk_rand_simdists')
         GW = GeneWalk(MG, genes, nvs, null_dist)
         df = GW.generate_output(alpha_fdr=args.alpha_fdr,
                                 base_id_type=args.id_type)
