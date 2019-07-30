@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 from statsmodels.stats.multitest import fdrcorrection
+from scipy.stats import gmean, gstd
 
 logger = logging.getLogger('genewalk.perform_statistics')
 
@@ -75,6 +76,13 @@ class GeneWalk(object):
             
         return go_attribs
 
+    def log_stats(self,vals):
+        eps=1e-16
+        vals=np.asarray(vals)+eps
+        g_mean = gmean(vals)-eps
+        g_std = gstd(vals)
+        return g_mean, g_mean*g_std**(-1.96), g_mean*g_std**(1.96)
+    
     def generate_output(self, alpha_fdr=1, base_id_type='hgnc_symbol'):
         """Main function of GeneWalk object that generates the final 
         GeneWalk output table (in csv format).
@@ -106,15 +114,18 @@ class GeneWalk(object):
                                 go_attrib_dict[go_attribs['go_id']] = [go_attribs]
 
                     for go_id, go_attribs in go_attrib_dict.items():
-                        mean_padj = np.mean([attr['qval'] for attr in go_attribs])
-                        sem_padj = (np.std([attr['qval'] for attr in go_attribs]) /
-                                    np.sqrt(len(self.nvs)))
+#                         print([attr['qval'] for attr in go_attribs])
+                        mean_padj, low_padj, upp_padj = self.log_stats([attr['qval'] for attr in go_attribs])
+                        mean_pval, low_pval, upp_pval = self.log_stats([attr['pval'] for attr in go_attribs])
+#                         mean_padj = np.mean([attr['qval'] for attr in go_attribs])
+#                         sem_padj = (np.std([attr['qval'] for attr in go_attribs]) /
+#                                     np.sqrt(len(self.nvs)))
                         mean_sim = np.mean([attr['sim_score'] for attr in go_attribs])
                         sem_sim = (np.std([attr['sim_score'] for attr in go_attribs]) /
-                                   np.sqrt(len(self.nvs)))
-                        mean_pval = np.mean([attr['pval'] for attr in go_attribs])
-                        sem_pval = (np.std([attr['pval'] for attr in go_attribs]) /
-                                    np.sqrt(len(self.nvs)))
+                                   np.sqrt(len(self.nvs)))                      
+#                         mean_pval = np.mean([attr['pval'] for attr in go_attribs])
+#                         sem_pval = (np.std([attr['pval'] for attr in go_attribs]) /
+#                                     np.sqrt(len(self.nvs)))
                         if mean_padj < alpha_fdr or alpha_fdr == 1:
                             row = [gene_attribs['hgnc_symbol'],
                                    gene_attribs['hgnc_id'],
@@ -122,8 +133,10 @@ class GeneWalk(object):
                                    go_attribs[0]['go_id'],
                                    gene_attribs['ncon_gene'],
                                    go_attribs[0]['ncon_go'],
-                                   mean_padj, sem_padj,
-                                   mean_pval, sem_pval,
+#                                    mean_padj, sem_padj,
+#                                    mean_pval, sem_pval,
+                                   mean_padj, low_padj, upp_padj,
+                                   mean_pval, low_padj, upp_padj,
                                    mean_sim, sem_sim,
                                ]
                             # If we're dealing with mouse genes, prepend the MGI ID
@@ -137,8 +150,8 @@ class GeneWalk(object):
                            '',
                            gene_attribs['ncon_gene'],
                            len(all_go_attribs),
-                           np.nan, np.nan,
-                           np.nan, np.nan,
+                           np.nan, np.nan, np.nan,
+                           np.nan, np.nan, np.nan,
                            np.nan, np.nan,
                        ]
                     if base_id_type == 'mgi_id':
@@ -151,8 +164,8 @@ class GeneWalk(object):
                        '',
                        gene_attribs['ncon_gene'],
                        np.nan,
-                       np.nan, np.nan,
-                       np.nan, np.nan,
+                       np.nan, np.nan, np.nan,
+                       np.nan, np.nan, np.nan,
                        np.nan, np.nan,
                     ]
                 if base_id_type == 'mgi_id':
@@ -161,8 +174,10 @@ class GeneWalk(object):
         header = ['hgnc_symbol', 'hgnc_id',
                   'go_name', 'go_id',
                   'ncon_gene', 'ncon_go',
-                  'mean_padj', 'sem_padj',
-                  'mean_pval', 'sem_pval',
+                  'mean_padj','cilow_padj','ciupp_padj',
+                  'mean_pval','cilow_pval','ciupp_pval',
+#                   'mean_padj', 'sem_padj',
+#                   'mean_pval', 'sem_pval',
                   'mean_sim', 'sem_sim',
                   ]
         if base_id_type == 'mgi_id':
