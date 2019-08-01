@@ -90,7 +90,8 @@ class NxMgAssembler(object):
     def add_go_annotations(self):
         """Add edges between gene nodes and GO nodes based on GO annotations."""
         logger.info('Adding GO annotations for genes to graph.')
-        for gene in self.genes:
+        gene_nodes=list(nx.nodes(self.graph))
+        for gene in gene_nodes:
             go_ids = self._get_go_terms_for_gene(gene)
             for go_id in go_ids:
                 if go_id in self.go_dag:
@@ -186,10 +187,11 @@ class PcNxMgAssembler(NxMgAssembler):
     """
     def __init__(self, genes, resource_manager=None):
         super().__init__(genes, resource_manager)
-        self.add_go_ontology()
-        self.add_go_annotations()
         self.add_pc_edges()
-
+        self.add_go_annotations()
+        self.add_go_ontology()
+        
+       
     def add_pc_edges(self):
         """Add edges between gene nodes based on PathwayCommons interactions."""
         logger.info('Adding gene edges from Pathway Commons to graph.')
@@ -213,12 +215,11 @@ class PcNxMgAssembler(NxMgAssembler):
         nx.set_node_attributes(pc_sub, gene2hgnc_dict, 'HGNC')
         gene2up_dict = dict(zip(hgnc_symbols, up_ids))
         nx.set_node_attributes(pc_sub, gene2up_dict, 'UP')
-        # make a copy to unfreeze graph
-        pc_graph = nx.MultiGraph(pc_sub)
+        self.graph = nx.MultiGraph(pc_sub)# make a copy to unfreeze graph
+        self.graph.remove_nodes_from(nx.isolates(pc_sub))#delete unconnected nodes
         logger.info('Number of PC originating nodes %d' %
-                    nx.number_of_nodes(pc_graph))
-        self.graph = nx.compose(self.graph, pc_graph)
-
+                    nx.number_of_nodes(self.graph))
+        
 
 class IndraNxMgAssembler(NxMgAssembler):
     """The IndraNxMgAssembler assembles INDRA Statements and GO ontology /
@@ -241,10 +242,11 @@ class IndraNxMgAssembler(NxMgAssembler):
         self.indra_nodes = set()
         self.stmts = stmts
         super().__init__(genes, resource_manager)
-        self.add_go_ontology()
-        self.add_go_annotations()
         self.add_indra_edges()
         self.add_fplx_edges()
+        self.add_go_annotations()
+        self.add_go_ontology()
+        
 
     def add_indra_edges(self):
         """Add edges between gene nodes and GO nodes based on INDRA Statements.
