@@ -72,8 +72,7 @@ class GeneWalk(object):
             go_attribs.append(go_attrib)       
         _, qvals = fdrcorrection(pvals,alpha=alpha_fdr,method='indep')
         for idx in range(len(go_attribs)):
-            go_attribs[idx]['qval'] = qvals[idx] #append the qval
-            
+            go_attribs[idx]['qval'] = qvals[idx] #append the qval            
         return go_attribs
 
     def log_stats(self,vals):
@@ -81,7 +80,19 @@ class GeneWalk(object):
         vals=np.asarray(vals)+eps
         g_mean = gmean(vals)-eps
         g_std = gstd(vals)
-        return g_mean, g_mean*g_std**(-1.96), g_mean*g_std**(1.96)
+        return g_mean, g_mean*(g_std**(-1.96)), g_mean*(g_std**(1.96))
+    
+    def add_empty_row(self,gene_attribs,base_id_type):
+        row = [gene_attribs['hgnc_symbol'],
+               gene_attribs['hgnc_id'],
+               '','',
+               gene_attribs['ncon_gene'],
+               np.nan, np.nan, np.nan, np.nan,
+               np.nan, np.nan, np.nan, np.nan, np.nan,
+              ]
+        if base_id_type == 'mgi_id':
+            row = [gene.get('MGI', '')] + row
+        return row
     
     def generate_output(self, alpha_fdr=1, base_id_type='hgnc_symbol'):
         """Main function of GeneWalk object that generates the final 
@@ -101,7 +112,7 @@ class GeneWalk(object):
         rows = []
         for gene in self.genes:
             gene_attribs = self.get_gene_attribs(gene)
-            if gene_attribs['ncon_gene'] > 0:
+            if not np.isnan(gene_attribs['ncon_gene']):#gene present in GW network
                 all_go_attribs = [self.get_go_attribs(gene_attribs, nv, alpha_fdr)
                                   for nv in self.nvs]
                 if all_go_attribs:#gene has GO connections
@@ -114,7 +125,6 @@ class GeneWalk(object):
                                 go_attrib_dict[go_attribs['go_id']] = [go_attribs]
 
                     for go_id, go_attribs in go_attrib_dict.items():
-#                         print([attr['qval'] for attr in go_attribs])
                         mean_padj, low_padj, upp_padj = self.log_stats([attr['qval'] for attr in go_attribs])
                         mean_pval, low_pval, upp_pval = self.log_stats([attr['pval'] for attr in go_attribs])
 #                         mean_padj = np.mean([attr['qval'] for attr in go_attribs])
@@ -144,32 +154,10 @@ class GeneWalk(object):
                                 row = [gene.get('MGI', '')] + row
                             rows.append(row)
                 elif alpha_fdr == 1:#case: no GO connections
-                    row = [gene_attribs['hgnc_symbol'],
-                           gene_attribs['hgnc_id'],
-                           '',
-                           '',
-                           gene_attribs['ncon_gene'],
-                           len(all_go_attribs),
-                           np.nan, np.nan, np.nan,
-                           np.nan, np.nan, np.nan,
-                           np.nan, np.nan,
-                       ]
-                    if base_id_type == 'mgi_id':
-                        row = [gene.get('MGI', '')] + row
+                    row = add_empty_row(gene_attribs,base_id_type)
                     rows.append(row)
-            elif alpha_fdr == 1:#case: no connections or not in graph
-                row = [gene_attribs['hgnc_symbol'],
-                       gene_attribs['hgnc_id'],
-                       '',
-                       '',
-                       gene_attribs['ncon_gene'],
-                       np.nan,
-                       np.nan, np.nan, np.nan,
-                       np.nan, np.nan, np.nan,
-                       np.nan, np.nan,
-                    ]
-                if base_id_type == 'mgi_id':
-                    row = [gene.get('MGI', '')] + row
+            elif alpha_fdr == 1:#case: not in graph
+                row = add_empty_row(gene_attribs,base_id_type)
                 rows.append(row)
         header = ['hgnc_symbol', 'hgnc_id',
                   'go_name', 'go_id',
