@@ -34,7 +34,7 @@ def get_rand_graph(mg):
 
 def get_null_distributions(rg, nv):
     # TODO: add docstrings here
-    srd = {}
+    srd = []#{}
     # Generate null distributions from random node vectors
     for node in nx.nodes(rg):
         connections = list(rg[node])
@@ -44,34 +44,44 @@ def get_null_distributions(rg, nv):
         N_con_source = len(connections)
         if N_con_source > 0:
             sim_dist = list(1-nv.distances(node, other_words=connections))
-            for inb in range(len(connections)):
-                nb = connections[inb]
-                N_con_neighbor = len(rg[nb])
-                # make log2 scale categories of connectivity
-                key = 'd' + str(np.floor(np.log2(min(N_con_source,
-                                                     N_con_neighbor))))
-                if key in srd:
-                    srd[key].append(sim_dist[inb])
-                else:
-                    srd[key] = [sim_dist[inb]]
-    return srd
-
-
-def get_srd(srs):
-    # TODO: add docstrings here
-    # similarity (random) null distributions
-    # key structure: of srd: 'd'+str(#connections of a node)
-    srd = {}
-    for sr in srs:
-        for k, v in sr.items():
-            if k in srd:
-                srd[k].extend(v)
+            if srd:
+                srd.extend(sim_dist)
             else:
-                srd[k] = v
-
-    # To improve search speed: convert lists with similarities
-    # to sorted numpy arrays.
-    for skey in srd.keys():
-        srd[skey] = np.asarray(sorted(srd[skey]))
+                srd=sim_dist
+#             for inb in range(len(connections)):                
+#                 nb = connections[inb]
+#                 N_con_neighbor = len(rg[nb])
+#                 # make log2 scale categories of connectivity
+#                 key = 'd' + str(np.floor(np.log2(min(N_con_source,
+#                                                      N_con_neighbor))))
+#                 if key in srd:
+#                     srd[key].append(sim_dist[inb])
+#                 else:
+#                     srd[key] = [sim_dist[inb]]
     return srd
+
+
+# def get_srd(srs):
+#     # TODO: add docstrings here
+#     # similarity (random) null distributions  
+#     # key structure: of srd: 'd'+str(#connections of a node)
+#     srd = {}
+#     for sr in srs:
+#         for k, v in sr.items():
+#             if k in srd:
+#                 srd[k].extend(v)
+#             else:
+#                 srd[k] = v  
+# #     #TEMP: consolidate too small null dists into lower degree dists
+# #     for k in range(len(srd))[::-1]:
+# #         skey='d'+str(k)+'.0'
+# # #         if len(srd[skey]) < 1e4 and k > 0:#trialed merge1e4hi for 20190804 JQ1 indra1234 
+# #         if k > 0:#trial for one null dist 20190804 JQ1 indra1234 
+# #             skey_lower_deg='d'+str(k-1)+'.0'
+# #             srd[skey_lower_deg].extend(srd[skey])
+# #             srd.pop(skey)
+#     for skey in srd.keys():
+#         srd[skey] = np.asarray(sorted(srd[skey]))
+
+#     return srd
 
