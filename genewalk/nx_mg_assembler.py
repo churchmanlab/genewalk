@@ -81,7 +81,9 @@ class NxMgAssembler(object):
 
     def _get_go_terms_for_gene(self, gene):
         # Filter to rows with the given gene's UniProt ID
-        if 'UP' not in gene:
+        if ('UP' not in gene) or ('HGNC_SYMBOL' not in gene):
+            return []
+        elif gene['HGNC_SYMBOL'] not in self.graph:
             return []
         df = self.goa[self.goa['DB_ID'] == gene['UP']]
         go_ids = sorted(list(set(df['GO_ID'])))
@@ -89,9 +91,8 @@ class NxMgAssembler(object):
 
     def add_go_annotations(self):
         """Add edges between gene nodes and GO nodes based on GO annotations."""
-        logger.info('Adding GO annotations for genes to graph.')
-        gene_nodes=list(nx.nodes(self.graph))
-        for gene in gene_nodes:
+        logger.info('Adding GO annotations for genes in graph.')
+        for gene in self.genes:
             go_ids = self._get_go_terms_for_gene(gene)
             for go_id in go_ids:
                 if go_id in self.go_dag:
@@ -100,7 +101,7 @@ class NxMgAssembler(object):
                         continue
                     self.graph.add_node(go_term.id,
                                         name=go_term.name,
-                                        GO=go_term.id, source='go')
+                                        GO=go_term.id)#, source='go')
                     self.graph.add_edge(gene['HGNC_SYMBOL'], go_term.id,
                                         label='GO:annotation')
 
@@ -112,13 +113,13 @@ class NxMgAssembler(object):
                 continue
             self.graph.add_node(go_term.id,
                                 name=go_term.name,
-                                GO=go_term.id, source='go')
+                                GO=go_term.id)#, source='go')
             for parent_term in go_term.parents:
                 if parent_term.is_obsolete:
                     continue
                 self.graph.add_node(go_term.id,
                                     name=go_term.name,
-                                    GO=go_term.id, source='go')
+                                    GO=go_term.id)#, source='go')
                 self.graph.add_edge(go_term.id, parent_term.id,
                                     label='GO:is_a')
 
