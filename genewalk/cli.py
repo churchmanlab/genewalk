@@ -10,7 +10,7 @@ from genewalk.nx_mg_assembler import load_network
 from genewalk.gene_lists import read_gene_list
 from genewalk.deepwalk import run_walks
 from genewalk.null_distributions import get_rand_graph, \
-    get_null_distributions #, get_srd
+    get_null_distributions
 from genewalk.perform_statistics import GeneWalk
 from genewalk import logger as root_logger, default_logger_format, \
     default_date_format
@@ -100,7 +100,7 @@ def main():
                         help='The number of repeats to run when calculating '
                              'node vectors on the GeneWalk graph. '
                              'Default: %(default)s')
-    parser.add_argument('--nreps_null', default=15, type=int,
+    parser.add_argument('--nreps_null', default=10, type=int,
                         help='The number of repeats to run when calculating '
                              'node vectors on the random network graphs '
                              'for constructing the null distribution. '
@@ -167,7 +167,7 @@ def main():
 
     if args.stage in ('all', 'null_distribution'):
         MG = load_pickle(project_folder, 'multi_graph')
-        srd = []#srs = []
+        srd = []
         for i in range(args.nreps_null):
             logger.info('%s/%s' % (i + 1, args.nreps_null))
             RG = get_rand_graph(MG)
@@ -182,10 +182,7 @@ def main():
             # Delete the DeepWalk object to clear memory
             del DW
             gc.collect()
-
-#             #TEMP
-#             nv = load_pickle(project_folder, 'deep_walk_node_vectors_rand_%d' % (i + 1))
-#             #TEMP
+            
             sr = get_null_distributions(RG, nv)
             del nv
             gc.collect()
@@ -194,8 +191,6 @@ def main():
                 srd.extend(sr)
             else:
                 srd=sr
-#             srs.append(sr)
-#         srd = get_srd(srs)
         srd = np.asarray(sorted(srd))
         save_pickle(srd, project_folder, 'gene_walk_rand_simdists')
 
