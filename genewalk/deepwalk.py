@@ -17,6 +17,7 @@ logger = logging.getLogger('genewalk.deepwalk')
 
 default_walk_length = 10
 default_niter = 100
+default_niter_GO = 100
 
 
 class DeepWalk(object):
@@ -33,18 +34,22 @@ class DeepWalk(object):
         The number of iterations for each node to run (this is multiplied by
         the number of neighbors of the node when determining the overall number
         of walks to start from a given node). Default: 100
-
+    niter_GO : Optional[int]
+        Description as niter for GO nodes. Default: 10
+        
     Attributes
     ----------
     walks : list
         A list of walks.
     """
     def __init__(self, graph, walk_length=default_walk_length,
-                 niter=default_niter):
+                 niter=default_niter,niter_GO=default_niter_GO):
         self.graph = graph
         self.walks = []
         self.wl = walk_length
         self.niter = niter
+        self.niter_GO = niter_GO
+        self.go_nodes = set(nx.get_node_attributes(self.graph, 'GO'))
         self.model = None
 
     def get_walks(self, workers=1):
@@ -66,6 +71,7 @@ class DeepWalk(object):
         if workers == 1:
             for count, node in enumerate(nodes):
                 walks = run_walks_for_node(node, self.graph, self.niter,
+                                           self.niter_GO, self.go_nodes, 
                                            self.wl)
                 self.walks.extend(walks)
                 if (count + 1) % 100 == 0:
@@ -77,6 +83,8 @@ class DeepWalk(object):
             walk_fun = functools.partial(run_walks_for_node,
                                          graph=self.graph,
                                          niter=self.niter,
+                                         niter_GO=self.niter_GO,
+                                         go_nodes=self.go_nodes,
                                          walk_length=self.wl)
             self.walks = []
             for count, res in enumerate(
@@ -165,7 +173,7 @@ def run_single_walk(graph, start_node, length):
     return path
 
 
-def run_walks_for_node(node, graph, niter, walk_length):
+def run_walks_for_node(node, graph, niter, niter_GO, go_nodes, walk_length):
     """Run all random walks starting from a given node.
 
     Parameters
@@ -175,7 +183,11 @@ def run_walks_for_node(node, graph, niter, walk_length):
     graph : networks.MultiGraph
         The graph on which the random walks are to be run.
     niter : int
-        The number of iterations to run.
+        The number of iterations to run for gene nodes.
+    niter_GO : int 
+        The number of iterations to run for GO nodes.
+    go_nodes : set
+        The set of GO nodes in graph.
     walk_length : int
         The length of the walk.
 
@@ -185,7 +197,11 @@ def run_walks_for_node(node, graph, niter, walk_length):
         A list of random walks starting from the given node.
     """
     walks = []
-    for _ in range(niter * len(graph[node])):
+    if node in go_nodes:
+        nit=niter_GO
+    else:
+        nit=niter
+    for _ in range(nit * len(graph[node])):
         walk = run_single_walk(graph, node, walk_length)
         walks.append(walk)
     return walks
@@ -211,7 +227,8 @@ def run_walks(graph, **kwargs):
         of random walks produced on the graph.
     """
     dw_args = {'walk_length': kwargs.pop('walk_length', default_walk_length),
-               'niter': kwargs.pop('niter', default_niter)}
+               'niter': kwargs.pop('niter', default_niter),
+               'niter_GO': kwargs.pop('niter_GO', default_niter_GO)}
     DW = DeepWalk(graph, **dw_args)
     DW.get_walks(kwargs.get('workers', 1))
     DW.word2vec(**kwargs)
