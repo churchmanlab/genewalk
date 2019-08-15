@@ -29,20 +29,14 @@ class GeneWalk(object):
         List of gene references for relevant genes.
     nvs : list of dict
         Node vectors for nodes in the graph.
-    null_dist : dict
-        Similarity random (null) distributions.
+    null_dist : np.array
+        Similarity random (null) distribution.
     """
     def __init__(self, graph, genes, nvs, null_dist):
         self.graph = graph
         self.genes = genes
         self.nvs = nvs
         self.srd = null_dist
-#         ####TEMP
-#         self.key_max=0
-#         while 'd'+str(self.key_max)+'.0' in self.srd:
-#             self.key_max+=1
-#         self.key_max-=1
-#         ####TEMP
         self.go_nodes = set(nx.get_node_attributes(self.graph, 'GO'))
         self.gene_nodes = set([g['HGNC_SYMBOL'] for g in self.genes])
 
@@ -71,13 +65,14 @@ class GeneWalk(object):
             go_attrib['go_id'] = go_node_id
             go_attrib['ncon_go'] = len(self.graph[go_node_id])
             go_attrib['go_name'] = self.graph.nodes[go_node_id]['name']
-            go_attrib['pval'] = self.psim(sim_score)
-            #OLD: second argument of psim: min(go_attrib['ncon_go'],gene_attribs['ncon_gene']))            
+            go_attrib['go_domain'] = \
+                self.graph.nodes[go_node_id]['domain'].replace('_',' ')
+            go_attrib['pval'] = self.psim(sim_score)           
             pvals.append(go_attrib['pval'])
             go_attribs.append(go_attrib)       
         _, qvals = fdrcorrection(pvals,alpha=alpha_fdr,method='indep')
         for idx in range(len(go_attribs)):
-            go_attribs[idx]['qval'] = qvals[idx] #append the qval            
+            go_attribs[idx]['qval'] = qvals[idx]            
         return go_attribs
 
     def log_stats(self,vals):
@@ -90,7 +85,7 @@ class GeneWalk(object):
     def add_empty_row(self,gene,gene_attribs,base_id_type):
         row = [gene_attribs['hgnc_symbol'],
                gene_attribs['hgnc_id'],
-               '','',
+               '','','',
                gene_attribs['ncon_gene'],
                np.nan, np.nan, np.nan, np.nan,
                np.nan, np.nan, np.nan, np.nan, np.nan,
@@ -140,6 +135,7 @@ class GeneWalk(object):
                                    gene_attribs['hgnc_id'],
                                    go_attribs[0]['go_name'],
                                    go_attribs[0]['go_id'],
+                                   go_attribs[0]['go_domain'],
                                    gene_attribs['ncon_gene'],
                                    go_attribs[0]['ncon_go'],
                                    mean_padj, low_padj, upp_padj,
@@ -157,7 +153,7 @@ class GeneWalk(object):
                 row = self.add_empty_row(gene,gene_attribs,base_id_type)
                 rows.append(row)
         header = ['hgnc_symbol', 'hgnc_id',
-                  'go_name', 'go_id',
+                  'go_name', 'go_id','go_domain',
                   'ncon_gene', 'ncon_go',
                   'mean_padj','cilow_padj','ciupp_padj',
                   'mean_pval','cilow_pval','ciupp_pval',
@@ -169,21 +165,16 @@ class GeneWalk(object):
         df[base_id_type] = df[base_id_type].astype('category')
         df[base_id_type].cat.set_categories(df[base_id_type].unique(), inplace=True)
         df[['ncon_gene', 'ncon_go']] = df[['ncon_gene', 'ncon_go']].astype('str')
-        #TODO: .astype(pd.Int32Dtype()) 
-        #better but works for pandas >= v0.24: output as integer (with nan values)
-        df = df.sort_values(by=[base_id_type,'mean_padj','mean_sim','go_name'],
-                            ascending=[True,True,False,True]) 
+        df = df.sort_values(by=[base_id_type,'go_domain','mean_padj','mean_sim','go_name'],
+                            ascending=[True,True,True,False,True]) 
         return df
 
-    def psim(self, sim):#, ncon):
+    def psim(self, sim):
         """
         Determine the p-value of the experimental similarity by determining 
         its percentile, i.e. the normalized rank, in the null distribution with 
         random similarity values.
         """
-        #dist_key = 'd' + str(min(np.floor(self.key_max),np.floor(np.log2(ncon))))
-#         rank = np.searchsorted(self.srd[dist_key], sim)
-#         pct_rank = float(rank) / len(self.srd[dist_key])
         rank = np.searchsorted(self.srd, sim)
         pct_rank = float(rank) / len(self.srd)
         pval = 1 - pct_rank
