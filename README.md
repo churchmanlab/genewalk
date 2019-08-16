@@ -90,7 +90,7 @@ optional arguments:
   --nreps_null NREPS_NULL
                         The number of repeats to run when calculating node
                         vectors on the random network graphs for constructing
-                        the null distribution. Default: 15
+                        the null distribution. Default: 10
   --alpha_fdr ALPHA_FDR
                         The false discovery rate to use when outputting the
                         final statistics table. If 1 (default), all
@@ -136,6 +136,8 @@ with the following column headers:
 - **hgnc_symbol** - human gene symbol.
 - **go_name** - GO term name.
 - go_id - GO term identifier.
+- go_domain - Ontology domain that GO term belongs to 
+(biological process, cellular component or molecular function).
 - ncon_gene - number of connection to gene in GeneWalk network.
 - ncon_go - number of connections to GO term in GeneWalk network.
 - **mean_padj** - mean false discovery rate (FDR) adjusted p-value of the similarity between gene and GO term.
@@ -144,9 +146,11 @@ particular biological context or tested condition. GeneWalk determines an adjust
 Benjamini Hochberg FDR correction for multiple tested of all connected GO term for each 
 nreps_graph repeat analysis. The value presented here is the average over all p-adjust values 
 from each repeat analysis. 
-- sem_padj - standard error on mean_padj estimate from the nreps_graph repeat analyses.
+- cilow_padj - lower bound of 95% confidence interval on mean_padj estimate from the nreps_graph repeat analyses.
+- ciupp_padj - upper bound of 95% confidence interval on mean_padj estimate.
 - mean_pval - mean p-values of gene - GO term similarities, not FDR corrected for multiple testing.
-- sem_pval - standard error on mean_pval estimate.
+- cilow_pval - lower bound of 95% confidence interval on mean_pval estimate.
+- ciupp_pval - upper bound of 95% confidence interval on mean_pval estimate.
 - mean_sim - mean of gene - GO term similarities.
 - sem_sim - standard error on mean_sim estimate.
 - mgi_id - in case mouse gene MGI identifiers were provided as input, the GeneWalk results 
@@ -158,12 +162,14 @@ gene used for the GeneWalk analysis.
 ### Stages of GeneWalk algorithm
 Given a list of genes, GeneWalk runs three stages of analysis:
 1. Assembling a GeneWalk network and learning node vector representations
-by running DeepWalk on this network, for a specified number of repeats.
+by running DeepWalk on this network, for a specified number of repeats. 
+Typical run time: a few hours.
 2. Learning random node vector representations by running DeepWalk on a set of
-randomly scrambled versions of the GeneWalk network, for a specified number of
-repeats.
+randomized versions of the GeneWalk network, for a specified number of
+repeats. Typical run time: a few hours.
 3. Calculating statistics of similarities between genes and GO terms, and
-outputting  the GeneWalk results in a table.
+outputting  the GeneWalk results in a table. Typical run time: a few minutes.
 
 GeneWalk can either be run once to complete all these stages, or called separately
-for each stage.
+for each stage. Recommended memory availability: 16Gb or 32Gb RAM. 
+Recommended number of processors (argument: nproc) for shorter run time: 4.
