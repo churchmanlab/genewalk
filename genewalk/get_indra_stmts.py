@@ -83,9 +83,9 @@ def filter_to_genes(df, genes, fplx_terms):
     return df
 
 
-def get_gene_parents(hgnc_name):
+def get_gene_parents(hgnc_id):
     eh = hierarchies['entity']
-    gene_uri = eh.get_uri('HGNC', hgnc_name)
+    gene_uri = eh.get_uri('HGNC', hgnc_id)
     parents = eh.get_parents(gene_uri)
     parent_ids = [eh.ns_id_from_uri(par_uri)[1] for par_uri in parents]
     return parent_ids
@@ -95,8 +95,7 @@ def get_famplex_terms(genes):
     """Get a list of associated FamPlex IDs from a list of gene IDs."""
     all_parents = set()
     for hgnc_id in genes:
-        hgnc_name = hgnc_client.get_hgnc_name(hgnc_id)
-        parent_ids = get_gene_parents(hgnc_name)
+        parent_ids = get_gene_parents(hgnc_id)
         all_parents |= set(parent_ids)
     fplx_terms = sorted(list(all_parents))
     logger.info('Found %d relevant FamPlex terms.' % (len(fplx_terms)))
