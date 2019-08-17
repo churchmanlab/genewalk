@@ -3,7 +3,7 @@ from setuptools import setup
 
 def main():
     install_list = ['numpy', 'pandas', 'networkx>=2.1', 'gensim', 'goatools',
-                    'indra']
+                    'indra', 'scipy>=1.3.0']
 
     setup(name='genewalk',
           version='0.0.1',
