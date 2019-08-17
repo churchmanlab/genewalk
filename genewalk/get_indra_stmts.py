@@ -10,6 +10,7 @@ import pickle
 import logging
 import argparse
 from indra.util import batch_iter
+from indra.databases import go_client
 from indra.sources import indra_db_rest
 from indra.databases import hgnc_client
 from indra.preassembler.hierarchy_manager import hierarchies
@@ -154,6 +155,14 @@ def download_statements(df):
         stmts = indra_db_rest.get_statements_by_hash(list(group))
         all_stmts += stmts
     return all_stmts
+
+
+def remap_go_ids(stmts):
+    for stmt in stmts:
+        for agent in stmt.agent_list():
+            if agent is not None and 'GO' in agent.db_refs:
+                prim_id = go_client.get_primary_id(agent.db_refs['GO'])
+                agent.db_refs['GO'] = prim_id
 
 
 if __name__ == '__main__':
