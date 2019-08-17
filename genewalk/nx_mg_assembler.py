@@ -194,10 +194,11 @@ class PcNxMgAssembler(NxMgAssembler):
         self.add_pc_edges()
         self.add_go_annotations()
         self.add_go_ontology()
-        
-       
+
+
     def add_pc_edges(self):
-        """Add edges between gene nodes based on PathwayCommons interactions."""
+        """Add edges between gene nodes based on PathwayCommons
+        interactions."""
         logger.info('Adding gene edges from Pathway Commons to graph.')
         gwn_df = pd.read_csv(self.resource_manager.get_pc(), sep='\t',
                              dtype=str, header=None)
@@ -219,11 +220,13 @@ class PcNxMgAssembler(NxMgAssembler):
         nx.set_node_attributes(pc_sub, gene2hgnc_dict, 'HGNC')
         gene2up_dict = dict(zip(hgnc_symbols, up_ids))
         nx.set_node_attributes(pc_sub, gene2up_dict, 'UP')
-        self.graph = nx.MultiGraph(pc_sub)# make a copy to unfreeze graph
-        self.graph.remove_nodes_from(nx.isolates(pc_sub))#delete unconnected nodes
+        # Make a copy to unfreeze graph
+        self.graph = nx.MultiGraph(pc_sub)
+        # Delete unconnected nodes
+        self.graph.remove_nodes_from(nx.isolates(pc_sub))
         logger.info('Number of PC originating nodes %d' %
                     nx.number_of_nodes(self.graph))
-        
+
 
 class IndraNxMgAssembler(NxMgAssembler):
     """The IndraNxMgAssembler assembles INDRA Statements and GO ontology /
@@ -250,7 +253,7 @@ class IndraNxMgAssembler(NxMgAssembler):
         self.add_fplx_edges()
         self.add_go_annotations()
         self.add_go_ontology()
-        
+
 
     def add_indra_edges(self):
         """Add edges between gene nodes and GO nodes based on INDRA Statements.
@@ -338,7 +341,7 @@ class UserNxMgAssembler(object):
         self.filepath = filepath
         self.gwn_format = gwn_format
         self.add_network_edges()
-        
+
     def add_network_edges(self):
         """Assemble the GeneWalk Network from the user-provided file path."""
         gwn_df = pd.read_csv(self.filepath, dtype=str, header=None)
@@ -359,7 +362,7 @@ class UserNxMgAssembler(object):
             col_mapper[1] = 'rel_type'
             col_mapper[2] = 'target'
             edge_attributes = True
-            
+
         gwn_df.rename(mapper=col_mapper,axis='columns')
         self.graph = nx.from_pandas_edgelist(gwn_df, 'source', 'target',
                                              edge_attr=edge_attributes,
