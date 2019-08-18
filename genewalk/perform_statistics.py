@@ -15,13 +15,13 @@ class GeneWalk(object):
     hits.
     If an input gene is not in the output file, this could have the following
     reasons:
-    1) No corresponding HGNC gene symbol, HGNC:ID and/or UniProt:ID could be 
+    1) No corresponding HGNC gene symbol, HGNC:ID and/or UniProt:ID could be
     identified. All are required to map genes and assemble their GO
     annotations.
     2) (if alpha_FDR set to < 1) no GO terms were significant at the
     chosen significance level alpha_FDR.
     3) (in case of mouse genes) no mapped human ortholog was identified.
-    
+
     Parameters
     ----------
     graph : networkx.MultiGraph
@@ -45,7 +45,7 @@ class GeneWalk(object):
         """Return an attribute dict for a given gene."""
         if gene['HGNC_SYMBOL'] in self.graph:
             ncon_gene = len(self.graph[gene['HGNC_SYMBOL']])
-        else: 
+        else:
             ncon_gene = np.nan
         return {
             'hgnc_symbol': gene['HGNC_SYMBOL'],
@@ -58,22 +58,22 @@ class GeneWalk(object):
         gene_node_id = gene_attribs['hgnc_symbol']
         connected = set(self.graph[gene_node_id]) & self.go_nodes
         go_attribs = []
-        pvals=[]
+        pvals = []
         for go_node_id in connected:
             go_attrib = {}
-            sim_score = nv.similarity(gene_node_id,go_node_id)
+            sim_score = nv.similarity(gene_node_id, go_node_id)
             go_attrib['sim_score'] = sim_score
             go_attrib['go_id'] = go_node_id
             go_attrib['ncon_go'] = len(self.graph[go_node_id])
             go_attrib['go_name'] = self.graph.nodes[go_node_id]['name']
             go_attrib['go_domain'] = \
                 self.graph.nodes[go_node_id]['domain'].replace('_', ' ')
-            go_attrib['pval'] = self.psim(sim_score)           
+            go_attrib['pval'] = self.psim(sim_score)
             pvals.append(go_attrib['pval'])
-            go_attribs.append(go_attrib)       
+            go_attribs.append(go_attrib)
         _, qvals = fdrcorrection(pvals, alpha=alpha_fdr, method='indep')
         for idx in range(len(go_attribs)):
-            go_attribs[idx]['qval'] = qvals[idx]            
+            go_attribs[idx]['qval'] = qvals[idx]
         return go_attribs
 
     def log_stats(self, vals):
@@ -82,21 +82,20 @@ class GeneWalk(object):
         g_mean = gmean(vals)-eps
         g_std = gstd(vals)
         return g_mean, g_mean*(g_std**(-1.96)), g_mean*(g_std**(1.96))
-    
-    def add_empty_row(self, gene,gene_attribs, base_id_type):
+
+    def add_empty_row(self, gene, gene_attribs, base_id_type):
         row = [gene_attribs['hgnc_symbol'],
                gene_attribs['hgnc_id'],
                '', '', '',
                gene_attribs['ncon_gene'],
                np.nan, np.nan, np.nan, np.nan,
-               np.nan, np.nan, np.nan, np.nan, np.nan,
-              ]
+               np.nan, np.nan, np.nan, np.nan, np.nan]
         if base_id_type == 'mgi_id':
             row = [gene.get('MGI', '')] + row
         return row
-    
+
     def generate_output(self, alpha_fdr=1, base_id_type='hgnc_symbol'):
-        """Main function of GeneWalk object that generates the final 
+        """Main function of GeneWalk object that generates the final
         GeneWalk output table (in csv format).
 
         Parameters
@@ -122,11 +121,11 @@ class GeneWalk(object):
                     go_attrib_dict = {}
                     for go_attrib_list in all_go_attribs:
                         for go_attribs in go_attrib_list:
-                            if go_attribs['go_id'] in go_attrib_dict:
-                                go_attrib_dict[go_attribs['go_id']].append(go_attribs)
+                            go_id = go_attribs['go_id']
+                            if go_id in go_attrib_dict:
+                                go_attrib_dict[go_id].append(go_attribs)
                             else:
-                                go_attrib_dict[go_attribs['go_id']] = \
-                                    [go_attribs]
+                                go_attrib_dict[go_id] = [go_attribs]
 
                     for go_id, go_attribs in go_attrib_dict.items():
                         mean_padj, low_padj, upp_padj = \
@@ -139,7 +138,7 @@ class GeneWalk(object):
                                             for attr in go_attribs])
                         sem_sim = (np.std([attr['sim_score']
                                            for attr in go_attribs]) /
-                                   np.sqrt(len(self.nvs)))                      
+                                   np.sqrt(len(self.nvs)))
                         if mean_padj < alpha_fdr or alpha_fdr == 1:
                             row = [gene_attribs['hgnc_symbol'],
                                    gene_attribs['hgnc_id'],
@@ -150,17 +149,16 @@ class GeneWalk(object):
                                    go_attribs[0]['ncon_go'],
                                    mean_padj, low_padj, upp_padj,
                                    mean_pval, low_pval, upp_pval,
-                                   mean_sim, sem_sim,
-                               ]
+                                   mean_sim, sem_sim]
                             # If dealing with mouse genes, prepend the MGI ID
                             if base_id_type == 'mgi_id':
                                 row = [gene.get('MGI', '')] + row
                             rows.append(row)
                 elif alpha_fdr == 1:  # case: no GO connections
-                    row = self.add_empty_row(gene,gene_attribs,base_id_type)
+                    row = self.add_empty_row(gene, gene_attribs, base_id_type)
                     rows.append(row)
             elif alpha_fdr == 1:  # case: not in graph
-                row = self.add_empty_row(gene,gene_attribs,base_id_type)
+                row = self.add_empty_row(gene, gene_attribs, base_id_type)
                 rows.append(row)
         header = ['hgnc_symbol', 'hgnc_id',
                   'go_name', 'go_id', 'go_domain',
@@ -178,15 +176,15 @@ class GeneWalk(object):
         df[['ncon_gene', 'ncon_go']] = \
             df[['ncon_gene', 'ncon_go']].astype('str')
         df = df.sort_values(by=[base_id_type, 'go_domain', 'mean_padj',
-                                'mean_sim','go_name'],
+                                'mean_sim', 'go_name'],
                             ascending=[True, True, True, False, True])
         return df
 
     def psim(self, sim):
         """
-        Determine the p-value of the experimental similarity by determining 
-        its percentile, i.e. the normalized rank, in the null distribution with 
-        random similarity values.
+        Determine the p-value of the experimental similarity by determining
+        its percentile, i.e. the normalized rank, in the null distribution
+        with random similarity values.
         """
         rank = np.searchsorted(self.srd, sim)
         pct_rank = float(rank) / len(self.srd)

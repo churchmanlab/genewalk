@@ -56,8 +56,8 @@ def main():
                                           'folder names.',
                         required=True)
     parser.add_argument('--genes', help='Path to a text file with a list of '
-                                        'genes of interest, for example differentially '
-                                        'expressed genes. '
+                                        'genes of interest, for example'
+                                        'differentially expressed genes. '
                                         'The type of gene identifiers used in '
                                         'the text file are provided in the '
                                         'id_type argument.',

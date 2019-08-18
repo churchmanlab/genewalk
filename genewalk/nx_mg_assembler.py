@@ -40,7 +40,8 @@ def load_network(network_type, network_file, genes, resource_manager=None):
         logger.info('Loading %s' % network_file)
         with open(network_file, 'rb') as fh:
             stmts = pickle.load(fh)
-        mg = IndraNxMgAssembler(genes,stmts, resource_manager=resource_manager)
+        mg = IndraNxMgAssembler(genes, stmts,
+                                resource_manager=resource_manager)
     elif network_type == 'edge_list':
         logger.info('Loading user-provided GeneWalk Network from %s.' %
                     network_file)
@@ -90,7 +91,8 @@ class NxMgAssembler(object):
         return go_ids
 
     def add_go_annotations(self):
-        """Add edges between gene nodes and GO nodes based on GO annotations."""
+        """Add edges between gene nodes and GO nodes based on GO
+        annotations."""
         logger.info('Adding GO annotations for genes in graph.')
         for gene in self.genes:
             go_ids = self._get_go_terms_for_gene(gene)
@@ -102,7 +104,7 @@ class NxMgAssembler(object):
                     self.graph.add_node(go_term.id,
                                         name=go_term.name,
                                         GO=go_term.id,
-                                        domain=go_term.namespace)#, source='go')
+                                        domain=go_term.namespace)
                     self.graph.add_edge(gene['HGNC_SYMBOL'], go_term.id,
                                         label='GO:annotation')
 
@@ -115,14 +117,14 @@ class NxMgAssembler(object):
             self.graph.add_node(go_term.id,
                                 name=go_term.name,
                                 GO=go_term.id,
-                                domain=go_term.namespace)#, source='go')
+                                domain=go_term.namespace)
             for parent_term in go_term.parents:
                 if parent_term.is_obsolete:
                     continue
                 self.graph.add_node(go_term.id,
                                     name=go_term.name,
                                     GO=go_term.id,
-                                    domain=go_term.namespace)#, source='go')
+                                    domain=go_term.namespace)
                 self.graph.add_edge(go_term.id, parent_term.id,
                                     label='GO:is_a')
 
@@ -142,8 +144,8 @@ class NxMgAssembler(object):
 
     def _load_goa_gaf(self):
         """Load the gene/GO annotations as a pandas data frame."""
-        goa_ec = {'EXP', 'IDA', 'IPI', 'IMP', 'IGI', 'IEP', 'HTP', 'HDA', 'HMP',
-                  'HGI', 'HEP', 'IBA', 'IBD'}
+        goa_ec = {'EXP', 'IDA', 'IPI', 'IMP', 'IGI', 'IEP', 'HTP', 'HDA',
+                  'HMP', 'HGI', 'HEP', 'IBA', 'IBD'}
         goa = pd.read_csv(self.resource_manager.get_goa_gaf(), sep='\t',
                           skiprows=23, dtype=str,
                           header=None,
@@ -194,7 +196,6 @@ class PcNxMgAssembler(NxMgAssembler):
         self.add_pc_edges()
         self.add_go_annotations()
         self.add_go_ontology()
-
 
     def add_pc_edges(self):
         """Add edges between gene nodes based on PathwayCommons
@@ -254,7 +255,6 @@ class IndraNxMgAssembler(NxMgAssembler):
         self.add_go_annotations()
         self.add_go_ontology()
 
-
     def add_indra_edges(self):
         """Add edges between gene nodes and GO nodes based on INDRA Statements.
         """
@@ -275,14 +275,14 @@ class IndraNxMgAssembler(NxMgAssembler):
                 a_node = self.add_agent_node(a)
                 b_node = self.add_agent_node(b)
                 self.graph.add_edge(a_node, b_node, key=edge_key,
-                                   label=edge_type)
+                                    label=edge_type)
 
         logger.info('Number of INDRA originating nodes %d.' %
                     len(self.indra_nodes))
 
     def add_fplx_edges(self):
-        """Add edges between gene nodes and families/complexes they are part of.
-        """
+        """Add edges between gene nodes and families/complexes they are part
+        of."""
         links = get_famplex_links_from_stmts(self.stmts)
         for s, t in links:
             self.graph.add_edge(s, t, label='FPLX:is_a')
@@ -363,7 +363,7 @@ class UserNxMgAssembler(object):
             col_mapper[2] = 'target'
             edge_attributes = True
 
-        gwn_df.rename(mapper=col_mapper,axis='columns')
+        gwn_df.rename(mapper=col_mapper, axis='columns')
         self.graph = nx.from_pandas_edgelist(gwn_df, 'source', 'target',
                                              edge_attr=edge_attributes,
                                              create_using=nx.MultiGraph)

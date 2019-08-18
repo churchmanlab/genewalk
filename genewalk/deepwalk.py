@@ -33,7 +33,7 @@ class DeepWalk(object):
         The number of iterations for each node to run (this is multiplied by
         the number of neighbors of the node when determining the overall number
         of walks to start from a given node). Default: 100
-        
+
     Attributes
     ----------
     walks : list
