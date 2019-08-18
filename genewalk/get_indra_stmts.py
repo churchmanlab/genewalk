@@ -162,7 +162,8 @@ def remap_go_ids(stmts):
         for agent in stmt.agent_list():
             if agent is not None and 'GO' in agent.db_refs:
                 prim_id = go_client.get_primary_id(agent.db_refs['GO'])
-                agent.db_refs['GO'] = prim_id
+                if prim_id:
+                    agent.db_refs['GO'] = prim_id
 
 
 if __name__ == '__main__':
