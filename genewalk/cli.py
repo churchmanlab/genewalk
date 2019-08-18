@@ -182,15 +182,11 @@ def main():
             # Delete the DeepWalk object to clear memory
             del DW
             gc.collect()
-            
-            sr = get_null_distributions(RG, nv)
+
+            # Calculate the null distributions
+            srd += get_null_distributions(RG, nv)
             del nv
             gc.collect()
-
-            if srd:
-                srd.extend(sr)
-            else:
-                srd=sr
         srd = np.asarray(sorted(srd))
         save_pickle(srd, project_folder, 'gene_walk_rand_simdists')
 
