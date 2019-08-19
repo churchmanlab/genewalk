@@ -74,18 +74,19 @@ class DeepWalk(object):
         # In case we parallelize
         else:
             pool = multiprocessing.Pool(workers)
-            walk_fun = functools.partial(run_walks_for_node,
+            start_nodes = get_start_nodes(self.graph, self.niter)
+            walk_fun = functools.partial(run_single_walk,
                                          graph=self.graph,
-                                         niter=self.niter,
-                                         walk_length=self.wl)
+                                         length=self.wl)
             self.walks = []
             for count, res in enumerate(
-                    pool.imap_unordered(walk_fun, nx.nodes(self.graph),
-                                        chunksize=1000)):
+                    pool.imap_unordered(walk_fun, start_nodes,
+                                        chunksize=10000)):
                 self.walks += res
-                if (count + 1) % 100 == 0:
-                    logger.info('Walks for %d/%d nodes complete in %.2fs' %
-                                (count + 1, len(nodes), time.time() - start))
+                if (count + 1) % 10000 == 0:
+                    logger.info('%d/%d walks complete in %.2fs' %
+                                (count + 1, len(start_nodes),
+                                 time.time() - start))
             logger.debug("Closing pool...")
             pool.close()
             logger.debug("Joining pool...")
@@ -140,7 +141,7 @@ class DeepWalk(object):
                     % (end - start))
 
 
-def run_single_walk(graph, start_node, length):
+def run_single_walk(start_node, graph, length):
     """Run a single random walk on a graph from a given start node.
 
     Parameters
@@ -165,6 +166,13 @@ def run_single_walk(graph, start_node, length):
     return path
 
 
+def get_start_nodes(graph, niter):
+    start_nodes = []
+    for node in nx.nodes(graph):
+        start_nodes += [node for _ in range(niter * len(graph[node])]
+    return start_nodes
+
+
 def run_walks_for_node(node, graph, niter, walk_length):
     """Run all random walks starting from a given node.
 
@@ -186,7 +194,7 @@ def run_walks_for_node(node, graph, niter, walk_length):
     """
     walks = []
     for _ in range(niter * len(graph[node])):
-        walk = run_single_walk(graph, node, walk_length)
+        walk = run_single_walk(node, graph, walk_length)
         walks.append(walk)
     return walks
 
