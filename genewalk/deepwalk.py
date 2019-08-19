@@ -169,7 +169,7 @@ def run_single_walk(start_node, graph, length):
 def get_start_nodes(graph, niter):
     start_nodes = []
     for node in nx.nodes(graph):
-        start_nodes += [node for _ in range(niter * len(graph[node])]
+        start_nodes += [node for _ in range(niter * len(graph[node]))]
     return start_nodes
 
 
