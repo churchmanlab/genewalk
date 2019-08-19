@@ -175,9 +175,9 @@ def main():
 
             # Pickle the node vectors (embeddings) and DW object
             if args.save_dw:
-                save_pickle(DW, project_folder, 'deep_walk_rand_%d' % (i + 1))
+                save_pickle(DW, project_folder, 'deepwalk_rand_%d' % (i + 1))
             nv = copy.deepcopy(DW.model.wv)
-            save_pickle(nv, project_folder, 'deep_walk_node_vectors_rand_%d'
+            save_pickle(nv, project_folder, 'deepwalk_node_vectors_rand_%d'
                                             % (i + 1))
             # Delete the DeepWalk object to clear memory
             del DW
@@ -188,7 +188,7 @@ def main():
             del nv
             gc.collect()
         srd = np.asarray(sorted(srd))
-        save_pickle(srd, project_folder, 'gene_walk_rand_simdists')
+        save_pickle(srd, project_folder, 'genewalk_rand_simdists')
 
     if args.stage in ('all', 'statistics'):
         MG = load_pickle(project_folder, 'multi_graph')
@@ -196,7 +196,7 @@ def main():
         nvs = [load_pickle(project_folder,
                            'deep_walk_node_vectors_%d' % (i + 1))
                for i in range(args.nreps_graph)]
-        null_dist = load_pickle(project_folder, 'gene_walk_rand_simdists')
+        null_dist = load_pickle(project_folder, 'genewalk_rand_simdists')
         GW = GeneWalk(MG, genes, nvs, null_dist)
         df = GW.generate_output(alpha_fdr=args.alpha_fdr,
                                 base_id_type=args.id_type)

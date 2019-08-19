@@ -181,8 +181,7 @@ class GeneWalk(object):
         return df
 
     def psim(self, sim):
-        """
-        Determine the p-value of the experimental similarity by determining
+        """Determine the p-value of the experimental similarity by determining
         its percentile, i.e. the normalized rank, in the null distribution
         with random similarity values.
         """
