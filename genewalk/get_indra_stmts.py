@@ -9,8 +9,8 @@ import pandas
 import pickle
 import logging
 import argparse
-import itertools
 from indra.util import batch_iter
+from indra.databases import go_client
 from indra.sources import indra_db_rest
 from indra.databases import hgnc_client
 from indra.preassembler.hierarchy_manager import hierarchies
@@ -31,10 +31,13 @@ def load_genes(fname):
 
 def load_mouse_genes(fname):
     """Return a list of human genes based on a table of mouse genes."""
-    df = pandas.read_csv(fname)#assumes the csv has headers
+    # assumes the csv has headers
+    df = pandas.read_csv(fname)
     for c in df.columns:
-        if c.startswith('MGI'):#assumes the first column starting with MGI is the relevant one with MGI:IDs
-            df=df.rename(columns={c: 'MGI'})
+        # assumes the first column starting with MGI is the relevant one
+        # with MGI:IDs
+        if c.startswith('MGI'):
+            df = df.rename(columns={c: 'MGI'})
             break
     mgi_ids = df['MGI']
     genes = []
@@ -81,9 +84,9 @@ def filter_to_genes(df, genes, fplx_terms):
     return df
 
 
-def get_gene_parents(hgnc_name):
+def get_gene_parents(hgnc_id):
     eh = hierarchies['entity']
-    gene_uri = eh.get_uri('HGNC', hgnc_name)
+    gene_uri = eh.get_uri('HGNC', hgnc_id)
     parents = eh.get_parents(gene_uri)
     parent_ids = [eh.ns_id_from_uri(par_uri)[1] for par_uri in parents]
     return parent_ids
@@ -93,8 +96,7 @@ def get_famplex_terms(genes):
     """Get a list of associated FamPlex IDs from a list of gene IDs."""
     all_parents = set()
     for hgnc_id in genes:
-        hgnc_name = hgnc_client.get_hgnc_name(hgnc_id)
-        parent_ids = get_gene_parents(hgnc_name)
+        parent_ids = get_gene_parents(hgnc_id)
         all_parents |= set(parent_ids)
     fplx_terms = sorted(list(all_parents))
     logger.info('Found %d relevant FamPlex terms.' % (len(fplx_terms)))
@@ -107,6 +109,28 @@ def get_famplex_links(df, fname):
                        set(df[df.agB_ns == 'HGNC'].agB_name))
     fplx_appearing = (set(df[df.agA_ns == 'FPLX'].agA_id) |
                       set(df[df.agB_ns == 'FPLX'].agB_id))
+    links = get_famplex_links_from_lists(genes_appearing, fplx_appearing)
+    with open(fname, 'w') as fh:
+        for link in links:
+            fh.write('%s,%s\n' % link)
+
+
+def get_famplex_links_from_stmts(stmts):
+    genes_appearing = set()
+    fplx_appearing = set()
+    for stmt in stmts:
+        agents = [a for a in stmt.agent_list() if a is not None]
+        if len(agents) < 2:
+            continue
+        for agent in agents:
+            if 'HGNC' in agent.db_refs:
+                genes_appearing.add(agent.name)
+            elif 'FPLX' in agent.db_refs:
+                fplx_appearing.add(agent.name)
+    return get_famplex_links_from_lists(genes_appearing, fplx_appearing)
+
+
+def get_famplex_links_from_lists(genes_appearing, fplx_appearing):
     links = []
     for gene in genes_appearing:
         parent_ids = get_gene_parents(gene)
@@ -119,9 +143,6 @@ def get_famplex_links(df, fname):
         parent_ids = [eh.ns_id_from_uri(par_uri)[1] for par_uri in parents]
         parents_appearing = fplx_appearing & set(parent_ids)
         links += [(fplx_child, parent) for parent in parents_appearing]
-    with open(fname, 'w') as fh:
-        for link in links:
-            fh.write('%s,%s\n' % link)
     return links
 
 
@@ -136,18 +157,27 @@ def download_statements(df):
     return all_stmts
 
 
+def remap_go_ids(stmts):
+    for stmt in stmts:
+        for agent in stmt.agent_list():
+            if agent is not None and 'GO' in agent.db_refs:
+                prim_id = go_client.get_primary_id(agent.db_refs['GO'])
+                if prim_id:
+                    agent.db_refs['GO'] = prim_id
+
+
 if __name__ == '__main__':
     # Handle command line arguments
+    # TODO: make specific sets of statements for the use cases available in
+    #  the repo (or on S3) and parameterize here to be able to load them.
     parser = argparse.ArgumentParser(
         description='Choose a file with a list of genes to get a SIF for.')
     parser.add_argument('--df', default='data/stmt_df.pkl')
     parser.add_argument('--genes', default='data/JQ1_HGNCidForINDRA.csv')
     parser.add_argument('--mouse_genes')
     parser.add_argument('--stmts', default='data/JQ1_HGNCidForINDRA_stmts.pkl')
-    parser.add_argument('--fplx', default='data/JQ1_HGNCidForINDRA_fplx.txt')
     args = parser.parse_args()
-    logger.addHandler(logging.FileHandler(os.path.join(args.path,'LogErr','%s.log' % logger.name))) 
-    
+
     # Load genes and get FamPlex terms
     if args.mouse_genes:
         genes = load_mouse_genes(args.mouse_genes)
@@ -162,4 +192,3 @@ if __name__ == '__main__':
     stmts = download_statements(df)
     # Dump the Statements into a pickle file
     dump_pickle(stmts, args.stmts)
-    fplx_links = get_famplex_links(df, args.fplx)
