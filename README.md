@@ -120,12 +120,12 @@ final results are stored. The files stored in the project folder are:
 - `genes.pkl` - A processed representation of the given gene list, in Python pickle (.pkl) binary file format.
 - `multi_graph.pkl` - A networkx MultiGraph resembling the GeneWalk network which was assembled based on the
 given list of genes, an interaction network, GO annotations, and the GO ontology.
-- `deep_walk_node_vectors_*.pkl` - A set of learned node vectors for each analysis repeat for the graph.
-- `deep_walk_node_vectors_rand_*.pkl` - A set of learned node vectors for each analysis repeat for a random graph.
-- `gene_walk_rand_simdists.pkl` - Distributions constructed from repeats.
-- `deep_walk_*.pkl` - A DeepWalk object for each analysis repeat on the graph 
+- `deepwalk_node_vectors_*.pkl` - A set of learned node vectors for each analysis repeat for the graph.
+- `deepwalk_node_vectors_rand_*.pkl` - A set of learned node vectors for each analysis repeat for a random graph.
+- `genewalk_rand_simdists.pkl` - Distributions constructed from repeats.
+- `deepwalk_*.pkl` - A DeepWalk object for each analysis repeat on the graph 
 (only present if save_dw argument is set to True).
-- `deep_walk_rand_*.pkl` - A DeepWalk object for each analysis repeat on a random graph 
+- `deepwalk_rand_*.pkl` - A DeepWalk object for each analysis repeat on a random graph 
 (only present if save_dw argument is set to True).
 
 
