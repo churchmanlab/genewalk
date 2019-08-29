@@ -75,15 +75,16 @@ class DeepWalk(object):
         else:
             pool = multiprocessing.Pool(workers)
             start_nodes = get_start_nodes(self.graph, self.niter)
+            chunk_size=int(float(0.9*len(start_nodes))/workers)
             walk_fun = functools.partial(run_single_walk,
                                          graph=self.graph,
                                          length=self.wl)
-            self.walks = []
+#             self.walks = []#already defined above
             for count, res in enumerate(
                     pool.imap_unordered(walk_fun, start_nodes,
-                                        chunksize=10000)):
-                self.walks += res
-                if (count + 1) % 10000 == 0:
+                                        chunksize=chunk_size)):
+                self.walks += res#TODO: bug fix, perhaps self.walk.extend(res) results in correct list of lists (single walks)?
+                if (count + 1) % chunk_size == 0:
                     logger.info('%d/%d walks complete in %.2fs' %
                                 (count + 1, len(start_nodes),
                                  time.time() - start))
