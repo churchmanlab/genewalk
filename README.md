@@ -14,7 +14,7 @@ pip install genewalk
 ```
 To install the latest code from Github (typically ahead of releases):
 ```
-pip install git+https://github.com/churchmanlab/genewalk
+pip install git+https://github.com/churchmanlab/genewalk.git
 ```
 
 ## Using GeneWalk
