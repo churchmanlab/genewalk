@@ -1,4 +1,10 @@
+from os import path
 from setuptools import setup
+
+here = path.abspath(path.dirname(__file__))
+
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 
 def main():
@@ -6,12 +12,13 @@ def main():
                     'indra', 'scipy>=1.3.0']
 
     setup(name='genewalk',
-          version='0.0.1',
+          version='1.0.0',
           description='Determine gene function based on network embeddings.',
-          long_description=(''),
+          long_description=long_description,
+          long_description_content_type='text/markdown',
           author='Robert Ietswaart',
           author_email='robert_ietswaart@hms.harvard.edu',
-          url='https://github.com/churchmanlab/GeneWalk',
+          url='https://github.com/churchmanlab/genewalk',
           classifiers=[
             'Development Status :: 4 - Beta',
             'Environment :: Console',
