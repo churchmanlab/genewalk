@@ -178,3 +178,20 @@ outputting  the GeneWalk results in a table. Typical run time: a few minutes.
 GeneWalk can either be run once to complete all these stages, or called separately
 for each stage. Recommended memory availability: 16Gb or 32Gb RAM. 
 Recommended number of processors (argument: nproc) for shorter run time: 4.
+
+
+### Further code documentation
+For further code documentation see our [readthedocs page](https://genewalk.readthedocs.io).
+
+
+### Citation
+Robert Ietswaart, Benjamin M. Gyori, John A. Bachman, Peter K. Sorger, and 
+L. Stirling Churchman 
+*GeneWalk identifies relevant gene functions for a biological context using network 
+representation learning* (2019), BioRxiv preprint
+
+
+### Funding
+This work was supported by National Institutes of Health grant 5R01HG007173-07 
+(L.S.C.), EMBO fellowship ALTF 2016-422 (R.I.), and DARPA grants W911NF-15-1-0544 
+and W911NF018-1-0124 (P.K.S.). 
