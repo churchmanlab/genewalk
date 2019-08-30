@@ -180,7 +180,9 @@ for each stage. Recommended memory availability: 16Gb or 32Gb RAM.
 Recommended number of processors (argument: nproc) for shorter run time: 4.
 
 
-### Further code documentation
+### Further documentation
+For a tutorial and more general information see the 
+[GeneWalk website](http://churchman.med.harvard.edu/genewalk)  
 For further code documentation see our [readthedocs page](https://genewalk.readthedocs.io).
 
 
