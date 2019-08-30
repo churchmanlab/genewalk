@@ -182,7 +182,7 @@ Recommended number of processors (argument: nproc) for shorter run time: 4.
 
 ### Further documentation
 For a tutorial and more general information see the 
-[GeneWalk website](http://churchman.med.harvard.edu/genewalk)  
+[GeneWalk website](http://churchman.med.harvard.edu/genewalk).  
 For further code documentation see our [readthedocs page](https://genewalk.readthedocs.io).
 
 
@@ -190,7 +190,7 @@ For further code documentation see our [readthedocs page](https://genewalk.readt
 Robert Ietswaart, Benjamin M. Gyori, John A. Bachman, Peter K. Sorger, and 
 L. Stirling Churchman 
 *GeneWalk identifies relevant gene functions for a biological context using network 
-representation learning* (2019), BioRxiv preprint
+representation learning* (2019), BioRxiv preprint.
 
 
 ### Funding
