@@ -1,5 +1,5 @@
 from os import path
-from setuptools import setup
+from setuptools import setup, find_packages
 
 here = path.abspath(path.dirname(__file__))
 
@@ -29,7 +29,7 @@ def main():
             'Topic :: Scientific/Engineering :: Bio-Informatics',
             ],
           keywords=['gene function', 'network', 'embedding'],
-          packages=['genewalk'],
+          packages=find_packages(),
           install_requires=install_list,
           tests_require=['nose'],
           include_package_data=True,
