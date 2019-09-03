@@ -96,11 +96,11 @@ def main():
                         help='The number of processors to use in a '
                              'multiprocessing environment. Default: '
                              '%(default)s')
-    parser.add_argument('--nreps_graph', default=10, type=int,
+    parser.add_argument('--nreps_graph', default=3, type=int,
                         help='The number of repeats to run when calculating '
                              'node vectors on the GeneWalk graph. '
                              'Default: %(default)s')
-    parser.add_argument('--nreps_null', default=10, type=int,
+    parser.add_argument('--nreps_null', default=3, type=int,
                         help='The number of repeats to run when calculating '
                              'node vectors on the random network graphs '
                              'for constructing the null distribution. '
