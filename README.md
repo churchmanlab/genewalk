@@ -91,11 +91,11 @@ optional arguments:
                         environment. Default: 1
   --nreps_graph NREPS_GRAPH
                         The number of repeats to run when calculating node
-                        vectors on the GeneWalk graph. Default: 10
+                        vectors on the GeneWalk graph. Default: 3
   --nreps_null NREPS_NULL
                         The number of repeats to run when calculating node
                         vectors on the random network graphs for constructing
-                        the null distribution. Default: 10
+                        the null distribution. Default: 3
   --alpha_fdr ALPHA_FDR
                         The false discovery rate to use when outputting the
                         final statistics table. If 1 (default), all
@@ -164,20 +164,30 @@ case the corresponding hgnc_id and hgnc_symbol resemble its human ortholog
 gene used for the GeneWalk analysis.
 
 
-### Stages of GeneWalk algorithm
+### Stages and run times of GeneWalk algorithm
 Given a list of genes, GeneWalk runs three stages of analysis:
 1. Assembling a GeneWalk network and learning node vector representations
 by running DeepWalk on this network, for a specified number of repeats. 
-Typical run time: a few hours.
+Typical run time: one to a few hours.
 2. Learning random node vector representations by running DeepWalk on a set of
 randomized versions of the GeneWalk network, for a specified number of
-repeats. Typical run time: a few hours.
+repeats. Typical run time: one to a few hours.
 3. Calculating statistics of similarities between genes and GO terms, and
 outputting  the GeneWalk results in a table. Typical run time: a few minutes.
 
-GeneWalk can either be run once to complete all these stages, or called separately
-for each stage. Recommended memory availability: 16Gb or 32Gb RAM. 
-Recommended number of processors (argument: nproc) for shorter run time: 4.
+GeneWalk can either be run once to complete all these stages (default), or called separately
+for each stage (optional argument: stage).  
+Recommended memory availability on your operating system: 16Gb or 32Gb RAM.  
+Recommended number of processors (optional argument: nproc) for a short run time is 4:
+```bash
+genewalk --project context1 --genes gene_list.txt --id_type hgnc_symbol --nproc 4
+```
+GeneWalk outputs the uncertainty (95% confidence intervals) of the similarity significance
+(mean p-adjust). Depending on the context-specific network topology, this uncertainty can be 
+large for individual gene - function associations. However, if overall the uncertainties 
+turn out very large, one can set the optional arguments nreps_graph to 10 (or more) and 
+nreps_null to 10 to increase the algorithm's precision. This comes at the cost of an 
+increased run time.  
 
 
 ### Further documentation
@@ -190,7 +200,7 @@ For further code documentation see our [readthedocs page](https://genewalk.readt
 Robert Ietswaart, Benjamin M. Gyori, John A. Bachman, Peter K. Sorger, and 
 L. Stirling Churchman 
 *GeneWalk identifies relevant gene functions for a biological context using network 
-representation learning* (2019), BioRxiv preprint.
+representation learning* (2019), BioRxiv; 755579.
 
 
 ### Funding
