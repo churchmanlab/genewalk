@@ -10,4 +10,4 @@ logging.basicConfig(format=default_logger_format, level=logging.INFO,
 logger = logging.getLogger('genewalk')
 
 
-__version__ = '1.0.0'
+__version__ = '1.1.0'
