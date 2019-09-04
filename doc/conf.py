@@ -171,5 +171,8 @@ texinfo_documents = [
 intersphinx_mapping = {'https://docs.python.org/': None}
 
 
-for mod_name in ['indra', 'goatools']:
+for mod_name in ['indra', 'indra.databases', 'indra.util', 'indra.sources',
+                 'indra.sources.indra_db_rest', 'indra.preassembler',
+                 'indra.preassembler.hierarchy_manager',
+                 'goatools', 'goatools.obo_parser']:
     sys.modules[mod_name] = mock.MagicMock()
