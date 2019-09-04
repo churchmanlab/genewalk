@@ -14,6 +14,7 @@
 #
 import os
 import sys
+import mock
 sys.path.insert(0, os.path.abspath('..'))
 
 
@@ -168,3 +169,7 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+
+for mod_name in ['indra', 'goatools']:
+    sys.modules[mod_name] = mock.MagicMock()
