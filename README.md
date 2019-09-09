@@ -6,11 +6,11 @@
 [![Python 3](https://img.shields.io/pypi/pyversions/genewalk.svg)](https://www.python.org/downloads/release/python-357/)
 
 GeneWalk determines for individual genes the functions that are relevant in a
-particular biological context and experimental condition. GeneWalk quantifies 
-the similarity between vector representations of a gene and annotated GO terms 
-through representation learning with random walks on a condition-specific gene 
-regulatory network. Similarity significance is determined through comparison 
-with node similarities from randomized networks. 
+particular biological context and experimental condition. GeneWalk quantifies
+the similarity between vector representations of a gene and annotated GO terms
+through representation learning with random walks on a condition-specific gene
+regulatory network. Similarity significance is determined through comparison
+with node similarities from randomized networks.
 
 ## Install GeneWalk
 To install the latest release of GeneWalk (preferred):
@@ -25,11 +25,11 @@ pip install git+https://github.com/churchmanlab/genewalk.git
 ## Using GeneWalk
 
 ### Gene list file
-GeneWalk always requires as input a text file containing a list with genes of interest 
-relevant to the biological context. For example, differentially expressed genes 
-from a sequencing experiment that compares an experimental versus control condition. 
-GeneWalk supports gene list files containing HGNC human gene symbols, 
-HGNC IDs, or MGI mouse gene IDs. Each line in the file contains a gene identifier of 
+GeneWalk always requires as input a text file containing a list with genes of interest
+relevant to the biological context. For example, differentially expressed genes
+from a sequencing experiment that compares an experimental versus control condition.
+GeneWalk supports gene list files containing HGNC human gene symbols,
+HGNC IDs, or MGI mouse gene IDs. Each line in the file contains a gene identifier of
 one of these types.
 
 ### GeneWalk command line interface
@@ -116,7 +116,7 @@ optional arguments:
 
 
 ### Output files
-GeneWalk automatically creates a `genewalk` folder in the user's home folder 
+GeneWalk automatically creates a `genewalk` folder in the user's home folder
 (or the user specified base_folder).
 When running GeneWalk, one of the required inputs is a project name.
 A sub-folder is created for the given project name where all intermediate and
@@ -128,28 +128,28 @@ given list of genes, an interaction network, GO annotations, and the GO ontology
 - `deepwalk_node_vectors_*.pkl` - A set of learned node vectors for each analysis repeat for the graph.
 - `deepwalk_node_vectors_rand_*.pkl` - A set of learned node vectors for each analysis repeat for a random graph.
 - `genewalk_rand_simdists.pkl` - Distributions constructed from repeats.
-- `deepwalk_*.pkl` - A DeepWalk object for each analysis repeat on the graph 
+- `deepwalk_*.pkl` - A DeepWalk object for each analysis repeat on the graph
 (only present if save_dw argument is set to True).
-- `deepwalk_rand_*.pkl` - A DeepWalk object for each analysis repeat on a random graph 
+- `deepwalk_rand_*.pkl` - A DeepWalk object for each analysis repeat on a random graph
 (only present if save_dw argument is set to True).
 
 
 ### GeneWalk results file description
-`genewalk_results.csv` is the main GeneWalk output table, a comma-separated values text file 
+`genewalk_results.csv` is the main GeneWalk output table, a comma-separated values text file
 with the following column headers:
 - hgnc_id - human gene HGNC identifier.
 - **hgnc_symbol** - human gene symbol.
 - **go_name** - GO term name.
 - go_id - GO term identifier.
-- go_domain - Ontology domain that GO term belongs to 
+- go_domain - Ontology domain that GO term belongs to
 (biological process, cellular component or molecular function).
 - ncon_gene - number of connection to gene in GeneWalk network.
 - ncon_go - number of connections to GO term in GeneWalk network.
 - **mean_padj** - mean false discovery rate (FDR) adjusted p-value of the similarity between gene and GO term.
-This is the key statistic indicating how relevant the GO term (function) is to the gene in the 
-particular biological context or tested condition. GeneWalk determines an adjusted p-value with 
-Benjamini Hochberg FDR correction for multiple tested of all connected GO term for each 
-nreps_graph repeat analysis. The value presented here is the average over all p-adjust values 
+This is the key statistic indicating how relevant the GO term (function) is to the gene in the
+particular biological context or tested condition. GeneWalk determines an adjusted p-value with
+Benjamini Hochberg FDR correction for multiple tested of all connected GO term for each
+nreps_graph repeat analysis. The value presented here is the average over all p-adjust values
 from each repeat analysis. 
 - cilow_padj - lower bound of 95% confidence interval on mean_padj estimate from the nreps_graph repeat analyses.
 - ciupp_padj - upper bound of 95% confidence interval on mean_padj estimate.
@@ -158,7 +158,7 @@ from each repeat analysis.
 - ciupp_pval - upper bound of 95% confidence interval on mean_pval estimate.
 - mean_sim - mean of gene - GO term similarities.
 - sem_sim - standard error on mean_sim estimate.
-- mgi_id - in case mouse gene MGI identifiers were provided as input, the GeneWalk results 
+- mgi_id - in case mouse gene MGI identifiers were provided as input, the GeneWalk results
 table starts with an additional mgi_id column to indicate these mouse genes. In this
 case the corresponding hgnc_id and hgnc_symbol resemble its human ortholog
 gene used for the GeneWalk analysis.
@@ -167,7 +167,7 @@ gene used for the GeneWalk analysis.
 ### Stages and run times of GeneWalk algorithm
 Given a list of genes, GeneWalk runs three stages of analysis:
 1. Assembling a GeneWalk network and learning node vector representations
-by running DeepWalk on this network, for a specified number of repeats. 
+by running DeepWalk on this network, for a specified number of repeats.
 Typical run time: one to a few hours.
 2. Learning random node vector representations by running DeepWalk on a set of
 randomized versions of the GeneWalk network, for a specified number of
@@ -176,34 +176,34 @@ repeats. Typical run time: one to a few hours.
 outputting  the GeneWalk results in a table. Typical run time: a few minutes.
 
 GeneWalk can either be run once to complete all these stages (default), or called separately
-for each stage (optional argument: stage).  
-Recommended memory availability on your operating system: 16Gb or 32Gb RAM.  
+for each stage (optional argument: stage).
+Recommended memory availability on your operating system: 16Gb or 32Gb RAM.
 Recommended number of processors (optional argument: nproc) for a short run time is 4:
 ```bash
 genewalk --project context1 --genes gene_list.txt --id_type hgnc_symbol --nproc 4
 ```
 GeneWalk outputs the uncertainty (95% confidence intervals) of the similarity significance
-(mean p-adjust). Depending on the context-specific network topology, this uncertainty can be 
-large for individual gene - function associations. However, if overall the uncertainties 
-turn out very large, one can set the optional arguments nreps_graph to 10 (or more) and 
-nreps_null to 10 to increase the algorithm's precision. This comes at the cost of an 
-increased run time.  
+(mean p-adjust). Depending on the context-specific network topology, this uncertainty can be
+large for individual gene - function associations. However, if overall the uncertainties
+turn out very large, one can set the optional arguments nreps_graph to 10 (or more) and
+nreps_null to 10 to increase the algorithm's precision. This comes at the cost of an
+increased run time.
 
 
 ### Further documentation
-For a tutorial and more general information see the 
-[GeneWalk website](http://churchman.med.harvard.edu/genewalk).  
+For a tutorial and more general information see the
+[GeneWalk website](http://churchman.med.harvard.edu/genewalk).
 For further code documentation see our [readthedocs page](https://genewalk.readthedocs.io).
 
 
 ### Citation
-Robert Ietswaart, Benjamin M. Gyori, John A. Bachman, Peter K. Sorger, and 
-L. Stirling Churchman 
-*GeneWalk identifies relevant gene functions for a biological context using network 
+Robert Ietswaart, Benjamin M. Gyori, John A. Bachman, Peter K. Sorger, and
+L. Stirling Churchman
+*GeneWalk identifies relevant gene functions for a biological context using network
 representation learning* (2019), BioRxiv; 755579.
 
 
 ### Funding
-This work was supported by National Institutes of Health grant 5R01HG007173-07 
-(L.S.C.), EMBO fellowship ALTF 2016-422 (R.I.), and DARPA grants W911NF-15-1-0544 
-and W911NF018-1-0124 (P.K.S.). 
+This work was supported by National Institutes of Health grant 5R01HG007173-07
+(L.S.C.), EMBO fellowship ALTF 2016-422 (R.I.), and DARPA grants W911NF-15-1-0544
+and W911NF018-1-0124 (P.K.S.).
