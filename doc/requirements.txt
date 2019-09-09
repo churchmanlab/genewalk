@@ -4,3 +4,4 @@ gensim
 mock
 networkx
 pandas
+statsmodels
