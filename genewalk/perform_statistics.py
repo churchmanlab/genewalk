@@ -17,10 +17,15 @@ class GeneWalk(object):
     reasons:
     1) No corresponding HGNC gene symbol, HGNC:ID and/or UniProt:ID could be
     identified. All are required to map genes and assemble their GO
-    annotations.
+    annotations.  
     2) (if alpha_FDR set to < 1) no GO terms were significant at the
-    chosen significance level alpha_FDR.
-    3) (in case of mouse genes) no mapped human ortholog was identified.
+    chosen significance level alpha_FDR.  
+    3) (in case of mouse genes) no mapped human ortholog was identified.  
+    If a gene is listed in the output file with NaN values in the columns ncon_go 
+    and ncon_gene, that means the gene was not included in the GeneWalk
+    network, because no reaction statement(s) of this gene with any other 
+    input gene was retrieved from the knowledge base. Therefore, there is
+    insufficient context-specificity for this gene to make relevance predictions. 
 
     Parameters
     ----------
