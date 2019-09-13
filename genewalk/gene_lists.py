@@ -115,3 +115,33 @@ def map_mgi_ids(mgi_ids):
         ref['UP'] = uniprot_id
         refs.append(ref)
     return refs
+
+
+def map_ensembl_ids(ensembl_ids):
+    """Return references based on a list of Ensembl IDs."""
+    refs = []
+    for ensembl_id in ensembl_ids:
+        if ensembl_id.startswith('MGI:'):
+            ensembl_id = ensembl_id[4:]
+        ref = {'HGNC_SYMBOL': None, 'HGNC': None, 'UP': None,
+               'ENSEMBL': ensembl_id}
+        hgnc_id = hgnc_client.get_hgnc_from_ensembl(ensembl_id)
+        if not hgnc_id:
+            logger.warning('Could not get HGNC ID for ENSEMBL ID %s' %
+                           ensembl_id)
+            continue
+        ref['HGNC'] = hgnc_id
+        hgnc_name = hgnc_client.get_hgnc_name(hgnc_id)
+        if not hgnc_name:
+            logger.warning('Could not get HGNC name for ID %s' %
+                           hgnc_id)
+            continue
+        ref['HGNC_SYMBOL'] = hgnc_name
+        uniprot_id = hgnc_client.get_uniprot_id(hgnc_id)
+        if not uniprot_id:
+            logger.warning('Could not get UniProt ID for HGNC ID %s' %
+                           hgnc_id)
+            continue
+        ref['UP'] = uniprot_id
+        refs.append(ref)
+    return refs
