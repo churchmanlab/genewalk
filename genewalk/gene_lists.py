@@ -121,8 +121,6 @@ def map_ensembl_ids(ensembl_ids):
     """Return references based on a list of Ensembl IDs."""
     refs = []
     for ensembl_id in ensembl_ids:
-        if ensembl_id.startswith('MGI:'):
-            ensembl_id = ensembl_id[4:]
         ref = {'HGNC_SYMBOL': None, 'HGNC': None, 'UP': None,
                'ENSEMBL': ensembl_id}
         hgnc_id = hgnc_client.get_hgnc_from_ensembl(ensembl_id)
