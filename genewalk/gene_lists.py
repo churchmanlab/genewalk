@@ -17,7 +17,7 @@ def read_gene_list(fname, id_type):
         file corresponds to a single gene.
     id_type : str
         The type of identifier contained in each line of the gene list file.
-        Possible values are: hgnc_symbol, hgnc_id, mgi_id.
+        Possible values are: hgnc_symbol, hgnc_id, ensembl_id, mgi_id.
 
     Returns
     -------
@@ -38,6 +38,8 @@ def read_gene_list(fname, id_type):
         return map_hgnc_symbols(unique_lines)
     elif id_type == 'hgnc_id':
         return map_hgnc_ids(unique_lines)
+    elif id_type == 'ensembl_id':
+        return map_ensembl_ids(unique_lines)
     elif id_type == 'mgi_id':
         return map_mgi_ids(unique_lines)
     else:

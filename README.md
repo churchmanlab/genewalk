@@ -29,7 +29,7 @@ GeneWalk always requires as input a text file containing a list with genes of in
 relevant to the biological context. For example, differentially expressed genes
 from a sequencing experiment that compares an experimental versus control condition.
 GeneWalk supports gene list files containing HGNC human gene symbols,
-HGNC IDs, or MGI mouse gene IDs. Each line in the file contains a gene identifier of
+HGNC IDs, Ensembl IDs, or MGI mouse gene IDs. Each line in the file contains a gene identifier of
 one of these types.
 
 ### GeneWalk command line interface
@@ -63,10 +63,10 @@ required arguments:
   --genes GENES         Path to a text file with a list of differentially
                         expressed genes. Thetype of gene identifiers used in
                         the text file are provided in the id_type argument.
-  --id_type {hgnc_symbol,hgnc_id,mgi_id}
+  --id_type {hgnc_symbol,hgnc_id,ensembl_id,mgi_id}
                         The type of gene IDs provided in the text file in the
                         genes argument. Possible values are: hgnc_symbol,
-                        hgnc_id, and mgi_id.
+                        hgnc_id, ensembl_id, and mgi_id.
 
 optional arguments:
   --stage {all,node_vectors,null_distribution,statistics}

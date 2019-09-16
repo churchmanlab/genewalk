@@ -65,8 +65,9 @@ def main():
     parser.add_argument('--id_type',
                         help='The type of gene IDs provided in the text file '
                              'in the genes argument. Possible values are: '
-                             'hgnc_symbol, hgnc_id, and mgi_id.',
-                        choices=['hgnc_symbol', 'hgnc_id', 'mgi_id'],
+                             'hgnc_symbol, hgnc_id, ensembl_id, and mgi_id.',
+                        choices=['hgnc_symbol', 'hgnc_id',
+                                 'ensembl_id', 'mgi_id'],
                         required=True)
     parser.add_argument('--stage', default='all',
                         help='The stage of processing to run. Default: '
