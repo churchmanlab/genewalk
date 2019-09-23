@@ -97,6 +97,8 @@ class GeneWalk(object):
                np.nan, np.nan, np.nan, np.nan, np.nan]
         if base_id_type == 'mgi_id':
             row = [gene.get('MGI', '')] + row
+        elif base_id_type == 'ensembl_id':
+            row = [gene.get('ENSEMBL', '')] + row
         return row
 
     def generate_output(self, alpha_fdr=1, base_id_type='hgnc_symbol'):
@@ -111,7 +113,8 @@ class GeneWalk(object):
             only connected GO terms with mean padj < alpha_FDR are output.
         base_id_type : Optional[str]
             The type of gene IDs that were the basis of doing the analysis.
-            In case of mgi_id, we prepend a column to the table for MGI IDs.
+            In case of mgi_id or ensembl_id, we prepend a column to the table
+            for MGI or ENSEMBL IDs, respectively.
             Default: hgnc_symbol
         """
         rows = []
@@ -158,6 +161,8 @@ class GeneWalk(object):
                             # If dealing with mouse genes, prepend the MGI ID
                             if base_id_type == 'mgi_id':
                                 row = [gene.get('MGI', '')] + row
+                            elif base_id_type == 'ensembl_id':
+                                row = [gene.get('ENSEMBL', '')] + row
                             rows.append(row)
                 elif alpha_fdr == 1:  # case: no GO connections
                     row = self.add_empty_row(gene, gene_attribs, base_id_type)
@@ -172,8 +177,9 @@ class GeneWalk(object):
                   'mean_pval', 'cilow_pval', 'ciupp_pval',
                   'mean_sim',  'sem_sim',
                   ]
-        if base_id_type == 'mgi_id':
-            header = ['mgi_id'] + header
+        if base_id_type in {'mgi_id', 'ensembl_id'}:
+            header = [base_id_type] + header
+
         df = pd.DataFrame.from_records(rows, columns=header)
         df[base_id_type] = df[base_id_type].astype('category')
         df[base_id_type].cat.set_categories(df[base_id_type].unique(),
