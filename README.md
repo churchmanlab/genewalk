@@ -46,16 +46,18 @@ genewalk --project context1 --genes gene_list.txt --id_type hgnc_symbol
 Below is the full documentation of the command line interface:
 
 ```
-genewalk [-h] --project PROJECT --genes GENES --id_type
-              {hgnc_symbol,hgnc_id,mgi_id}
+genewalk [-h] [--version] --project PROJECT --genes GENES --id_type
+              {hgnc_symbol,hgnc_id,mgi_id,ensembl_id}
               [--stage {all,node_vectors,null_distribution,statistics}]
               [--base_folder BASE_FOLDER]
               [--network_source {pc,indra,edge_list,sif}]
               [--network_file NETWORK_FILE] [--nproc NPROC] [--nreps NREPS]
               [--alpha_fdr ALPHA_FDR] [--save_dw SAVE_DW]
+              [--random_seed RANDOM_SEED]
 
 
 required arguments:
+  --version             Print the version of GeneWalk and exit.
   --project PROJECT     A name for the project which determines the folder
                         within the base folder in which the intermediate and
                         final results are written. Must contain only
