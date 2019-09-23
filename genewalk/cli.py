@@ -1,11 +1,13 @@
+import gc
 import os
+import sys
 import copy
 import pickle
 import random
 import logging
 import argparse
-import gc
 import numpy as np
+from genewalk import __version__
 from genewalk.nx_mg_assembler import load_network
 from genewalk.gene_lists import read_gene_list
 from genewalk.deepwalk import run_walks
@@ -47,6 +49,9 @@ def main():
     parser = argparse.ArgumentParser(
         description='Run GeneWalk on a list of genes provided in a text '
                     'file.')
+    parser.add_argument('--version', action='version',
+                        version='GeneWalk %s' % __version__,
+                        help='Print the version of GeneWalk and exit.')
     parser.add_argument('--project', help='A name for the project which '
                                           'determines the folder within the '
                                           'base folder in which the '
