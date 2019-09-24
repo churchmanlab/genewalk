@@ -1,3 +1,4 @@
+from nose.tools import raises
 from genewalk.gene_lists import *
 
 
@@ -27,3 +28,23 @@ def test_map_lists():
     assert refs[0]['HGNC'] == '1097', refs
     assert refs[0]['UP'] == 'P15056', refs
     assert refs[0]['HGNC_SYMBOL'] == 'BRAF', refs
+
+    refs = map_ensembl_ids(['ENSG00000157764.9'])
+    assert refs[0]['HGNC'] == '1097', refs
+    assert refs[0]['UP'] == 'P15056', refs
+    assert refs[0]['HGNC_SYMBOL'] == 'BRAF', refs
+
+
+def test_read_gene_list():
+    with open('test_gene_list.txt', 'w') as fh:
+        fh.write('HGNC:1097')
+    refs = read_gene_list('test_gene_list.txt', 'hgnc_id')
+    assert len(refs) == 1
+
+
+@raises(ValueError)
+def test_read_gene_list_bad():
+    with open('test_gene_list.txt', 'w') as fh:
+        fh.write('HGNC:1097')
+    refs = read_gene_list('test_gene_list.txt', 'ensembl_id')
+    assert len(refs) == 1
