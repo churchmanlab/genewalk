@@ -35,15 +35,20 @@ def read_gene_list(fname, id_type):
             if line not in unique_lines:
                 unique_lines.append(line)
     if id_type == 'hgnc_symbol':
-        return map_hgnc_symbols(unique_lines)
+        refs = map_hgnc_symbols(unique_lines)
     elif id_type == 'hgnc_id':
-        return map_hgnc_ids(unique_lines)
+        refs = map_hgnc_ids(unique_lines)
     elif id_type == 'ensembl_id':
-        return map_ensembl_ids(unique_lines)
+        refs = map_ensembl_ids(unique_lines)
     elif id_type == 'mgi_id':
-        return map_mgi_ids(unique_lines)
+        refs = map_mgi_ids(unique_lines)
     else:
         raise ValueError('Unknown id_type: %s' % id_type)
+    if not refs:
+        raise ValueError('None of the IDs in %s could be mapped. It is '
+                         'likely that the file uses an ID type or format '
+                         'that GeneWalk cannot interpret.' % fname)
+    return refs
 
 
 def map_hgnc_symbols(hgnc_symbols):
