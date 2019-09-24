@@ -125,6 +125,7 @@ def map_ensembl_ids(ensembl_ids):
     for ensembl_id in ensembl_ids:
         ref = {'HGNC_SYMBOL': None, 'HGNC': None, 'UP': None,
                'ENSEMBL': ensembl_id}
+        ensembl_id = ensembl_id.split('.', maxsplit=1)[0]
         hgnc_id = hgnc_client.get_hgnc_from_ensembl(ensembl_id)
         if not hgnc_id:
             logger.warning('Could not get HGNC ID for ENSEMBL ID %s' %

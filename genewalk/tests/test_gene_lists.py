@@ -27,3 +27,8 @@ def test_map_lists():
     assert refs[0]['HGNC'] == '1097', refs
     assert refs[0]['UP'] == 'P15056', refs
     assert refs[0]['HGNC_SYMBOL'] == 'BRAF', refs
+
+    refs = map_ensembl_ids(['ENSG00000157764.9'])
+    assert refs[0]['HGNC'] == '1097', refs
+    assert refs[0]['UP'] == 'P15056', refs
+    assert refs[0]['HGNC_SYMBOL'] == 'BRAF', refs
