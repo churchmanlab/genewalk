@@ -10,9 +10,11 @@ def test_run_walks():
     dw.get_walks(workers=1)
     # Number of neighbors for all nodes together is 4, times niter: 400
     assert len(dw.walks) == 400, len(dw.walks)
-    assert dw.walks[0][0] == 'a'
+    assert len([w for w in dw.walks if w[0] == 'a']) == 100
+    assert len([w for w in dw.walks if w[0] == 'b']) == 200
 
     dw.get_walks(workers=2)
     # Number of neighbors for all nodes together is 4, times niter: 400
     assert len(dw.walks) == 400, len(dw.walks)
-    assert dw.walks[0][0] == 'a'
+    assert len([w for w in dw.walks if w[0] == 'a']) == 100
+    assert len([w for w in dw.walks if w[0] == 'b']) == 200
