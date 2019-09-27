@@ -152,7 +152,8 @@ def download_statements(df, ev_limit=5):
     all_stmts = []
     for idx, group in enumerate(batch_iter(df.hash, 500)):
         logger.info('Getting statement batch %d' % idx)
-        idbp = indra_db_rest.get_statements_by_hash(list(group), ev_limit)
+        idbp = indra_db_rest.get_statements_by_hash(list(group),
+                                                    ev_limit=ev_limit)
         all_stmts += idbp.statements
     return all_stmts
 
@@ -190,5 +191,7 @@ if __name__ == '__main__':
     df = filter_to_genes(df, genes, fplx_terms)
     # Download the Statement corresponding to each row
     stmts = download_statements(df)
+    # Remap any outdated GO IDs
+    remap_go_ids(stmts)
     # Dump the Statements into a pickle file
     dump_pickle(stmts, args.stmts)
