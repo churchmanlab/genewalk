@@ -146,14 +146,14 @@ def get_famplex_links_from_lists(genes_appearing, fplx_appearing):
     return links
 
 
-def download_statements(df):
+def download_statements(df, ev_limit=5):
     """Download the INDRA Statements corresponding to entries in a data frame.
     """
     all_stmts = []
     for idx, group in enumerate(batch_iter(df.hash, 500)):
         logger.info('Getting statement batch %d' % idx)
-        stmts = indra_db_rest.get_statements_by_hash(list(group))
-        all_stmts += stmts
+        idbp = indra_db_rest.get_statements_by_hash(list(group), ev_limit)
+        all_stmts += idbp.statements
     return all_stmts
 
 
