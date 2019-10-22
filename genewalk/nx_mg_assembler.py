@@ -306,7 +306,7 @@ class IndraNxMgAssembler(NxMgAssembler):
     def node2stmts(self, node_key):
         """Return the INDRA Statements given the key of a graph node."""
         matching_stmts = []
-        node_name = self.graph.node[node_key]['name']
+        node_name = self.graph.nodes[node_key]['name']
         for stmt in self.stmts:
             for agent in stmt.agent_list():
                 if agent is not None:
