@@ -1,5 +1,8 @@
+import csv
 import logging
-from indra.databases import hgnc_client
+from io import StringIO
+import requests
+from indra.databases import hgnc_client, uniprot_client
 
 
 logger = logging.getLogger('genewalk.gene_lists')
@@ -42,6 +45,8 @@ def read_gene_list(fname, id_type):
         refs = map_ensembl_ids(unique_lines)
     elif id_type == 'mgi_id':
         refs = map_mgi_ids(unique_lines)
+    elif id_type == 'entrez':
+        refs = map_up_from_entrez(unique_lines)
     else:
         raise ValueError('Unknown id_type: %s' % id_type)
     if not refs:
@@ -151,3 +156,32 @@ def map_ensembl_ids(ensembl_ids):
         ref['UP'] = uniprot_id
         refs.append(ref)
     return refs
+
+
+def map_up_from_entrez(entrez_ids):
+    """Use the Uniprot ID mapping service to get mappings from Entrez."""
+    # Instructions from https://www.uniprot.org/help/api_idmapping
+    url = 'https://www.uniprot.org/uploadlists/'
+    query_string = ' '.join(entrez_ids)
+    params = {'from': 'P_ENTREZGENEID',
+              'to': 'ACC',
+              'format': 'tab',
+              'query': query_string}
+    res = requests.get(url, params)
+    if not res.status_code == 200:
+        logger.error("Error querying the Uniprot ID mapping service: "
+                     "Response status code %d" % res.status_code)
+        return []
+    refs = []
+    csv_reader = csv.reader(StringIO(res.text), delimiter='\t')
+    next(csv_reader) # Skip the header line
+    for entrez_id, up_id in csv_reader:
+        ref = {'EGID': entrez_id, 'UP': up_id}
+        # If it is a human gene, get the HGNC ID and symbol
+        if uniprot_client.is_human(up_id):
+            gene_symbol = uniprot_client.get_gene_name(up_id)
+            hgnc_id = uniprot_client.get_hgnc_id(up_id)
+            ref.update({'HGNC_SYMBOL': gene_symbol, 'HGNC': hgnc_id})
+        refs.append(ref)
+    return refs
+
