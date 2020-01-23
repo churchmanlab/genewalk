@@ -83,10 +83,11 @@ class GeneWalk(object):
 
     def log_stats(self, vals):
         eps = 1e-16
+        nreps = len(vals)
         vals = np.asarray(vals)+eps
         g_mean = gmean(vals)-eps
         g_std = gstd(vals)
-        return g_mean, g_mean*(g_std**(-1.96)), g_mean*(g_std**(1.96))
+        return g_mean, g_mean*(g_std**(-1.96/np.sqrt(nreps))), g_mean*(g_std**(1.96/np.sqrt(nreps)))
 
     def add_empty_row(self, gene, gene_attribs, base_id_type):
         row = [gene_attribs['hgnc_symbol'],
