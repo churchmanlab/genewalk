@@ -31,7 +31,9 @@ def get_rand_graph(mg):
 
 
 def get_null_distributions(rg, nv):
-    # TODO: add docstrings here
+    """Return a distribution with similarity values between (random) node 
+       vectors originating from the input randomized graph.
+    """
     srd = []
     # Generate null distributions from random node vectors
     for node in nx.nodes(rg):
