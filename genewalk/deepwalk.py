@@ -209,7 +209,7 @@ def run_walks(graph, **kwargs):
         calculated.
     **kwargs
         Key word arguments passed as the arguments of the DeepWalk constructor,
-        ass well as the get_walks method and the word2vec method. See the
+        as well as the get_walks method and the word2vec method. See the
         DeepWalk class documentation for more information on these.
 
     Returns
