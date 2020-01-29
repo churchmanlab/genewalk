@@ -182,6 +182,27 @@ def map_up_from_entrez(entrez_ids):
             gene_symbol = uniprot_client.get_gene_name(up_id)
             hgnc_id = uniprot_client.get_hgnc_id(up_id)
             ref.update({'HGNC_SYMBOL': gene_symbol, 'HGNC': hgnc_id})
+        elif uniprot_client.is_mouse(up_id):
+            # Get the MGI ID
+            mgi_id = uniprot_client.get_mgi_id(up_id)
+            # Get the orthologous human gene ID and name
+            hgnc_id = hgnc_client.get_hgnc_from_mouse(mgi_id)
+            if not hgnc_id:
+                logger.warning('Could not get HGNC ID for MGI ID %s' %
+                               mgi_id)
+                continue
+            ref['HGNC'] = hgnc_id
+            hgnc_name = hgnc_client.get_hgnc_name(hgnc_id)
+            if not hgnc_name:
+                logger.warning('Could not get HGNC name for ID %s' %
+                               hgnc_id)
+                continue
+            ref['HGNC_SYMBOL'] = hgnc_name
+        else:
+            logger.error("Genewalk only supports Entrez Gene IDs from "
+                         "human or mouse (Entrez %s, UP %s)" %
+                         (entrez_id, up_id))
+            continue
         refs.append(ref)
     return refs
 
