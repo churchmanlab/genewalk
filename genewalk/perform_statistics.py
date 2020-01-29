@@ -99,6 +99,8 @@ class GeneWalk(object):
             row = [gene.get('MGI', '')] + row
         elif base_id_type == 'ensembl_id':
             row = [gene.get('ENSEMBL', '')] + row
+        elif base_id_type == 'entrez':
+            row = [gene.get('ENTREZ', '')] + row
         return row
 
     def generate_output(self, alpha_fdr=1, base_id_type='hgnc_symbol'):
