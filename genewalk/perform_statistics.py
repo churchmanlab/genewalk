@@ -163,6 +163,8 @@ class GeneWalk(object):
                                 row = [gene.get('MGI', '')] + row
                             elif base_id_type == 'ensembl_id':
                                 row = [gene.get('ENSEMBL', '')] + row
+                            elif base_id_type == 'entrez':
+                                row = [gene.get('ENTREZ', '')] + row
                             rows.append(row)
                 elif alpha_fdr == 1:  # case: no GO connections
                     row = self.add_empty_row(gene, gene_attribs, base_id_type)
