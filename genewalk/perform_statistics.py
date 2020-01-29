@@ -177,7 +177,7 @@ class GeneWalk(object):
                   'mean_pval', 'cilow_pval', 'ciupp_pval',
                   'mean_sim',  'sem_sim',
                   ]
-        if base_id_type in {'mgi_id', 'ensembl_id'}:
+        if base_id_type in {'mgi_id', 'ensembl_id', 'entrez'}:
             header = [base_id_type] + header
 
         df = pd.DataFrame.from_records(rows, columns=header)
