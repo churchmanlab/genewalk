@@ -194,6 +194,10 @@ def map_up_from_entrez(entrez_ids):
                 continue
             ref.update(mgi_ref)
             map_success[entrez_id] = True
+        # If we cannot identify human or mouse, we likely hit an unreviewed
+        # Uniprot entry
+        else:
+            continue
         refs.append(ref)
     for entrez_id, succ in map_success.items():
         if not succ:
