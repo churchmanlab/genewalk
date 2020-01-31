@@ -1,6 +1,7 @@
 import csv
 import logging
 from io import StringIO
+from collections import Counter
 import requests
 from indra.databases import hgnc_client, uniprot_client
 
@@ -167,7 +168,13 @@ def map_up_from_entrez(entrez_ids):
     refs = []
     csv_reader = csv.reader(StringIO(res.text), delimiter='\t')
     next(csv_reader) # Skip the header line
+    map_success = {}
     for entrez_id, up_id in csv_reader:
+        if entrez_id not in map_success:
+            map_success[entrez_id] = False
+        # If we have already successfully mapped this ID, don't look at others
+        elif map_success[entrez_id]:
+            continue
         ref = {'EGID': entrez_id}
         # If it is a human gene, get the HGNC ID and symbol
         if uniprot_client.is_human(up_id):
@@ -176,6 +183,7 @@ def map_up_from_entrez(entrez_ids):
             if hgnc_ref is None:
                 continue
             ref.update(hgnc_ref)
+            map_success[entrez_id] = True
         elif uniprot_client.is_mouse(up_id):
             # Get the MGI ID
             mgi_id = uniprot_client.get_mgi_id(up_id)
@@ -185,11 +193,14 @@ def map_up_from_entrez(entrez_ids):
             if mgi_ref is None:
                 continue
             ref.update(mgi_ref)
-        else:
-            logger.error("Genewalk only supports Entrez Gene IDs from "
-                         "human or mouse (Entrez %s, UP %s)" %
-                         (entrez_id, up_id))
-            continue
+            map_success[entrez_id] = True
         refs.append(ref)
+    for entrez_id, succ in map_success.items():
+        if not succ:
+            logger.error("Could not find valid mapping for Entrez ID %s"
+                         % entrez_id)
+    succ_ctr = Counter(map_success.values())
+    logger.info("Mapping results: %d Entrez IDs successfully mapped, "
+                "%d IDs unmapped." % (succ_ctr[True], succ_ctr[False]))
     return refs
 
