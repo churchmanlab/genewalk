@@ -207,4 +207,7 @@ class GeneWalk(object):
         rank = np.searchsorted(self.srd, sim)
         pct_rank = float(rank) / len(self.srd)
         pval = 1 - pct_rank
+        eps = 1e-16
+        if pval < eps:
+            pval = eps
         return pval
