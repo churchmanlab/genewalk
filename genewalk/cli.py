@@ -72,7 +72,8 @@ def main():
                              'in the genes argument. Possible values are: '
                              'hgnc_symbol, hgnc_id, ensembl_id, and mgi_id.',
                         choices=['hgnc_symbol', 'hgnc_id',
-                                 'ensembl_id', 'mgi_id', 'entrez'],
+                                 'ensembl_id', 'mgi_id', 'entrez_human',
+                                 'entrez_mouse'],
                         required=True)
     parser.add_argument('--stage', default='all',
                         help='The stage of processing to run. Default: '

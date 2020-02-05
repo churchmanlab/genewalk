@@ -1,14 +1,15 @@
 import csv
+import pickle
 import logging
 from io import StringIO
+from os.path import join, abspath, dirname
 from collections import Counter
 import requests
 from indra.databases import hgnc_client, uniprot_client
+from genewalk.resources import ResourceManager
 
 
 logger = logging.getLogger('genewalk.gene_lists')
-
-# TODO: map to MGI symbols if the original genes were mouse genes
 
 
 def read_gene_list(fname, id_type):
@@ -46,8 +47,10 @@ def read_gene_list(fname, id_type):
         refs = map_ensembl_ids(unique_lines)
     elif id_type == 'mgi_id':
         refs = map_mgi_ids(unique_lines)
-    elif id_type == 'entrez':
-        refs = map_up_from_entrez(unique_lines)
+    elif id_type == 'entrez_human':
+        refs = map_entrez_human(unique_lines)
+    elif id_type == 'entrez_mouse':
+        refs = map_entrez_mouse(unique_lines)
     else:
         raise ValueError('Unknown id_type: %s' % id_type)
     if not refs:
@@ -151,8 +154,44 @@ def map_ensembl_ids(ensembl_ids):
     return refs
 
 
-def map_up_from_entrez(entrez_ids):
-    """Use the Uniprot ID mapping service to get mappings from Entrez."""
+def map_entrez_human(entrez_ids):
+    refs = []
+    for entrez_id in entrez_ids:
+        ref = {'EGID': entrez_id}
+        hgnc_id = hgnc_client.get_hgnc_from_entrez(entrez_id)
+        hgnc_ref = _refs_from_hgnc_id(hgnc_id)
+        if hgnc_ref is None:
+            continue
+        ref.update(hgnc_ref)
+        refs.append(ref)
+    return refs
+
+
+def map_entrez_mouse(entrez_ids):
+    rm = ResourceManager()
+    mgi_entrez_file = join(dirname(abspath(__file__)),
+                           'entrez_mgi_mappings.pkl')
+    with open(mgi_entrez_file, 'rb') as f:
+        mgi_mappings = pickle.load(f)
+    refs = []
+    for entrez_id in entrez_ids:
+        mgi_id = mgi_mappings.get(entrez_id)
+        if not mgi_id:
+            logger.error("Could not find an MGI mapping for Entrez ID %s"
+                         % entrez_id)
+            continue
+        ref = {'EGID': entrez_id, 'MGI': mgi_id}
+        mgi_refs = _refs_from_mgi_id(mgi_id)
+        if mgi_refs is None:
+            continue
+        ref.update(mgi_refs)
+        refs.append(ref)
+    return refs
+
+
+
+"""
+    # Use the Uniprot ID mapping service to get mappings from Entrez.
     # Instructions from https://www.uniprot.org/help/api_idmapping
     url = 'https://www.uniprot.org/uploadlists/'
     query_string = ' '.join(entrez_ids)
@@ -207,4 +246,6 @@ def map_up_from_entrez(entrez_ids):
     logger.info("Mapping results: %d Entrez IDs successfully mapped, "
                 "%d IDs unmapped." % (succ_ctr[True], succ_ctr[False]))
     return refs
+"""
+
 
