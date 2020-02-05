@@ -17,7 +17,8 @@ class ResourceManager(object):
     def get_go_obo(self):
         fname = os.path.join(self.resource_folder, 'go.obo')
         if not os.path.exists(fname):
-            download_go(fname)
+            url = 'http://snapshot.geneontology.org/ontology/go.obo'
+            download_url(url, fname)
         return fname
 
     def get_goa_gaf(self):
@@ -37,6 +38,14 @@ class ResourceManager(object):
             download_gz(fname, url_pc)
         return fname
 
+    def get_mgi_entrez(self):
+        fname = os.path.join(self.resource_folder, 'MGI_EntrezGene.rpt')
+        if not os.path.exists(fname):
+            url = 'http://www.informatics.jax.org/downloads/reports/' \
+                  'MGI_EntrezGene.rpt'
+            download_url(url, fname)
+        return fname
+
     def _get_resource_folder(self):
         resource_dir = os.path.join(self.base_folder, 'resources')
 
@@ -51,10 +60,10 @@ class ResourceManager(object):
         self.get_go_obo()
         self.get_goa_gaf()
         self.get_pc()
+        self.get_mgi_entrez()
 
 
-def download_go(fname):
-    url = 'http://snapshot.geneontology.org/ontology/go.obo'
+def download_url(url, fname):
     logger.info('Downloading %s into %s' % (url, fname))
     urllib.request.urlretrieve(url, fname)
 
