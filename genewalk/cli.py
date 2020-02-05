@@ -152,7 +152,7 @@ def main():
     rm.download_all()
 
     if args.stage in ('all', 'node_vectors'):
-        genes = read_gene_list(args.genes, args.id_type)
+        genes = read_gene_list(args.genes, args.id_type, rm)
         save_pickle(genes, project_folder, 'genes')
         MG = load_network(args.network_source, args.network_file, genes,
                           resource_manager=rm)
