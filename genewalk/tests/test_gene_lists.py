@@ -38,7 +38,7 @@ def test_map_lists():
 def test_read_gene_list():
     with open('test_gene_list.txt', 'w') as fh:
         fh.write('HGNC:1097')
-    refs = read_gene_list('test_gene_list.txt', 'hgnc_id')
+    refs = read_gene_list('test_gene_list.txt', 'hgnc_id', None)
     assert len(refs) == 1
 
 
@@ -46,5 +46,6 @@ def test_read_gene_list():
 def test_read_gene_list_bad():
     with open('test_gene_list.txt', 'w') as fh:
         fh.write('HGNC:1097')
-    refs = read_gene_list('test_gene_list.txt', 'ensembl_id')
+    refs = read_gene_list('test_gene_list.txt', 'ensembl_id', None)
     assert len(refs) == 1
+
