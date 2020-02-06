@@ -1,6 +1,7 @@
 from nose.tools import raises
 from genewalk.gene_lists import *
-
+from genewalk.cli import default_base_folder
+from genewalk.resources import ResourceManager
 
 def test_map_lists():
     refs = map_hgnc_symbols(['BRAF', 'KRAS'])
@@ -48,4 +49,24 @@ def test_read_gene_list_bad():
         fh.write('HGNC:1097')
     refs = read_gene_list('test_gene_list.txt', 'ensembl_id', None)
     assert len(refs) == 1
+
+
+def test_read_gene_list_entrez_human():
+    with open('test_gene_list_entrez_human.txt', 'w') as fh:
+        fh.write('2597')
+    refs = read_gene_list('test_gene_list_entrez_human.txt',
+                          'entrez_human', None)
+    assert refs[0]['HGNC_SYMBOL'] == 'GAPDH'
+    assert len(refs) == 1
+
+
+def test_read_gene_list_entrez_mouse():
+    rm = ResourceManager(base_folder=default_base_folder)
+    with open('test_gene_list_entrez_mouse.txt', 'w') as fh:
+        fh.write('14433')
+    refs = read_gene_list('test_gene_list_entrez_mouse.txt',
+                          'entrez_mouse', rm)
+    assert len(refs) == 1
+    assert refs[0]['MGI'] == '95640'
+    assert refs[0]['HGNC_SYMBOL'] == 'GAPDH'
 
