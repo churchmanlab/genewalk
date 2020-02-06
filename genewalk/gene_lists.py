@@ -6,13 +6,12 @@ from os.path import join, abspath, dirname
 from collections import Counter
 import requests
 from indra.databases import hgnc_client, uniprot_client
-from genewalk.resources import ResourceManager
 
 
 logger = logging.getLogger('genewalk.gene_lists')
 
 
-def read_gene_list(fname, id_type):
+def read_gene_list(fname, id_type, resource_manager):
     """Return references for genes from a file with the given ID type.
 
     Parameters
@@ -23,6 +22,9 @@ def read_gene_list(fname, id_type):
     id_type : str
         The type of identifier contained in each line of the gene list file.
         Possible values are: hgnc_symbol, hgnc_id, ensembl_id, mgi_id.
+    resource_manager : genewalk.resources.ResourceManager
+        ResourceManager object, used to obtain entrez-mgi mappings if
+        necessary.
 
     Returns
     -------
@@ -50,7 +52,7 @@ def read_gene_list(fname, id_type):
     elif id_type == 'entrez_human':
         refs = map_entrez_human(unique_lines)
     elif id_type == 'entrez_mouse':
-        refs = map_entrez_mouse(unique_lines)
+        refs = map_entrez_mouse(unique_lines, resource_manager)
     else:
         raise ValueError('Unknown id_type: %s' % id_type)
     if not refs:
@@ -126,10 +128,12 @@ def map_mgi_ids(mgi_ids):
 def _refs_from_mgi_id(mgi_id):
     ref = {'MGI': mgi_id}
     hgnc_id = hgnc_client.get_hgnc_from_mouse(mgi_id)
-    hgnc_ref = _refs_from_hgnc_id(hgnc_id)
-    if hgnc_ref is None:
+    if hgnc_id is None:
         logger.warning('Could not get HGNC ID for MGI ID %s' %
                        mgi_id)
+        return None
+    hgnc_ref = _refs_from_hgnc_id(hgnc_id)
+    if hgnc_ref is None:
         return None
     ref.update(hgnc_ref)
     return ref
@@ -167,15 +171,21 @@ def map_entrez_human(entrez_ids):
     return refs
 
 
-def map_entrez_mouse(entrez_ids):
-    rm = ResourceManager()
-    mgi_entrez_file = join(dirname(abspath(__file__)),
-                           'entrez_mgi_mappings.pkl')
-    with open(mgi_entrez_file, 'rb') as f:
-        mgi_mappings = pickle.load(f)
+def map_entrez_mouse(entrez_ids, rm):
+    # Get the entrez file path from the resource manager
+    mgi_entrez_file = rm.get_mgi_entrez()
+    # Process the MGI-Entrez mapping file
+    entrez_to_mgi = {}
+    with open(mgi_entrez_file, 'r') as f:
+        csvreader = csv.reader(f, delimiter='\t')
+        for row in csvreader:
+            # Remove "MGI:" prefix
+            mgi = row[0][4:]
+            entrez = row[8]
+            entrez_to_mgi[entrez] = mgi
     refs = []
     for entrez_id in entrez_ids:
-        mgi_id = mgi_mappings.get(entrez_id)
+        mgi_id = entrez_to_mgi.get(entrez_id)
         if not mgi_id:
             logger.error("Could not find an MGI mapping for Entrez ID %s"
                          % entrez_id)
