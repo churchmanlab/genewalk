@@ -159,6 +159,7 @@ def map_ensembl_ids(ensembl_ids):
 
 
 def map_entrez_human(entrez_ids):
+    """Return references based on human Entrez gene IDs."""
     refs = []
     for entrez_id in entrez_ids:
         ref = {'EGID': entrez_id}
@@ -172,6 +173,7 @@ def map_entrez_human(entrez_ids):
 
 
 def map_entrez_mouse(entrez_ids, rm):
+    """Return references based on mouse Entrez gene IDs."""
     # Get the entrez file path from the resource manager
     mgi_entrez_file = rm.get_mgi_entrez()
     # Process the MGI-Entrez mapping file
@@ -197,65 +199,3 @@ def map_entrez_mouse(entrez_ids, rm):
         ref.update(mgi_refs)
         refs.append(ref)
     return refs
-
-
-
-"""
-    # Use the Uniprot ID mapping service to get mappings from Entrez.
-    # Instructions from https://www.uniprot.org/help/api_idmapping
-    url = 'https://www.uniprot.org/uploadlists/'
-    query_string = ' '.join(entrez_ids)
-    params = {'from': 'P_ENTREZGENEID',
-              'to': 'ACC',
-              'format': 'tab',
-              'query': query_string}
-    res = requests.get(url, params)
-    if not res.status_code == 200:
-        logger.error("Error querying the Uniprot ID mapping service: "
-                     "Response status code %d" % res.status_code)
-        return []
-    refs = []
-    csv_reader = csv.reader(StringIO(res.text), delimiter='\t')
-    next(csv_reader) # Skip the header line
-    map_success = {}
-    for entrez_id, up_id in csv_reader:
-        if entrez_id not in map_success:
-            map_success[entrez_id] = False
-        # If we have already successfully mapped this ID, don't look at others
-        elif map_success[entrez_id]:
-            continue
-        ref = {'EGID': entrez_id}
-        # If it is a human gene, get the HGNC ID and symbol
-        if uniprot_client.is_human(up_id):
-            hgnc_id = uniprot_client.get_hgnc_id(up_id)
-            hgnc_ref = _refs_from_hgnc_id(hgnc_id)
-            if hgnc_ref is None:
-                continue
-            ref.update(hgnc_ref)
-            map_success[entrez_id] = True
-        elif uniprot_client.is_mouse(up_id):
-            # Get the MGI ID
-            mgi_id = uniprot_client.get_mgi_id(up_id)
-            if mgi_id:
-                ref['MGI'] = mgi_id
-            mgi_ref = _refs_from_mgi_id(mgi_id)
-            if mgi_ref is None:
-                continue
-            ref.update(mgi_ref)
-            map_success[entrez_id] = True
-        # If we cannot identify human or mouse, we likely hit an unreviewed
-        # Uniprot entry
-        else:
-            continue
-        refs.append(ref)
-    for entrez_id, succ in map_success.items():
-        if not succ:
-            logger.error("Could not find valid mapping for Entrez ID %s"
-                         % entrez_id)
-    succ_ctr = Counter(map_success.values())
-    logger.info("Mapping results: %d Entrez IDs successfully mapped, "
-                "%d IDs unmapped." % (succ_ctr[True], succ_ctr[False]))
-    return refs
-"""
-
-
