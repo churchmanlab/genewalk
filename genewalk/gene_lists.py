@@ -164,6 +164,10 @@ def map_entrez_human(entrez_ids):
     for entrez_id in entrez_ids:
         ref = {'EGID': entrez_id}
         hgnc_id = hgnc_client.get_hgnc_from_entrez(entrez_id)
+        if hgnc_id is None:
+            logger.warning("Could not find HGNC ID for Entrez ID %s" %
+                           entrez_id)
+            continue
         hgnc_ref = _refs_from_hgnc_id(hgnc_id)
         if hgnc_ref is None:
             continue
@@ -189,7 +193,7 @@ def map_entrez_mouse(entrez_ids, rm):
     for entrez_id in entrez_ids:
         mgi_id = entrez_to_mgi.get(entrez_id)
         if not mgi_id:
-            logger.error("Could not find an MGI mapping for Entrez ID %s"
+            logger.warning("Could not find an MGI mapping for Entrez ID %s"
                          % entrez_id)
             continue
         ref = {'EGID': entrez_id, 'MGI': mgi_id}
