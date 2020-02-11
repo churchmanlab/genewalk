@@ -194,7 +194,7 @@ def map_entrez_mouse(entrez_ids, rm):
         mgi_id = entrez_to_mgi.get(entrez_id)
         if not mgi_id:
             logger.warning("Could not find an MGI mapping for Entrez ID %s"
-                         % entrez_id)
+                           % entrez_id)
             continue
         ref = {'EGID': entrez_id, 'MGI': mgi_id}
         mgi_refs = _refs_from_mgi_id(mgi_id)
