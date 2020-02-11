@@ -65,10 +65,11 @@ required arguments:
   --genes GENES         Path to a text file with a list of differentially
                         expressed genes. Thetype of gene identifiers used in
                         the text file are provided in the id_type argument.
-  --id_type {hgnc_symbol,hgnc_id,ensembl_id,mgi_id}
+  --id_type {hgnc_symbol,hgnc_id,ensembl_id,mgi_id,entrez_human,entrez_mouse}
                         The type of gene IDs provided in the text file in the
                         genes argument. Possible values are: hgnc_symbol,
-                        hgnc_id, ensembl_id, and mgi_id.
+                        hgnc_id, ensembl_id, mgi_id, entrez_human and
+                        entrez_mouse.
 
 optional arguments:
   --stage {all,node_vectors,null_distribution,statistics}

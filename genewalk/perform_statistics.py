@@ -99,6 +99,9 @@ class GeneWalk(object):
             row = [gene.get('MGI', '')] + row
         elif base_id_type == 'ensembl_id':
             row = [gene.get('ENSEMBL', '')] + row
+        elif base_id_type == 'entrez_mouse' or \
+             base_id_type == 'entrez_human':
+            row = [gene.get('EGID', '')] + row
         return row
 
     def generate_output(self, alpha_fdr=1, base_id_type='hgnc_symbol'):
@@ -163,6 +166,9 @@ class GeneWalk(object):
                                 row = [gene.get('MGI', '')] + row
                             elif base_id_type == 'ensembl_id':
                                 row = [gene.get('ENSEMBL', '')] + row
+                            elif base_id_type == 'entrez_mouse' or \
+                                 base_id_type == 'entrez_human':
+                                row = [gene.get('EGID', '')] + row
                             rows.append(row)
                 elif alpha_fdr == 1:  # case: no GO connections
                     row = self.add_empty_row(gene, gene_attribs, base_id_type)
@@ -177,7 +183,8 @@ class GeneWalk(object):
                   'mean_pval', 'cilow_pval', 'ciupp_pval',
                   'mean_sim',  'sem_sim',
                   ]
-        if base_id_type in {'mgi_id', 'ensembl_id'}:
+        if base_id_type in {'mgi_id', 'ensembl_id', 'entrez_human',
+                            'entrez_mouse'}:
             header = [base_id_type] + header
 
         df = pd.DataFrame.from_records(rows, columns=header)

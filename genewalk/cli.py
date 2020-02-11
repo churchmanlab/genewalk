@@ -72,7 +72,8 @@ def main():
                              'in the genes argument. Possible values are: '
                              'hgnc_symbol, hgnc_id, ensembl_id, and mgi_id.',
                         choices=['hgnc_symbol', 'hgnc_id',
-                                 'ensembl_id', 'mgi_id'],
+                                 'ensembl_id', 'mgi_id', 'entrez_human',
+                                 'entrez_mouse'],
                         required=True)
     parser.add_argument('--stage', default='all',
                         help='The stage of processing to run. Default: '
@@ -151,7 +152,7 @@ def main():
     rm.download_all()
 
     if args.stage in ('all', 'node_vectors'):
-        genes = read_gene_list(args.genes, args.id_type)
+        genes = read_gene_list(args.genes, args.id_type, rm)
         save_pickle(genes, project_folder, 'genes')
         MG = load_network(args.network_source, args.network_file, genes,
                           resource_manager=rm)
