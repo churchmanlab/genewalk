@@ -31,10 +31,10 @@ class ResourceManager(object):
 
     def get_pc(self):
         fname = os.path.join(self.resource_folder,
-                             'PathwayCommons11.All.hgnc.sif')
+                             'PathwayCommons12.All.hgnc.sif')
         if not os.path.exists(fname):
-            url_pc = ('http://www.pathwaycommons.org/archives/PC2/v11/'
-                      'PathwayCommons11.All.hgnc.sif.gz')
+            url_pc = ('http://www.pathwaycommons.org/archives/PC2/v12/'
+                      'PathwayCommons12.All.hgnc.sif.gz')
             download_gz(fname, url_pc)
         return fname
 
