@@ -216,6 +216,7 @@ class PcNxMgAssembler(NxMgAssembler):
         hgnc_symbols = [g['HGNC_SYMBOL'] for g in self.genes]
         hgnc_ids = [g['HGNC'] for g in self.genes]
         up_ids = [g['UP'] for g in self.genes]
+        pc.add_nodes_from(hgnc_symbols)
         pc_sub = pc.subgraph(hgnc_symbols)
         gene2hgnc_dict = dict(zip(hgnc_symbols, hgnc_ids))
         nx.set_node_attributes(pc_sub, gene2hgnc_dict, 'HGNC')
@@ -223,8 +224,6 @@ class PcNxMgAssembler(NxMgAssembler):
         nx.set_node_attributes(pc_sub, gene2up_dict, 'UP')
         # Make a copy to unfreeze graph
         self.graph = nx.MultiGraph(pc_sub)
-        # Delete unconnected nodes
-        self.graph.remove_nodes_from(nx.isolates(pc_sub))
         logger.info('Number of PC originating nodes %d' %
                     nx.number_of_nodes(self.graph))
 
@@ -276,7 +275,14 @@ class IndraNxMgAssembler(NxMgAssembler):
                 b_node = self.add_agent_node(b)
                 self.graph.add_edge(a_node, b_node, key=edge_key,
                                     label=edge_type)
-
+        hgnc_symbols = [g['HGNC_SYMBOL'] for g in self.genes]
+        hgnc_ids = [g['HGNC'] for g in self.genes]
+        up_ids = [g['UP'] for g in self.genes]
+        self.graph.add_nodes_from(hgnc_symbols)
+        gene2hgnc_dict = dict(zip(hgnc_symbols, hgnc_ids))
+        nx.set_node_attributes(self.graph, gene2hgnc_dict, 'HGNC')
+        gene2up_dict = dict(zip(hgnc_symbols, up_ids))
+        nx.set_node_attributes(self.graph, gene2up_dict, 'UP')
         logger.info('Number of INDRA originating nodes %d.' %
                     len(self.indra_nodes))
 
