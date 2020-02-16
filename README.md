@@ -161,7 +161,7 @@ from each repeat analysis.
 - ciupp_pval - upper bound of 95% confidence interval on mean_pval estimate.
 - mean_sim - mean of gene - GO term similarities.
 - sem_sim - standard error on mean_sim estimate.
-- mgi_id,hgnc_id,ensembl_id,mgi_id,entrez_human or entrez_mouse - in case one of these gene identifiers were provided
+- mgi_id, ensembl_id, mgi_id, entrez_human or entrez_mouse - in case one of these gene identifiers were provided
 as input, the GeneWalk results table starts with an additional column to indicate the gene identifiers. In the case 
 of mouse genes, the corresponding hgnc_id and hgnc_symbol resemble its human ortholog gene used for the GeneWalk analysis.
 
