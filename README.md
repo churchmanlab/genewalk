@@ -161,17 +161,21 @@ from each repeat analysis.
 - ciupp_pval - upper bound of 95% confidence interval on mean_pval estimate.
 - mean_sim - mean of gene - GO term similarities.
 - sem_sim - standard error on mean_sim estimate.
-- mgi_id, ensembl_id, mgi_id, entrez_human or entrez_mouse - in case one of these gene identifiers were provided
-as input, the GeneWalk results table starts with an additional column to indicate the gene identifiers. In the case 
-of mouse genes, the corresponding hgnc_id and hgnc_symbol resemble its human ortholog gene used for the GeneWalk analysis.
+- mgi_id, ensembl_id, mgi_id, entrez_human or entrez_mouse - in case one of
+  these gene identifiers were provided as input, the GeneWalk results table
+  starts with an additional column to indicate the gene identifiers. In the
+  case of mouse genes, the corresponding hgnc_id and hgnc_symbol resemble its
+  human ortholog gene used for the GeneWalk analysis.
 
 
 ### Run time and stages of GeneWalk algorithm
-Recommended number of processors (optional argument: nproc) for a short (1-2h) run time is 4:
+Recommended number of processors (optional argument: nproc) for a short (1-2h)
+run time is 4:
 ```bash
 genewalk --project context1 --genes gene_list.txt --id_type hgnc_symbol --nproc 4
 ```
-By default GeneWalk will run with 1 processor, resulting in a longer overall run time: 6-12h.
+By default GeneWalk will run with 1 processor, resulting in a longer overall
+run time: 6-12h.
 Given a list of genes, GeneWalk runs three stages of analysis:
 1. Assembling a GeneWalk network and learning node vector representations
 by running DeepWalk on this network, for a specified number of repeats.
@@ -180,22 +184,23 @@ Typical run time: one to a few hours.
 randomized versions of the GeneWalk network, for a specified number of
 repeats. Typical run time: one to a few hours.
 3. Calculating statistics of similarities between genes and GO terms, and
-outputting  the GeneWalk results in a table. Typical run time: a few minutes.  
+outputting  the GeneWalk results in a table. Typical run time: a few minutes.
 
-GeneWalk can either be run once to complete all these stages (default), or called separately
-for each stage (optional argument: stage).  
-Recommended memory availability on your operating system: 16Gb or 32Gb RAM.  
-GeneWalk outputs the uncertainty (95% confidence intervals) of the similarity significance
-(mean p-adjust). Depending on the context-specific network topology, this uncertainty can be
-large for individual gene - function associations. However, if overall the uncertainties
-turn out very large, one can set the optional arguments nreps_graph to 10 (or more) and
-nreps_null to 10 to increase the algorithm's precision. This comes at the cost of an
-increased run time.
+GeneWalk can either be run once to complete all these stages (default), or
+called separately for each stage (optional argument: stage).  Recommended
+memory availability on your operating system: 16Gb or 32Gb RAM.  GeneWalk
+outputs the uncertainty (95% confidence intervals) of the similarity
+significance (mean p-adjust). Depending on the context-specific network
+topology, this uncertainty can be large for individual gene - function
+associations. However, if overall the uncertainties turn out very large, one
+can set the optional arguments nreps_graph to 10 (or more) and nreps_null to 10
+to increase the algorithm's precision. This comes at the cost of an increased
+run time.
 
 
 ### Further documentation
 For a tutorial and more general information see the
-[GeneWalk website](http://churchman.med.harvard.edu/genewalk).  
+[GeneWalk website](http://churchman.med.harvard.edu/genewalk).
 For further code documentation see our [readthedocs page](https://genewalk.readthedocs.io).
 
 

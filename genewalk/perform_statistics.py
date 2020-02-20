@@ -87,7 +87,8 @@ class GeneWalk(object):
         vals = np.asarray(vals)+eps
         g_mean = gmean(vals)-eps
         g_std = gstd(vals)
-        return g_mean, g_mean*(g_std**(-1.96/np.sqrt(nreps))), g_mean*(g_std**(1.96/np.sqrt(nreps)))
+        return g_mean, g_mean*(g_std**(-1.96/np.sqrt(nreps))), \
+            g_mean*(g_std**(1.96/np.sqrt(nreps)))
 
     def add_empty_row(self, gene, gene_attribs, base_id_type):
         row = [gene_attribs['hgnc_symbol'],
