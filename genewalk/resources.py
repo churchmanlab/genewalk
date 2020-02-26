@@ -8,6 +8,7 @@ logger = logging.getLogger('genewalk.resources')
 
 
 class ResourceManager(object):
+    """Class to manage the download, caching and access of resource files."""
     def __init__(self, base_folder=None):
         self.base_folder = base_folder if base_folder else \
             os.path.join(os.path.expanduser('~'), 'genewalk')

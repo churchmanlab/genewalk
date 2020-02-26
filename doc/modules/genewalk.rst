@@ -1,3 +1,10 @@
+Process gene lists and map between ID types (:py:mod:`genewalk.gene_lists`)
+===========================================================================
+
+.. automodule:: genewalk.gene_lists
+    :members:
+    :show-inheritance:
+
 Networkx MultiGraph assembler (:py:mod:`genewalk.nx_mg_assembler`)
 ==================================================================
 
@@ -32,3 +39,11 @@ Perform statistics and output results (:py:mod:`genewalk.perform_statistics`)
 .. automodule:: genewalk.perform_statistics
     :members:
     :show-inheritance:
+
+Manage resource files (:py:mod:`genewalk.resources`)
+====================================================
+
+.. automodule:: genewalk.resources
+    :members:
+    :show-inheritance:
+
