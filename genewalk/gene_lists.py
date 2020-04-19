@@ -67,9 +67,13 @@ def map_hgnc_symbols(hgnc_symbols):
     refs = []
     for hgnc_symbol in hgnc_symbols:
         ref = {'HGNC_SYMBOL': hgnc_symbol, 'HGNC': None, 'UP': None}
-        hgnc_id = hgnc_client.get_hgnc_id(hgnc_symbol)
+        hgnc_id = hgnc_client.get_current_hgnc_id(hgnc_symbol)
         if not hgnc_id:
             logger.warning('Could not get HGNC ID for symbol %s' % hgnc_symbol)
+            continue
+        elif isinstance(hgnc_id, list):
+            logger.warning('More than one current HGNC ID for outdated '
+                           'symbol %s' % hgnc_symbol)
             continue
         ref['HGNC'] = hgnc_id
         uniprot_id = hgnc_client.get_uniprot_id(hgnc_id)
