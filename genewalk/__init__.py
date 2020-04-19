@@ -12,4 +12,4 @@ logger = logging.getLogger('genewalk')
 logging.getLogger('gensim.summarization.textcleaner').setLevel(logging.WARNING)
 
 
-__version__ = '1.2.0'
+__version__ = '1.2.1'
