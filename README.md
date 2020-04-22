@@ -29,8 +29,8 @@ GeneWalk always requires as input a text file containing a list with genes of in
 relevant to the biological context. For example, differentially expressed genes
 from a sequencing experiment that compares an experimental versus control condition.
 GeneWalk supports gene list files containing HGNC human gene symbols,
-HGNC IDs, human Ensembl gene IDs, or MGI mouse gene IDs. Each line in the file
-contains a gene identifier of one of these types.
+HGNC IDs, human Ensembl gene IDs, MGI mouse gene IDs, or human or mouse entrez IDs. 
+Each line in the file contains a gene identifier of one of these types.
 
 ### GeneWalk command line interface
 Once installed, GeneWalk can be run from the command line as `genewalk`, with
@@ -200,7 +200,7 @@ run time.
 
 ### Further documentation
 For a tutorial and more general information see the
-[GeneWalk website](http://churchman.med.harvard.edu/genewalk).
+[GeneWalk website](http://churchman.med.harvard.edu/genewalk).  
 For further code documentation see our [readthedocs page](https://genewalk.readthedocs.io).
 
 
