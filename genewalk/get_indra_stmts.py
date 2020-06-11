@@ -13,7 +13,7 @@ from indra.util import batch_iter
 from indra.databases import go_client
 from indra.sources import indra_db_rest
 from indra.databases import hgnc_client
-from indra.preassembler.hierarchy_manager import hierarchies
+from indra.ontology.bio import bio_ontology
 
 
 logger = logging.getLogger('genewalk.get_indra_stmts')
@@ -84,20 +84,13 @@ def filter_to_genes(df, genes, fplx_terms):
     return df
 
 
-def get_gene_parents(hgnc_id):
-    eh = hierarchies['entity']
-    gene_uri = eh.get_uri('HGNC', hgnc_id)
-    parents = eh.get_parents(gene_uri)
-    parent_ids = [eh.ns_id_from_uri(par_uri)[1] for par_uri in parents]
-    return parent_ids
-
-
 def get_famplex_terms(genes):
     """Get a list of associated FamPlex IDs from a list of gene IDs."""
     all_parents = set()
     for hgnc_id in genes:
-        parent_ids = get_gene_parents(hgnc_id)
-        all_parents |= set(parent_ids)
+        parent_ids = {p[1] for p in
+                      bio_ontology.get_parents('HGNC', hgnc_id)}
+        all_parents |= parent_ids
     fplx_terms = sorted(list(all_parents))
     logger.info('Found %d relevant FamPlex terms.' % (len(fplx_terms)))
     return fplx_terms
@@ -133,14 +126,12 @@ def get_famplex_links_from_stmts(stmts):
 def get_famplex_links_from_lists(genes_appearing, fplx_appearing):
     links = []
     for gene in genes_appearing:
-        parent_ids = get_gene_parents(gene)
+        parent_ids = [p[1] for p in bio_ontology.get_parents('HGNC', gene)]
         parents_appearing = fplx_appearing & set(parent_ids)
         links += [(gene, parent) for parent in parents_appearing]
-    eh = hierarchies['entity']
     for fplx_child in fplx_appearing:
-        fplx_uri = eh.get_uri('FPLX', fplx_child)
-        parents = eh.get_parents(fplx_uri)
-        parent_ids = [eh.ns_id_from_uri(par_uri)[1] for par_uri in parents]
+        parent_ids = [p[1] for p in
+                      bio_ontology.get_parents('FPLX', fplx_child)]
         parents_appearing = fplx_appearing & set(parent_ids)
         links += [(fplx_child, parent) for parent in parents_appearing]
     return links
