@@ -12,7 +12,7 @@ def main():
                     'indra>=1.14.1', 'scipy>=1.3.0']
 
     setup(name='genewalk',
-          version='1.2.1',
+          version='1.2.2',
           description='Determine gene function based on network embeddings.',
           long_description=long_description,
           long_description_content_type='text/markdown',
