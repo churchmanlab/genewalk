@@ -6,7 +6,6 @@ import networkx as nx
 from indra.databases import go_client
 from goatools.obo_parser import GODag
 from genewalk.resources import ResourceManager
-from genewalk.get_indra_stmts import get_famplex_links_from_stmts
 
 logger = logging.getLogger('genewalk.nx_mg_assembler')
 
@@ -289,6 +288,7 @@ class IndraNxMgAssembler(NxMgAssembler):
     def add_fplx_edges(self):
         """Add edges between gene nodes and families/complexes they are part
         of."""
+        from genewalk.get_indra_stmts import get_famplex_links_from_stmts
         links = get_famplex_links_from_stmts(self.stmts)
         for s, t in links:
             self.graph.add_edge(s, t, label='FPLX:is_a')
