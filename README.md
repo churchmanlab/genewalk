@@ -105,6 +105,13 @@ optional arguments:
                         similarities are output, otherwise only the ones whose
                         false discovery rate are below this parameter are
                         included. Default: 1
+  --dim_rep DIM_REP     Dimension of vector representations (embeddings). This 
+                        value should only be increased if genewalk with the 
+                        default value generates no statistically significant 
+                        results, for instance with very large (>2500) input 
+                        gene lists. Alternatively, it can be decreased in case 
+                        (nearly) all GO annotations are significant, for 
+                        instance with very short gene lists. Default: 8
   --save_dw SAVE_DW     If True, the full DeepWalk object for each repeat is
                         saved in the project folder. This can be useful for
                         debugging but the files are typically very large.
