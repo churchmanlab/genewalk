@@ -119,6 +119,16 @@ def main():
                              'otherwise only the ones whose false discovery '
                              'rate are below this parameter are included. '
                              'Default: %(default)s')
+    parser.add_argument('--dim_rep', default=8, type=int,
+                        help='Dimension of vector representations '
+                             '(embeddings). This value should only be '
+                             'increased if genewalk with the default value '
+                             'generates no statistically significant results, '
+                             'for instance with very large (>2500) input gene '
+                             'lists. Alternatively, it can be decreased in '
+                             'case (nearly) all GO annotations are '
+                             'significant, for instance with very short gene '
+                             'lists. Default: %(default)s')
     parser.add_argument('--save_dw', default=False, type=bool,
                         help='If True, the full DeepWalk object for each '
                              'repeat is saved in the project folder. This can '
@@ -130,6 +140,7 @@ def main():
                              'be used if the goal is to deterministically '
                              'reproduce a prior result obtained with the same '
                              'random seed.')
+
     args = parser.parse_args()
 
     # Now we run the relevant stage of processing
@@ -159,7 +170,7 @@ def main():
         save_pickle(MG.graph, project_folder, 'multi_graph')
         for i in range(args.nreps_graph):
             logger.info('%s/%s' % (i + 1, args.nreps_graph))
-            DW = run_walks(MG.graph, workers=args.nproc)
+            DW = run_walks(MG.graph, workers=args.nproc, size=args.dim_rep)
 
             # Pickle the node vectors (embeddings) and DW object
             if args.save_dw:
@@ -178,7 +189,7 @@ def main():
         for i in range(args.nreps_null):
             logger.info('%s/%s' % (i + 1, args.nreps_null))
             RG = get_rand_graph(MG)
-            DW = run_walks(RG, workers=args.nproc)
+            DW = run_walks(RG, workers=args.nproc, size=args.dim_rep)
 
             # Pickle the node vectors (embeddings) and DW object
             if args.save_dw:
