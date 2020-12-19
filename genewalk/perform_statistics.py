@@ -77,7 +77,7 @@ class GeneWalk(object):
         for idx in range(len(go_attribs)):
             go_attribs[idx]['qval'] = qvals[idx]
         return go_attribs
-
+        
     def log_stats(self, vals):
         eps = 1e-16
         nreps = len(vals)
@@ -187,6 +187,7 @@ class GeneWalk(object):
             header = [base_id_type] + header
 
         df = pd.DataFrame.from_records(rows, columns=header)
+        df = self.global_fdr(df,alpha_fdr)
         df[base_id_type] = df[base_id_type].astype('category')
         df[base_id_type].cat.set_categories(df[base_id_type].unique(),
                                             inplace=True)
@@ -209,3 +210,10 @@ class GeneWalk(object):
         if pval < eps:
             pval = eps
         return pval
+
+    def global_fdr(self,df,alpha_fdr):
+        df.insert((len(df.columns)-8),'global_mean_padj',np.nan)
+        ids = df[~df['mean_pval'].isna()].index
+        _, qvals = fdrcorrection(df['mean_pval'][ids], alpha=alpha_fdr, method='indep')
+        df.loc[ids,'global_mean_padj'] = qvals
+        return df
