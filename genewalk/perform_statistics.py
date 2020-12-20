@@ -184,14 +184,14 @@ class GeneWalk(object):
                   'mean_pval', 'cilow_pval', 'ciupp_pval',
                   'mean_sim',  'sem_sim',
                   ]
-        header.extend(['pval_rep'+i for i in range(len(self.nvs))])
+        header.extend(['pval_rep'+str(i) for i in range(len(self.nvs))])
         if base_id_type in {'mgi_id', 'ensembl_id', 'entrez_human',
                             'entrez_mouse'}:
             header = [base_id_type] + header
 
         df = pd.DataFrame.from_records(rows, columns=header)
         df = self.global_fdr(df,alpha_fdr)
-        df.drop(['pval_rep'+i for i in range(len(self.nvs))],
+        df.drop(['pval_rep'+str(i) for i in range(len(self.nvs))],
                 axis=1, inplace=True) 
         #df = self.global_fdr_from_mean_pval(df,alpha_fdr)
         df[base_id_type] = df[base_id_type].astype('category')
@@ -224,7 +224,7 @@ class GeneWalk(object):
         qvals = np.empty((len(ids),len(self.nvs)))
         qvals[:] = np.nan
         for i in range(len(self.nvs)):
-            _, qvals[:,i] = fdrcorrection(df['pval_rep'+i][ids], 
+            _, qvals[:,i] = fdrcorrection(df['pval_rep'+str(i)][ids], 
                                         alpha=alpha_fdr, method='indep')
         for i in range(qvals.shape[0]):
             mean_padj, low_padj, upp_padj = self.log_stats(qvals[i,:])
