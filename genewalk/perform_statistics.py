@@ -220,7 +220,7 @@ class GeneWalk(object):
     def global_fdr(self,df,alpha_fdr):
         global_stats = {'global_padj': [], 'cilow_global_padj': [],
                         'ciupp_global_padj': []}
-        ids = df[~df['pval+rep1'].isna()].index
+        ids = df[~df['pval_rep1'].isna()].index
         qvals = np.empty((len(ids),len(self.nvs)))
         qvals[:] = np.nan
         for i in range(len(self.nvs)):
