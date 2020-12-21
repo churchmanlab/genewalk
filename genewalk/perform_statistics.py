@@ -139,7 +139,7 @@ class GeneWalk(object):
                                 go_attrib_dict[go_id] = [go_attribs]
 
                     for go_id, go_attribs in go_attrib_dict.items():
-                        mean_padj, low_padj, upp_padj = \
+                        gene_padj, low_gene_padj, upp_gene_padj = \
                             self.log_stats([attr['qval']
                                             for attr in go_attribs])
                         mean_pval, low_pval, upp_pval = \
@@ -150,7 +150,7 @@ class GeneWalk(object):
                         sem_sim = (np.std([attr['sim_score']
                                            for attr in go_attribs]) /
                                    np.sqrt(len(self.nvs)))
-                        if mean_padj < alpha_fdr or alpha_fdr == 1:
+                        if gene_padj < alpha_fdr or alpha_fdr == 1:
                             row = [gene_attribs['hgnc_symbol'],
                                    gene_attribs['hgnc_id'],
                                    go_attribs[0]['go_name'],
@@ -158,9 +158,10 @@ class GeneWalk(object):
                                    go_attribs[0]['go_domain'],
                                    gene_attribs['ncon_gene'],
                                    go_attribs[0]['ncon_go'],
-                                   mean_padj, low_padj, upp_padj,
-                                   mean_pval, low_pval, upp_pval,
-                                   mean_sim, sem_sim]
+                                   gene_padj, mean_pval, 
+                                   mean_sim, sem_sim,
+                                   low_gene_padj, upp_gene_padj,
+                                   low_pval, upp_pval]
                             row.extend([attr['pval'] for attr in go_attribs])
                             # If dealing with mouse genes, prepend the MGI ID
                             if base_id_type == 'mgi_id':
@@ -180,10 +181,10 @@ class GeneWalk(object):
         header = ['hgnc_symbol', 'hgnc_id',
                   'go_name', 'go_id', 'go_domain',
                   'ncon_gene', 'ncon_go',
-                  'mean_padj', 'cilow_padj', 'ciupp_padj',
-                  'mean_pval', 'cilow_pval', 'ciupp_pval',
-                  'mean_sim',  'sem_sim',
-                  ]
+                  'gene_padj', 'pval', 
+                  'sim',  'sem_sim',
+                  'cilow_gene_padj', 'ciupp_gene_padj',
+                  'cilow_pval', 'ciupp_pval']
         header.extend(['pval_rep'+str(i) for i in range(len(self.nvs))])
         if base_id_type in {'mgi_id', 'ensembl_id', 'entrez_human',
                             'entrez_mouse'}:
@@ -193,15 +194,14 @@ class GeneWalk(object):
         df = self.global_fdr(df,alpha_fdr)
         df.drop(['pval_rep'+str(i) for i in range(len(self.nvs))],
                 axis=1, inplace=True) 
-        #df = self.global_fdr_from_mean_pval(df,alpha_fdr)
         df[base_id_type] = df[base_id_type].astype('category')
         df[base_id_type].cat.set_categories(df[base_id_type].unique(),
                                             inplace=True)
         df[['ncon_gene', 'ncon_go']] = \
             df[['ncon_gene', 'ncon_go']].astype('str')
-        df = df.sort_values(by=[base_id_type, 'go_domain', 'mean_padj',
-                                'mean_sim', 'go_name'],
-                            ascending=[True, True, True, False, True])
+        df = df.sort_values(by=[base_id_type, 'global_padj', 'gene_padj', 
+                                'sim', 'go_domain', 'go_name'],
+                            ascending=[True, True, True, False, True, True])
         return df
 
     def psim(self, sim):
@@ -220,6 +220,8 @@ class GeneWalk(object):
     def global_fdr(self,df,alpha_fdr):
         global_stats = {'global_padj': [], 'cilow_global_padj': [],
                         'ciupp_global_padj': []}
+        colloc = {'global_padj': 8, 'cilow_global_padj': 4,
+                          'ciupp_global_padj': 4} 
         ids = df[~df['pval_rep0'].isna()].index
         qvals = np.empty((len(ids),len(self.nvs)))
         qvals[:] = np.nan
@@ -232,14 +234,6 @@ class GeneWalk(object):
             global_stats['cilow_global_padj'].append(low_padj)
             global_stats['ciupp_global_padj'].append(upp_padj)
         for key in global_stats.keys():
-            df.insert((len(df.columns)-8-len(self.nvs)),key,np.nan)
+            df.insert((len(df.columns)-colloc[key]-len(self.nvs)),key,np.nan)
             df.loc[ids,key] = global_stats[key]
         return df
-    
-#     def global_fdr_from_mean_pval(self,df,alpha_fdr):
-#         df.insert((len(df.columns)-8-len(self.nvs),'global_mean_padj',np.nan)
-#         ids = df[~df['mean_pval'].isna()].index
-#         _, qvals = fdrcorrection(df['mean_pval'][ids], 
-#                                  alpha=alpha_fdr, method='indep')
-#         df.loc[ids,'global_mean_padj'] = qvals
-#         return df
