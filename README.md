@@ -105,6 +105,13 @@ optional arguments:
                         similarities are output, otherwise only the ones whose
                         false discovery rate are below this parameter are
                         included. Default: 1
+  --dim_rep DIM_REP     Dimension of vector representations (embeddings). This 
+                        value should only be increased if genewalk with the 
+                        default value generates no statistically significant 
+                        results, for instance with very large (>2500) input 
+                        gene lists. Alternatively, it can be decreased in case 
+                        (nearly) all GO annotations are significant, for 
+                        instance with very short gene lists. Default: 8
   --save_dw SAVE_DW     If True, the full DeepWalk object for each repeat is
                         saved in the project folder. This can be useful for
                         debugging but the files are typically very large.
@@ -146,21 +153,41 @@ with the following column headers:
 - go_id - GO term identifier.
 - go_domain - Ontology domain that GO term belongs to
 (biological process, cellular component or molecular function).
-- ncon_gene - number of connection to gene in GeneWalk network.
+- ncon_gene - number of connections to gene in GeneWalk network.
 - ncon_go - number of connections to GO term in GeneWalk network.
-- **mean_padj** - mean false discovery rate (FDR) adjusted p-value of the similarity between gene and GO term.
-This is the key statistic indicating how relevant the GO term (function) is to the gene in the
-particular biological context or tested condition. GeneWalk determines an adjusted p-value with
-Benjamini Hochberg FDR correction for multiple tested of all connected GO term for each
-nreps_graph repeat analysis. The value presented here is the average over all p-adjust values
-from each repeat analysis. 
-- cilow_padj - lower bound of 95% confidence interval on mean_padj estimate from the nreps_graph repeat analyses.
-- ciupp_padj - upper bound of 95% confidence interval on mean_padj estimate.
-- mean_pval - mean p-values of gene - GO term similarities, not FDR corrected for multiple testing.
-- cilow_pval - lower bound of 95% confidence interval on mean_pval estimate.
-- ciupp_pval - upper bound of 95% confidence interval on mean_pval estimate.
-- mean_sim - mean of gene - GO term similarities.
-- sem_sim - standard error on mean_sim estimate.
+- **global_padj** - false discovery rate (FDR) adjusted p-value of the 
+similarity between gene and GO term, when correcting for testing over all 
+gene-GO term pairs present in the output file.
+This is the key statistic that indicates how relevant the gene-GO term pair 
+(gene function) is in the particular biological context or tested condition. 
+Global_padj should be used for global analyses that
+consider all the GeneWalk output simultaneously, such as gene prioritization
+procedures. GeneWalk determines an adjusted p-value with Benjamini Hochberg FDR 
+correction for multiple testing of all connected GO term for each 
+nreps_graph repeat analysis. The value presented here is the average (mean 
+estimate) over all p-adjust values from all nreps_graph repeat analyses. 
+- **gene_padj** - FDR adjusted p-value of the similarity between gene and 
+GO term, when correcting for multiple testing over all GO annotations of 
+that gene. This the key statistic when investigating the functions of one 
+(or a few) pre-defined gene(s) of interest. Gene_padj determines the statistical 
+significance of each GO annotation (function) and gene_padj can be used to 
+sensitively rank GO annotations to reflect the relevance to the gene of interest
+in the particular biological context or tested condition. When you consider all
+(or many) input genes simultaneously, use global_padj instead. Average 
+over nreps_graph repeat runs as for global_padj. 
+- pval - p-value of gene - GO term similarity, not corrected for multiple
+hypothesis testing. Average over nreps_graph repeat runs.
+- sim - gene - GO term (cosine) similarity, average over nreps_graph repeat runs.
+- sem_sim - standard error on sim (mean estimate).
+- cilow_global_padj - lower bound of 95% confidence interval on global_padj 
+(mean estimate) from the nreps_graph repeat analyses.
+- ciupp_global_padj - upper bound of 95% confidence interval on global_padj.
+- cilow_gene_padj - lower bound of 95% confidence interval on gene_padj
+(mean estimate) from the nreps_graph repeat analyses.
+- ciupp_gene_padj - upper bound of 95% confidence interval on gene_padj.
+- cilow_pval - lower bound of 95% confidence interval on pval (mean estimate)
+from the nreps_graph repeat analyses.
+- ciupp_pval - upper bound of 95% confidence interval on pval.
 - mgi_id, ensembl_id, mgi_id, entrez_human or entrez_mouse - in case one of
   these gene identifiers were provided as input, the GeneWalk results table
   starts with an additional column to indicate the gene identifiers. In the
