@@ -12,7 +12,7 @@ def main():
                     'indra>=1.14.1', 'scipy>=1.3.0']
 
     setup(name='genewalk',
-          version='1.2.2',
+          version='1.3.0',
           description='Determine gene function based on network embeddings.',
           long_description=long_description,
           long_description_content_type='text/markdown',
@@ -25,9 +25,10 @@ def main():
             'Intended Audience :: Science/Research',
             'License :: OSI Approved :: BSD License',
             'Operating System :: OS Independent',
-            'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
+            'Programming Language :: Python :: 3.9', 
             'Topic :: Scientific/Engineering :: Bio-Informatics',
             ],
           keywords=['gene function', 'network', 'embedding'],
