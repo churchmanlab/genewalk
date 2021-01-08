@@ -17,6 +17,7 @@ from genewalk.perform_statistics import GeneWalk
 from genewalk import logger as root_logger, default_logger_format, \
     default_date_format
 from genewalk.resources import ResourceManager
+from genewalk.plot import GW_Plotter
 
 logger = logging.getLogger('genewalk.cli')
 
@@ -79,7 +80,7 @@ def main():
                         help='The stage of processing to run. Default: '
                              '%(default)s',
                         choices=['all', 'node_vectors', 'null_distribution',
-                                 'statistics'])
+                                 'statistics','visual'])
     parser.add_argument('--base_folder', default=default_base_folder,
                         help='The base folder used to store GeneWalk '
                              'temporary and result files for a given project.'
@@ -221,7 +222,13 @@ def main():
         fname = os.path.join(project_folder, 'genewalk_results.csv')
         logger.info('Saving final results into %s' % fname)
         df.to_csv(fname, index=False, float_format='%.3e')
-
-
+        
+    if args.stage in ('all', 'visual'):
+        fname = os.path.join(project_folder, 'genewalk_results.csv')
+        dGW = pd.read_csv(fname)
+        figure_folder = os.path.join(project_folder, 'figures')
+        GWp = GW_Plotter(figure_folder, dGW)
+        GWp.generate_plots(alpha_fdr=args.alpha_fdr)
+        
 if __name__ == '__main__':
     main()
