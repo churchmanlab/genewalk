@@ -72,7 +72,7 @@ required arguments:
                         entrez_mouse.
 
 optional arguments:
-  --stage {all,node_vectors,null_distribution,statistics}
+  --stage {all,node_vectors,null_distribution,statistics,visual}
                         The stage of processing to run. Default: all
   --base_folder BASE_FOLDER
                         The base folder used to store GeneWalk temporary and
@@ -104,7 +104,11 @@ optional arguments:
                         final statistics table. If 1 (default), all
                         similarities are output, otherwise only the ones whose
                         false discovery rate are below this parameter are
-                        included. Default: 1
+                        included. Default: 1 
+                        For visualization a default value of 0.1 for both global
+                        and gene-specific plots is used. Lower this value to 
+                        increase the stringency of the regulator gene selection 
+                        procedure.
   --dim_rep DIM_REP     Dimension of vector representations (embeddings). This 
                         value should only be increased if genewalk with the 
                         default value generates no statistically significant 
@@ -212,6 +216,8 @@ randomized versions of the GeneWalk network, for a specified number of
 repeats. Typical run time: one to a few hours.
 3. Calculating statistics of similarities between genes and GO terms, and
 outputting  the GeneWalk results in a table. Typical run time: a few minutes.
+4. Visualization of the GeneWalk results generated in the project/figures subfolder.
+Typical run time: 1-10 mins depending on the number of input genes.
 
 GeneWalk can either be run once to complete all these stages (default), or
 called separately for each stage (optional argument: stage).  Recommended
