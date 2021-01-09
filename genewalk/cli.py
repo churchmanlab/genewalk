@@ -227,6 +227,7 @@ def main():
         fname = os.path.join(project_folder, 'genewalk_results.csv')
         dGW = pd.read_csv(fname)
         figure_folder = create_folder(project_folder, 'figures')
+        barplot_folder = create_folder(figure_folder, 'barplots')
         GWp = GW_Plotter(figure_folder, dGW, args.alpha_fdr)
         GWp.generate_plots()
         
