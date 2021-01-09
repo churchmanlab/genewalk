@@ -147,11 +147,12 @@ given list of genes, an interaction network, GO annotations, and the GO ontology
 - `deepwalk_rand_*.pkl` - A DeepWalk object for each analysis repeat on a random graph
 (only present if save_dw argument is set to True).  
 
+### Figure files 
 GeneWalk now also automatically generates figures to visualize its results in the project/figures 
-subfolder:
+sub-folder:
 - barplots with GO annotations ranked by relevance for each input gene that GeneWalk was able
 to generate results for. The filenames contain the corresponding human gene symbol and input 
-gene id (.png format).
+gene id: `barplot_[symbol]_[gene id]_x_mlog10gene_padj_y_GO.png`.
 - `regulators_x_gene_con_y_frac_rel_go(.png and .pdf)`: scatter plot to identify regulator
 genes of interest. These have a large gene connectivity and high fraction of relevant GO
 annotations. For more information see our publication.
