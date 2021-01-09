@@ -145,7 +145,25 @@ given list of genes, an interaction network, GO annotations, and the GO ontology
 - `deepwalk_*.pkl` - A DeepWalk object for each analysis repeat on the graph
 (only present if save_dw argument is set to True).
 - `deepwalk_rand_*.pkl` - A DeepWalk object for each analysis repeat on a random graph
-(only present if save_dw argument is set to True).
+(only present if save_dw argument is set to True).  
+
+GeneWalk now also automatically generates figures to visualize its results in the project/figures 
+subfolder:
+- barplots with GO annotations ranked by relevance for each input gene that GeneWalk was able
+to generate results for. The filenames contain the corresponding human gene symbol and input 
+gene id (.png format).
+- `regulators_x_gene_con_y_frac_rel_go(.png and .pdf)`: scatter plot to identify regulator
+genes of interest. These have a large gene connectivity and high fraction of relevant GO
+annotations. For more information see our publication.
+- `genewalk_regulators.csv`: list with regulator genes that are named in the 
+regulators scatterplot.
+- `moonlighters_x_go_con_y_frac_rel_go(.png and .pdf)`: scatter plot to identify moonlighting
+genes: genes with many GO annotations of which a low fraction are relevant. For more information
+see our publication.
+- `genewalk_moonlighters.csv`: list with moonlighting genes that are named in the 
+moonlighting scatterplot.
+- `genewalk_scatterplots.csv`: data corresponding to the regulator and moonlighter scatter plots. 
+This file can be used for further gene prioritization analyses.
 
 
 ### GeneWalk results file description
@@ -223,7 +241,7 @@ GeneWalk can either be run once to complete all these stages (default), or
 called separately for each stage (optional argument: stage).  Recommended
 memory availability on your operating system: 16Gb or 32Gb RAM.  GeneWalk
 outputs the uncertainty (95% confidence intervals) of the similarity
-significance (mean p-adjust). Depending on the context-specific network
+significance (global and gene p-adjust). Depending on the context-specific network
 topology, this uncertainty can be large for individual gene - function
 associations. However, if overall the uncertainties turn out very large, one
 can set the optional arguments nreps_graph to 10 (or more) and nreps_null to 10
