@@ -24,12 +24,12 @@ logger = logging.getLogger('genewalk.cli')
 default_base_folder = os.path.join(os.path.expanduser('~/'), 'genewalk')
 
 
-def create_project_folder(base_folder, project):
-    project_folder = os.path.join(base_folder, project)
-    logger.info('Creating project folder at %s' % project_folder)
-    if not os.path.exists(project_folder):
-        os.makedirs(project_folder)
-    return project_folder
+def create_folder(base_folder, project):
+    sub_folder = os.path.join(base_folder, project)
+    logger.info('Creating %s folder at %s' % (project, sub_folder))
+    if not os.path.exists(sub_folder):
+        os.makedirs(sub_folder)
+    return sub_folder
 
 
 def save_pickle(obj, project_folder, prefix):
@@ -145,7 +145,7 @@ def main():
     args = parser.parse_args()
 
     # Now we run the relevant stage of processing
-    project_folder = create_project_folder(args.base_folder, args.project)
+    project_folder = create_folder(args.base_folder, args.project)
 
     # Add a logger specific to the project and processing stage
     log_file = os.path.join(project_folder, 'genewalk_%s.log' % args.stage)
@@ -226,9 +226,9 @@ def main():
     if args.stage in ('all', 'visual'):
         fname = os.path.join(project_folder, 'genewalk_results.csv')
         dGW = pd.read_csv(fname)
-        figure_folder = os.path.join(project_folder, 'figures')
-        GWp = GW_Plotter(figure_folder, dGW)
-        GWp.generate_plots(alpha_fdr=args.alpha_fdr)
+        figure_folder = create_folder(project_folder, 'figures')
+        GWp = GW_Plotter(figure_folder, dGW, args.alpha_fdr)
+        GWp.generate_plots()
         
 if __name__ == '__main__':
     main()
