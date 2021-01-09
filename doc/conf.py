@@ -172,7 +172,7 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 
 
 for mod_name in ['indra', 'indra.databases', 'indra.util', 'indra.sources',
-                 'indra.sources.indra_db_rest', 'indra.preassembler',
-                 'indra.preassembler.hierarchy_manager',
+                 'indra.sources.indra_db_rest', 'indra.ontology',
+                 'indra.ontology.bio', 'indra.preassembler',
                  'goatools', 'goatools.obo_parser']:
     sys.modules[mod_name] = mock.MagicMock()

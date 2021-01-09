@@ -8,6 +8,7 @@ import seaborn as sns
 
 logger = logging.getLogger('genewalk.plot')
 
+
 class GW_Plotter(object):
     """ 
     genewalk plotter object to visualize genewalk output data.
@@ -23,24 +24,23 @@ class GW_Plotter(object):
     """
     def __init__(self, path, dgw, alpha_fdr):
         self.path = path
-        if alpha_fdr == 1:#default input
+        if alpha_fdr == 1:  # default input
             self.alpha_fdr = 0.1
         else:
             self.alpha_fdr = alpha_fdr
         self.scatter_data = pd.DataFrame()
-        self.stat = 'gene_padj' #for barplots 
+        self.stat = 'gene_padj'  # for barplots
         self.ci_stat = 'cilow_'+self.stat
         self.dGW = dgw
         self.go_domains = set(self.dGW['go_domain'])
         if self.dGW.columns[0] in {'mgi_id', 'ensembl_id', 
-                                   'entrez_human','entrez_mouse'}:
+                                   'entrez_human', 'entrez_mouse'}:
             self.std_id = False
             self.id_type = self.dGW.columns[0]
         else:
             self.std_id = True
             self.id_type = self.dGW.columns[1]
-    
-    
+
     def generate_plots(self):
         """
         Wrapper that calls scatter and bar plot
@@ -49,8 +49,7 @@ class GW_Plotter(object):
         self.scatterplot_regulators()
         self.scatterplot_moonlighters()
         self.barplot_goanno()
-    
-    
+
     def scatterplot_regulators(self):
         """Scatter plot with fraction of (globally) relevant GO annotations 
         as a function of gene connectivity (to other genes) for all input
@@ -108,7 +107,6 @@ class GW_Plotter(object):
         df.to_csv(os.path.join(self.path, filename), index=False)
         logger.info('Regulators listed in %s...' % filename)
 
-        
     def scatterplot_moonlighters(self):
         """Scatter plot with fraction of (globally) relevant GO annotations 
         as a function of number of GO annotations for all input genes.
@@ -148,8 +146,8 @@ class GW_Plotter(object):
         for m in dmoon.index:
             gname = dmoon['hgnc_symbol'][m]
             moonlighters.append(gname)  
-            x_txt=dmoon[xvar][m]
-            y_txt=dmoon[yvar][m]#+np.random.normal(0,0.005)
+            x_txt = dmoon[xvar][m]
+            y_txt = dmoon[yvar][m]#+np.random.normal(0,0.005)
             g.text(x_txt, y_txt, gname, size=3,horizontalalignment='center', 
                    color='black',weight='light',
                    fontstyle='italic')
@@ -165,7 +163,6 @@ class GW_Plotter(object):
         filename = 'genewalk_moonlighters.csv'
         df.to_csv(os.path.join(self.path, filename),index=False)
         logger.info('Moonlighters listed in %s...' % filename)
-    
 
     def barplot_goanno(self):
         """Visualize statistical significances of GO annotations for a given 
@@ -183,8 +180,7 @@ class GW_Plotter(object):
             #Barplots separated by go domain
             #for go_dom in self.go_domains:
             #    self._barplot(df[df['go_domain']==go_dom],gid, gsymbol,dom=go_dom)
-    
-    
+
     def _get_scatter_data(self):
         """
         Data processing function to for scatter plots.
@@ -228,12 +224,11 @@ class GW_Plotter(object):
         self.scatter_data.to_csv(os.path.join(self.path,filename),
                                  index=False)
         logger.info('Scatter plot data output to %s...' % filename)
-        for c in ['go_con', 'gene_con']:#for log scale plotting: 0 -> 0.5
+        for c in ['go_con', 'gene_con']:  # for log scale plotting: 0 -> 0.5
             self.scatter_data[c].where(self.scatter_data[c] > 0, 0.5,
                                        inplace=True)
 
-            
-    def _barplot(self,dplot,gene_id,gsymbol,dom):
+    def _barplot(self, dplot, gene_id, gsymbol, dom):
         """
         Bar plot figure generating function.
         """
@@ -272,4 +267,3 @@ class GW_Plotter(object):
         else:
             logger.warning('No results for gene id %s: \
                             could not produce barplot' % gene_id)
-    
