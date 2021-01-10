@@ -80,7 +80,7 @@ def main():
                         help='The stage of processing to run. Default: '
                              '%(default)s',
                         choices=['all', 'node_vectors', 'null_distribution',
-                                 'statistics','visual'])
+                                 'statistics', 'visual'])
     parser.add_argument('--base_folder', default=default_base_folder,
                         help='The base folder used to store GeneWalk '
                              'temporary and result files for a given project.'
@@ -143,7 +143,10 @@ def main():
                              'random seed.')
 
     args = parser.parse_args()
+    run_main(args)
 
+
+def run_main(args):
     # Now we run the relevant stage of processing
     project_folder = create_folder(args.base_folder, args.project)
 
