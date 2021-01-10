@@ -15,12 +15,15 @@ class GW_Plotter(object):
     
     Parameters
     ----------
-    path : path to output figures (default: project_folder/figures)
-    dgw : genewalk_results pandas.dataFrame
-    alpha_fdr : FDR significance level for global analyses and barplots.
-                Default: 0.1 and must be < 1 otherwise set to default. 
-                Lower this value to increase the stringency of the
-                regulator selection procedure.
+    path : str
+        Path to output figures (Default: project_folder/figures)
+    dgw : pandas.dataFrame
+        GeneWalk results data frame.
+    alpha_fdr : float
+        FDR significance level for global analyses and barplots.
+        Default: 0.1 and must be < 1 otherwise set to default.
+        Lower this value to increase the stringency of the
+        regulator selection procedure.
     """
     def __init__(self, path, dgw, alpha_fdr):
         self.path = path
@@ -42,10 +45,7 @@ class GW_Plotter(object):
             self.id_type = self.dGW.columns[1]
 
     def generate_plots(self):
-        """
-        Wrapper that calls scatter and bar plot
-        generating functions.
-        """
+        """Wrapper that calls scatter and bar plot generating functions."""
         self.scatterplot_regulators()
         self.scatterplot_moonlighters()
         self.barplot_goanno()
@@ -53,7 +53,9 @@ class GW_Plotter(object):
     def scatterplot_regulators(self):
         """Scatter plot with fraction of (globally) relevant GO annotations 
         as a function of gene connectivity (to other genes) for all input
-        genes. Genes with symbols listed are regulator genes.
+        genes.
+
+        Genes with symbols listed are regulator genes.
         See genewalk_scatterplots.csv for full data and 
         genewalk_regulators.csv for regulator genes of interest.
         Visualization thresholds:
@@ -68,12 +70,12 @@ class GW_Plotter(object):
         T_gcon = self.scatter_data[xvar].quantile(q=0.75)
         T_frac = 0.5
         sns.set(style="whitegrid")  
-        fig, ax = plt.subplots(figsize=(12,12))#inches
+        fig, ax = plt.subplots(figsize=(12,12))  # inches
         g = sns.scatterplot(x=xvar, y=yvar, hue=yvar, 
                             linewidth=0, alpha=0.5,
                             sizes=(40, 400), 
                             data=self.scatter_data,
-                            ax=ax,legend=False)
+                            ax=ax, legend=False)
         plt.axvline(x=T_gcon, color=[0.7,0.7,0.7], linestyle='--')
         plt.axhline(y=T_frac, color=[0.7,0.7,0.7], linestyle='--')
         font_sz=16
@@ -89,18 +91,18 @@ class GW_Plotter(object):
         for r in dreg.index:
             gname = dreg['hgnc_symbol'][r]
             regulators.append(gname)  
-            x_txt=dreg[xvar][r]
-            y_txt=dreg[yvar][r]+np.random.normal(0,0.002)
-            g.text(x_txt, y_txt, gname, size=2,horizontalalignment='center', 
-                   color='black',weight='light',
+            x_txt = dreg[xvar][r]
+            y_txt = dreg[yvar][r]+np.random.normal(0,0.002)
+            g.text(x_txt, y_txt, gname, size=2, horizontalalignment='center',
+                   color='black', weight='light',
                    fontstyle='italic')
         g.set(xscale="log")
         plt.title('Regulator genes',size=font_sz)
         filename = 'regulators_x_'+xvar+'_y_'+yvar+'.'
-        plt.savefig(os.path.join(self.path,filename+'pdf'),
-                    bbox_inches="tight",transparent=True)
-        plt.savefig(os.path.join(self.path,filename+'png'),
-                    bbox_inches="tight",transparent=True)
+        plt.savefig(os.path.join(self.path, filename+'pdf'),
+                    bbox_inches="tight", transparent=True)
+        plt.savefig(os.path.join(self.path, filename+'png'),
+                    bbox_inches="tight", transparent=True)
         logger.info('Regulators plotted in %s...' % filename)
         df = pd.DataFrame(sorted(regulators), columns=['gw_regulators'])
         filename = 'genewalk_regulators.csv'
@@ -110,6 +112,7 @@ class GW_Plotter(object):
     def scatterplot_moonlighters(self):
         """Scatter plot with fraction of (globally) relevant GO annotations 
         as a function of number of GO annotations for all input genes.
+
         Genes with symbols listed are moonlighting genes.
         See genewalk_scatterplots.csv for full data and 
         genewalk_moonlighters.csv for moonlighting genes of interest.
@@ -125,7 +128,7 @@ class GW_Plotter(object):
         T_gocon = max(30,self.scatter_data[xvar].quantile(q=0.75))
         T_frac = 0.5
         sns.set(style="whitegrid")    
-        fig, ax = plt.subplots(figsize=(12,12))#inches
+        fig, ax = plt.subplots(figsize=(12,12))  # inches
         g = sns.scatterplot(x=xvar, y=yvar, hue=yvar, 
                             linewidth=0, alpha=0.5,
                             sizes=(40, 400), 
