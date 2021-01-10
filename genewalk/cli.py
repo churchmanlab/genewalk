@@ -1,12 +1,12 @@
 import gc
 import os
-import sys
 import copy
 import pickle
 import random
 import logging
 import argparse
 import numpy as np
+import pandas as pd
 from genewalk import __version__
 from genewalk.nx_mg_assembler import load_network
 from genewalk.gene_lists import read_gene_list
@@ -222,14 +222,15 @@ def main():
         fname = os.path.join(project_folder, 'genewalk_results.csv')
         logger.info('Saving final results into %s' % fname)
         df.to_csv(fname, index=False, float_format='%.3e')
-        
+
     if args.stage in ('all', 'visual'):
         fname = os.path.join(project_folder, 'genewalk_results.csv')
         dGW = pd.read_csv(fname)
         figure_folder = create_folder(project_folder, 'figures')
-        barplot_folder = create_folder(figure_folder, 'barplots')
+        create_folder(figure_folder, 'barplots')
         GWp = GW_Plotter(figure_folder, dGW, args.alpha_fdr)
         GWp.generate_plots()
-        
+
+
 if __name__ == '__main__':
     main()
