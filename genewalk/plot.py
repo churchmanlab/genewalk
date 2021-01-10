@@ -49,6 +49,7 @@ class GW_Plotter(object):
         self.scatterplot_regulators()
         self.scatterplot_moonlighters()
         self.barplot_goanno()
+        self.make_html()
 
     def scatterplot_regulators(self):
         """Scatter plot with fraction of (globally) relevant GO annotations 
@@ -158,9 +159,9 @@ class GW_Plotter(object):
         plt.title('Moonlighting genes',size=font_sz)
         filename = 'moonlighters_x_'+xvar+'_y_'+yvar+'.'
         plt.savefig(os.path.join(self.path,filename+'pdf'),
-                    bbox_inches="tight",transparent=True)
+                    bbox_inches="tight", transparent=True)
         plt.savefig(os.path.join(self.path,filename+'png'),
-                    bbox_inches="tight",transparent=True)
+                    bbox_inches="tight", transparent=True)
         logger.info('Moonlighting genes plotted in %s...' % filename)
         df = pd.DataFrame(sorted(moonlighters), columns=['gw_moonlighter'])
         filename = 'genewalk_moonlighters.csv'
@@ -264,9 +265,45 @@ class GW_Plotter(object):
             #pdf file size: >300kb, so memorywise not advisable to make 
             #pdf barplots in case of long input gene lists. 
             #Save as png (10kb) instead:
-            plt.savefig(os.path.join(self.path,'barplots',filename+'png'),
+            plt.savefig(os.path.join(self.path, 'barplots', filename+'png'),
                         bbox_inches="tight",transparent=True)
-            logger.info('Barplot generated for %s in %s...' % (gene_id,filename))
+            logger.info('Barplot generated for %s in %s...' % (gene_id, filename))
         else:
             logger.warning('No results for gene id %s: \
                             could not produce barplot' % gene_id)
+
+    def make_html(self):
+        template_path = os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), 'results_template.html')
+        with open(template_path, 'r') as fh:
+            template = fh.read()
+
+        genes = iter(self.dGW[self.id_type].unique())
+        gene_results_html = ""
+        while True:
+            gene_results_html += '<div class="row">'
+            try:
+                for _ in range(4):
+                    gid = next(genes)
+                    gsymbol = self.scatter_data['hgnc_symbol'][gid]
+                    gene_results_html += """
+                    <div class="col-md-3">
+                        <div class="thumbnail">
+                            <a href="barplots/barplot_{symbol}_{id}_x_mlog10gene_padj_y_GO.png">
+                                <img src='barplots/barplot_{symbol}_{id}_x_mlog10gene_padj_y_GO.png' style="width:100%">
+                            </a>
+                            <div class="caption">
+                                <a href="https://identifiers.org/hgnc:{id}">{symbol}</a>
+                            </div>
+                        </div>
+                    </div>
+                    """.format(symbol=gsymbol, id=gid)
+            except StopIteration:
+                break
+            finally:
+                gene_results_html += '</div>'
+
+        template = template.replace('{{ GENE_RESULTS }}', gene_results_html)
+        output_html = os.path.join(self.path, 'index.html')
+        with open(output_html, 'w') as fh:
+            fh.write(template)
