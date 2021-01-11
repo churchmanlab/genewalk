@@ -1,0 +1,35 @@
+hgnc_symbol,hgnc_id,go_name,go_id,go_domain,ncon_gene,ncon_go,global_padj,gene_padj,pval,sim,sem_sim,cilow_global_padj,ciupp_global_padj,cilow_gene_padj,ciupp_gene_padj,cilow_pval,ciupp_pval
+BRAF,1097,cytosol,GO:0005829,cellular component,20,3,2.082e-01,1.265e-01,1.402e-02,8.727e-01,8.134e-03,1.748e-01,2.480e-01,1.131e-01,1.415e-01,1.186e-02,1.658e-02
+BRAF,1097,protein serine/threonine kinase activity,GO:0004674,molecular function,20,25,2.395e-01,1.418e-01,3.037e-02,7.594e-01,1.612e-02,1.941e-01,2.954e-01,1.272e-01,1.581e-01,2.342e-02,3.938e-02
+BRAF,1097,mitochondrion,GO:0005739,cellular component,20,6,2.395e-01,1.418e-01,3.603e-02,7.339e-01,1.344e-02,1.941e-01,2.954e-01,1.272e-01,1.581e-01,2.883e-02,4.502e-02
+BRAF,1097,positive regulation of ERK1 and ERK2 cascade,GO:0070374,biological process,20,4,2.422e-01,1.472e-01,3.367e-02,7.330e-01,7.483e-02,1.801e-01,3.257e-01,1.273e-01,1.702e-01,8.521e-03,1.330e-01
+BRAF,1097,identical protein binding,GO:0042802,molecular function,20,3,2.464e-01,1.450e-01,5.074e-02,6.847e-01,1.410e-02,1.953e-01,3.110e-01,1.248e-01,1.684e-01,4.021e-02,6.402e-02
+BRAF,1097,protein binding,GO:0005515,molecular function,20,116,2.526e-01,1.462e-01,4.639e-02,6.973e-01,2.468e-02,2.250e-01,2.836e-01,1.361e-01,1.572e-01,3.089e-02,6.967e-02
+BRAF,1097,positive regulation of gene expression,GO:0010628,biological process,20,20,2.531e-01,1.489e-01,4.411e-02,7.039e-01,3.440e-02,1.917e-01,3.342e-01,1.218e-01,1.820e-01,2.518e-02,7.729e-02
+BRAF,1097,plasma membrane,GO:0005886,cellular component,20,6,2.792e-01,1.649e-01,2.851e-02,7.433e-01,1.324e-01,1.778e-01,4.382e-01,9.450e-02,2.876e-01,3.497e-03,2.325e-01
+BRAF,1097,trehalose metabolism in response to stress,GO:0070413,biological process,20,6,2.943e-01,1.710e-01,8.068e-02,6.138e-01,2.550e-02,1.971e-01,4.393e-01,1.202e-01,2.434e-01,5.483e-02,1.187e-01
+BRAF,1097,intracellular membrane-bounded organelle,GO:0043231,cellular component,20,31,3.260e-01,1.875e-01,1.133e-01,5.585e-01,2.204e-02,2.253e-01,4.718e-01,1.352e-01,2.601e-01,8.257e-02,1.555e-01
+BRAF,1097,establishment of protein localization to membrane,GO:0090150,biological process,20,12,3.527e-01,2.024e-01,1.156e-01,5.546e-01,2.958e-02,2.547e-01,4.882e-01,1.450e-01,2.826e-01,7.523e-02,1.777e-01
+BRAF,1097,protein phosphorylation,GO:0006468,biological process,20,23,3.833e-01,2.227e-01,1.168e-01,5.446e-01,7.131e-02,1.779e-01,8.255e-01,1.089e-01,4.558e-01,4.425e-02,3.084e-01
+BRAF,1097,protein kinase activity,GO:0004672,molecular function,20,27,4.746e-01,3.040e-01,2.198e-01,4.232e-01,8.237e-02,2.608e-01,8.636e-01,1.369e-01,6.751e-01,8.906e-02,5.426e-01
+BRAF,1097,activation of MAPKK activity,GO:0000186,biological process,20,7,4.777e-01,3.225e-01,2.184e-01,4.226e-01,8.683e-02,2.326e-01,9.811e-01,1.372e-01,7.577e-01,7.608e-02,6.268e-01
+BRAF,1097,calcium ion binding,GO:0005509,molecular function,20,4,5.539e-01,3.547e-01,2.579e-01,4.008e-01,4.610e-02,3.611e-01,8.498e-01,2.027e-01,6.206e-01,1.560e-01,4.264e-01
+BRAF,1097,cellular response to calcium ion,GO:0071277,biological process,20,3,6.203e-01,4.796e-01,4.195e-01,2.742e-01,7.927e-02,4.150e-01,9.269e-01,2.637e-01,8.723e-01,2.079e-01,8.466e-01
+BRAF,1097,positive regulation of peptidyl-serine phosphorylation,GO:0033138,biological process,20,4,6.518e-01,5.228e-01,4.849e-01,2.323e-01,7.890e-02,4.664e-01,9.107e-01,3.197e-01,8.550e-01,2.752e-01,8.544e-01
+BRAF,1097,negative regulation of apoptotic process,GO:0043066,biological process,20,21,6.830e-01,5.216e-01,4.749e-01,2.565e-01,3.739e-02,5.268e-01,8.854e-01,3.714e-01,7.326e-01,3.367e-01,6.699e-01
+BRAF,1097,positive regulation of glucose transmembrane transport,GO:0010828,biological process,20,4,6.872e-01,5.436e-01,5.238e-01,2.315e-01,2.500e-02,5.356e-01,8.816e-01,4.180e-01,7.070e-01,4.241e-01,6.471e-01
+KRAS,6407,plasma membrane,GO:0005886,cellular component,16,6,4.797e-01,5.360e-01,1.816e-01,3.930e-01,2.003e-01,1.826e-01,1.260e+00,2.087e-01,1.376e+00,1.430e-02,2.307e+00
+KRAS,6407,GDP binding,GO:0019003,molecular function,16,4,5.596e-01,8.322e-01,3.119e-01,3.530e-01,6.661e-02,3.679e-01,8.511e-01,7.424e-01,9.329e-01,1.627e-01,5.980e-01
+KRAS,6407,GTP binding,GO:0005525,molecular function,16,4,5.810e-01,8.322e-01,3.311e-01,3.404e-01,6.368e-02,3.915e-01,8.620e-01,7.424e-01,9.329e-01,1.804e-01,6.076e-01
+KRAS,6407,positive regulation of cell population proliferation,GO:0008284,biological process,16,33,6.281e-01,8.322e-01,3.970e-01,3.043e-01,3.662e-02,4.628e-01,8.525e-01,7.424e-01,9.329e-01,2.765e-01,5.700e-01
+KRAS,6407,positive regulation of gene expression,GO:0010628,biological process,16,20,6.371e-01,8.322e-01,3.954e-01,3.071e-01,2.330e-02,4.767e-01,8.516e-01,7.424e-01,9.329e-01,3.154e-01,4.956e-01
+KRAS,6407,Ras protein signal transduction,GO:0007265,biological process,16,10,6.371e-01,8.322e-01,4.001e-01,3.047e-01,1.862e-02,4.767e-01,8.516e-01,7.424e-01,9.329e-01,3.349e-01,4.780e-01
+KRAS,6407,positive regulation of protein phosphorylation,GO:0001934,biological process,16,16,6.471e-01,8.322e-01,4.226e-01,2.882e-01,3.650e-02,4.824e-01,8.680e-01,7.424e-01,9.329e-01,2.985e-01,5.982e-01
+KRAS,6407,cytoplasm,GO:0005737,cellular component,16,7,6.542e-01,8.322e-01,4.491e-01,2.708e-01,4.158e-02,4.992e-01,8.573e-01,7.424e-01,9.329e-01,3.041e-01,6.634e-01
+KRAS,6407,membrane,GO:0016020,cellular component,16,18,6.547e-01,8.322e-01,4.862e-01,2.509e-01,3.413e-02,5.022e-01,8.536e-01,7.424e-01,9.329e-01,3.636e-01,6.502e-01
+KRAS,6407,regulation of protein stability,GO:0031647,biological process,16,5,6.943e-01,8.322e-01,5.514e-01,2.121e-01,4.057e-02,5.290e-01,9.113e-01,7.424e-01,9.329e-01,3.988e-01,7.624e-01
+KRAS,6407,extrinsic component of cytoplasmic side of plasma membrane,GO:0031234,cellular component,16,2,7.656e-01,8.454e-01,6.856e-01,1.428e-01,2.355e-02,6.624e-01,8.850e-01,7.680e-01,9.307e-01,5.947e-01,7.904e-01
+KRAS,6407,GTPase activity,GO:0003924,molecular function,16,4,7.667e-01,8.454e-01,6.915e-01,1.388e-01,2.659e-02,6.635e-01,8.861e-01,7.680e-01,9.307e-01,5.900e-01,8.104e-01
+KRAS,6407,focal adhesion,GO:0005925,cellular component,16,2,8.146e-01,8.483e-01,7.904e-01,7.541e-02,3.847e-02,7.128e-01,9.309e-01,7.729e-01,9.311e-01,6.698e-01,9.327e-01
+KRAS,6407,protein-containing complex binding,GO:0044877,molecular function,16,73,8.455e-01,8.596e-01,8.152e-01,6.500e-02,2.819e-02,7.556e-01,9.461e-01,7.892e-01,9.363e-01,7.149e-01,9.295e-01
+KRAS,6407,protein binding,GO:0005515,molecular function,16,116,8.536e-01,8.678e-01,8.182e-01,6.849e-02,1.007e-02,8.195e-01,8.892e-01,8.076e-01,9.325e-01,7.804e-01,8.578e-01

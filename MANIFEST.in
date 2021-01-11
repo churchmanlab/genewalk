@@ -1,2 +1,3 @@
 include README.md
 graft doc
+include genewalk/results_template.html

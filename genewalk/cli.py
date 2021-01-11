@@ -1,12 +1,12 @@
 import gc
 import os
-import sys
 import copy
 import pickle
 import random
 import logging
 import argparse
 import numpy as np
+import pandas as pd
 from genewalk import __version__
 from genewalk.nx_mg_assembler import load_network
 from genewalk.gene_lists import read_gene_list
@@ -17,18 +17,19 @@ from genewalk.perform_statistics import GeneWalk
 from genewalk import logger as root_logger, default_logger_format, \
     default_date_format
 from genewalk.resources import ResourceManager
+from genewalk.plot import GW_Plotter
 
 logger = logging.getLogger('genewalk.cli')
 
 default_base_folder = os.path.join(os.path.expanduser('~/'), 'genewalk')
 
 
-def create_project_folder(base_folder, project):
-    project_folder = os.path.join(base_folder, project)
-    logger.info('Creating project folder at %s' % project_folder)
-    if not os.path.exists(project_folder):
-        os.makedirs(project_folder)
-    return project_folder
+def create_folder(base_folder, project):
+    sub_folder = os.path.join(base_folder, project)
+    logger.info('Creating %s folder at %s' % (project, sub_folder))
+    if not os.path.exists(sub_folder):
+        os.makedirs(sub_folder)
+    return sub_folder
 
 
 def save_pickle(obj, project_folder, prefix):
@@ -79,7 +80,7 @@ def main():
                         help='The stage of processing to run. Default: '
                              '%(default)s',
                         choices=['all', 'node_vectors', 'null_distribution',
-                                 'statistics'])
+                                 'statistics', 'visual'])
     parser.add_argument('--base_folder', default=default_base_folder,
                         help='The base folder used to store GeneWalk '
                              'temporary and result files for a given project.'
@@ -142,9 +143,12 @@ def main():
                              'random seed.')
 
     args = parser.parse_args()
+    run_main(args)
 
+
+def run_main(args):
     # Now we run the relevant stage of processing
-    project_folder = create_project_folder(args.base_folder, args.project)
+    project_folder = create_folder(args.base_folder, args.project)
 
     # Add a logger specific to the project and processing stage
     log_file = os.path.join(project_folder, 'genewalk_%s.log' % args.stage)
@@ -221,6 +225,14 @@ def main():
         fname = os.path.join(project_folder, 'genewalk_results.csv')
         logger.info('Saving final results into %s' % fname)
         df.to_csv(fname, index=False, float_format='%.3e')
+
+    if args.stage in ('all', 'visual'):
+        fname = os.path.join(project_folder, 'genewalk_results.csv')
+        dGW = pd.read_csv(fname)
+        figure_folder = create_folder(project_folder, 'figures')
+        create_folder(figure_folder, 'barplots')
+        GWp = GW_Plotter(figure_folder, dGW, args.alpha_fdr)
+        GWp.generate_plots()
 
 
 if __name__ == '__main__':

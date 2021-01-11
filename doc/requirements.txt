@@ -5,3 +5,5 @@ mock
 networkx
 pandas
 statsmodels
+matplotlib
+seaborn

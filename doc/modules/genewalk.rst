@@ -40,10 +40,16 @@ Perform statistics and output results (:py:mod:`genewalk.perform_statistics`)
     :members:
     :show-inheritance:
 
+Plotting results (:py:mod:`genewalk.plot`)
+==========================================
+
+.. automodule:: genewalk.plot
+    :members:
+    :show-inheritance:
+
 Manage resource files (:py:mod:`genewalk.resources`)
 ====================================================
 
 .. automodule:: genewalk.resources
     :members:
     :show-inheritance:
-
