@@ -147,24 +147,29 @@ given list of genes, an interaction network, GO annotations, and the GO ontology
 - `deepwalk_rand_*.pkl` - A DeepWalk object for each analysis repeat on a random graph
 (only present if save_dw argument is set to True).  
 
-### Figure files 
-GeneWalk now also automatically generates figures to visualize its results in the project/figures 
-sub-folder:
-- barplots with GO annotations ranked by relevance for each input gene that GeneWalk was able
-to generate results for. The filenames contain the corresponding human gene symbol and input 
-gene id: `barplot_[symbol]_[gene id]_x_mlog10gene_padj_y_GO.png`.
-- `regulators_x_gene_con_y_frac_rel_go(.png and .pdf)`: scatter plot to identify regulator
-genes of interest. These have a large gene connectivity and high fraction of relevant GO
-annotations. For more information see our publication.
-- `genewalk_regulators.csv`: list with regulator genes that are named in the 
-regulators scatterplot.
-- `moonlighters_x_go_con_y_frac_rel_go(.png and .pdf)`: scatter plot to identify moonlighting
-genes: genes with many GO annotations of which a low fraction are relevant. For more information
-see our publication.
-- `genewalk_moonlighters.csv`: list with moonlighting genes that are named in the 
-moonlighting scatterplot.
-- `genewalk_scatterplots.csv`: data corresponding to the regulator and moonlighter scatter plots. 
-This file can be used for further gene prioritization analyses.
+### Figure files
+GeneWalk also automatically generates figures to visualize its results in the
+project/figures sub-folder:
+- `index.html`: an HTML page that includes all the figures generated, as
+  described below.
+- barplots with GO annotations ranked by relevance for each input gene that
+  GeneWalk was able to generate results for. The filenames contain the
+  corresponding human gene symbol and input gene id: `barplot_[symbol]_[gene
+  id]_x_mlog10gene_padj_y_GO.png`.
+- `regulators_x_gene_con_y_frac_rel_go(.png and .pdf)`: scatter plot to
+  identify regulator genes of interest. These have a large gene connectivity
+  and high fraction of relevant GO annotations. For more information see our
+  publication.
+- `genewalk_regulators.csv`: list with regulator genes that are named in the
+  regulators scatterplot.
+- `moonlighters_x_go_con_y_frac_rel_go(.png and .pdf)`: scatter plot to
+  identify moonlighting genes: genes with many GO annotations of which a low
+  fraction are relevant. For more information see our publication.
+- `genewalk_moonlighters.csv`: list with moonlighting genes that are named in
+  the moonlighting scatterplot.
+- `genewalk_scatterplots.csv`: data corresponding to the regulator and
+  moonlighter scatter plots.  This file can be used for further gene
+  prioritization analyses.
 
 
 ### GeneWalk results file description

@@ -178,7 +178,7 @@ class GW_Plotter(object):
         self.dGW['mlog10padj_err'] = - np.log10(self.dGW['cilow_gene_padj']) \
                                      - self.dGW['mlog10padj']
         for gid in self.dGW[self.id_type].unique():
-            df = self.dGW[self.dGW[self.id_type]==gid]
+            df = self.dGW[self.dGW[self.id_type] == gid]
             gsymbol = self.scatter_data['hgnc_symbol'][gid]
             self._barplot(df, gid, gsymbol, dom='GO')
             #Barplots separated by go domain
@@ -286,18 +286,23 @@ class GW_Plotter(object):
                 for _ in range(4):
                     gid = next(genes)
                     gsymbol = self.scatter_data['hgnc_symbol'][gid]
+                    img_path = ('barplots/barplot_%s_%s_x_mlog10'
+                                'gene_padj_y_GO.png' % (gsymbol, gid))
+                    # Skip any genes for which results were not generated
+                    if not os.path.exists(img_path):
+                        continue
                     gene_results_html += """
                     <div class="col-md-3">
                         <div class="thumbnail">
-                            <a href="barplots/barplot_{symbol}_{id}_x_mlog10gene_padj_y_GO.png">
-                                <img src='barplots/barplot_{symbol}_{id}_x_mlog10gene_padj_y_GO.png' style="width:100%">
+                            <a href="{img_path}">
+                                <img src='{img_path}' style="width:100%">
                             </a>
                             <div class="caption">
-                                <a href="https://identifiers.org/hgnc:{id}">{symbol}</a>
+                                <a href="https://identifiers.org/hgnc.symbol:{symbol}">{symbol}</a>
                             </div>
                         </div>
                     </div>
-                    """.format(symbol=gsymbol, id=gid)
+                    """.format(symbol=gsymbol, img_path=img_path)
             except StopIteration:
                 break
             finally:
