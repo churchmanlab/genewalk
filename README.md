@@ -155,7 +155,7 @@ project/figures sub-folder:
 - barplots with GO annotations ranked by relevance for each input gene that
   GeneWalk was able to generate results for. The filenames contain the
   corresponding human gene symbol and input gene id: `barplot_[symbol]_[gene
-  id]_x_mlog10gene_padj_y_GO.png`.
+  id]_x_mlog10global_padj_y_GO.png`.
 - `regulators_x_gene_con_y_frac_rel_go(.png and .pdf)`: scatter plot to
   identify regulator genes of interest. These have a large gene connectivity
   and high fraction of relevant GO annotations. For more information see our
