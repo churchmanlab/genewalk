@@ -20,5 +20,5 @@ def test_generate_plots():
     assert file_exists('moonlighters_x_go_con_y_frac_rel_go.png')
     assert file_exists('regulators_x_gene_con_y_frac_rel_go.png')
     assert file_exists('index.html')
-    assert file_exists('barplots/barplot_BRAF_1097_x_mlog10gene_padj_y_GO.png')
-    assert file_exists('barplots/barplot_KRAS_6407_x_mlog10gene_padj_y_GO.png')
+    assert file_exists('barplots/barplot_BRAF_1097_x_mlog10global_padj_y_GO.png')
+    assert file_exists('barplots/barplot_KRAS_6407_x_mlog10global_padj_y_GO.png')
