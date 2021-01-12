@@ -2,6 +2,8 @@ import os.path
 import logging
 import pandas as pd
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.rcParams['pdf.fonttype'] = 42
 import seaborn as sns
@@ -286,10 +288,10 @@ class GW_Plotter(object):
                 for _ in range(4):
                     gid = next(genes)
                     gsymbol = self.scatter_data['hgnc_symbol'][gid]
-                    img_path = ('barplots/barplot_%s_%s_x_mlog10'
-                                'gene_padj_y_GO.png' % (gsymbol, gid))
+                    img_path = os.path.join('barplots',
+                               ('barplot_%s_%s_x_mlog10gene_padj_y_GO.png' % (gsymbol, gid)))
                     # Skip any genes for which results were not generated
-                    if not os.path.exists(img_path):
+                    if not os.path.exists(os.path.join(self.path,img_path)):
                         continue
                     gene_results_html += """
                     <div class="col-md-3">
