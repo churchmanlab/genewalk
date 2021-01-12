@@ -34,7 +34,7 @@ class GW_Plotter(object):
         else:
             self.alpha_fdr = alpha_fdr
         self.scatter_data = pd.DataFrame()
-        self.stat = 'gene_padj'  # for barplots
+        self.stat = 'global_padj'#'gene_padj'  # for barplots
         self.ci_stat = 'cilow_'+self.stat
         self.dGW = dgw
         self.go_domains = set(self.dGW['go_domain'])
@@ -96,7 +96,7 @@ class GW_Plotter(object):
             regulators.append(gname)  
             x_txt = dreg[xvar][r]
             y_txt = dreg[yvar][r]+np.random.normal(0,0.002)
-            g.text(x_txt, y_txt, gname, size=2, horizontalalignment='center',
+            g.text(x_txt, y_txt, gname, size=6, horizontalalignment='center',
                    color='black', weight='light',
                    fontstyle='italic')
         g.set(xscale="log")
@@ -154,7 +154,7 @@ class GW_Plotter(object):
             moonlighters.append(gname)  
             x_txt = dmoon[xvar][m]
             y_txt = dmoon[yvar][m]#+np.random.normal(0,0.005)
-            g.text(x_txt, y_txt, gname, size=3,horizontalalignment='center', 
+            g.text(x_txt, y_txt, gname, size=6,horizontalalignment='center', 
                    color='black',weight='light',
                    fontstyle='italic')
         g.set(xscale="log")
@@ -176,8 +176,8 @@ class GW_Plotter(object):
         annotations listed and 3 separated by each go domain: biological process, 
         cellular component and molecular function.
         """ 
-        self.dGW['mlog10padj'] = -np.log10(self.dGW['gene_padj'])
-        self.dGW['mlog10padj_err'] = - np.log10(self.dGW['cilow_gene_padj']) \
+        self.dGW['mlog10padj'] = -np.log10(self.dGW[self.stat])
+        self.dGW['mlog10padj_err'] = - np.log10(self.dGW[self.ci_stat]) \
                                      - self.dGW['mlog10padj']
         for gid in self.dGW[self.id_type].unique():
             df = self.dGW[self.dGW[self.id_type] == gid]
@@ -241,8 +241,10 @@ class GW_Plotter(object):
         gocon = self.scatter_data['go_con'][gene_id]
         gene_id = str(gene_id)
         if gocon >= 1:
-            dplot = dplot.sort_values(by=['mlog10padj', 'sim', 'global_padj'],
-                                      ascending=[False, False, True])
+            dplot = dplot.sort_values(by=['mlog10padj', 'sim', 
+                                          'global_padj', 'gene_padj'],
+                                      ascending=[False, False, 
+                                                 True, True])
             sns.set(style="whitegrid", color_codes=True)
             f, ax = plt.subplots(figsize=(2,0.25*len(dplot))) 
             ax = sns.barplot(x='mlog10padj', y='go_name',
@@ -289,7 +291,7 @@ class GW_Plotter(object):
                     gid = next(genes)
                     gsymbol = self.scatter_data['hgnc_symbol'][gid]
                     img_path = os.path.join('barplots',
-                               ('barplot_%s_%s_x_mlog10gene_padj_y_GO.png' % (gsymbol, gid)))
+                               ('barplot_%s_%s_x_mlog10%s_y_GO.png' % (gsymbol, gid, self.stat)))
                     # Skip any genes for which results were not generated
                     if not os.path.exists(os.path.join(self.path,img_path)):
                         continue
