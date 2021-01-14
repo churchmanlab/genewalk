@@ -9,7 +9,8 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 def main():
     install_list = ['numpy', 'pandas', 'networkx>=2.1', 'gensim', 'goatools',
-                    'indra>=1.14.1', 'scipy>=1.3.0', 'matplotlib', 'seaborn']
+                    'indra>=1.14.1', 'scipy>=1.3.0', 'matplotlib', 'seaborn',
+                    'plotly>=4.0.0']
 
     setup(name='genewalk',
           version='1.3.0',
