@@ -7,6 +7,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.rcParams['pdf.fonttype'] = 42
 import seaborn as sns
+import plotly.express as px
 
 logger = logging.getLogger('genewalk.plot')
 
@@ -46,6 +47,7 @@ class GW_Plotter(object):
             self.std_id = True
             self.id_type = self.dGW.columns[1]
 
+            
     def generate_plots(self):
         """Wrapper that calls scatter and bar plot generating functions."""
         self.scatterplot_regulators()
@@ -53,6 +55,7 @@ class GW_Plotter(object):
         self.barplot_goanno()
         self.make_html()
 
+    
     def scatterplot_regulators(self):
         """Scatter plot with fraction of (globally) relevant GO annotations 
         as a function of gene connectivity (to other genes) for all input
@@ -68,10 +71,17 @@ class GW_Plotter(object):
         """
         if self.scatter_data.empty:
             self._get_scatter_data()
+        plot_title = 'Regulator genes'
         xvar = 'gene_con'
         yvar = 'frac_rel_go'
+        xlab = 'Connections with other genes (per gene)'
+        ylab = 'Fraction of relevant GO terms (per gene)'
+        xmin = 0.45
+        xmax = max(self.scatter_data[xvar])*1.2
         T_gcon = self.scatter_data[xvar].quantile(q=0.75)
         T_frac = 0.5
+        
+        #seaborn static plot
         sns.set(style="whitegrid")  
         fig, ax = plt.subplots(figsize=(12,12))  # inches
         g = sns.scatterplot(x=xvar, y=yvar, hue=yvar, 
@@ -79,12 +89,12 @@ class GW_Plotter(object):
                             sizes=(40, 400), 
                             data=self.scatter_data,
                             ax=ax, legend=False)
-        plt.axvline(x=T_gcon, color=[0.7,0.7,0.7], linestyle='--')
-        plt.axhline(y=T_frac, color=[0.7,0.7,0.7], linestyle='--')
+        plt.axvline(x=T_gcon, color='grey', linestyle='--')
+        plt.axhline(y=T_frac, color='grey', linestyle='--')
         font_sz=16
-        plt.xlabel('Connections with other genes (per gene)', size=font_sz)
-        plt.ylabel('Fraction of relevant GO terms (per gene)', size=font_sz)
-        plt.xlim([0.45,max(self.scatter_data[xvar])*1.2])
+        plt.xlabel(xlab, size=font_sz)
+        plt.ylabel(ylab, size=font_sz)
+        plt.xlim([xmin, xmax])
         plt.xticks(size=font_sz)
         plt.yticks(size=font_sz)
 
@@ -100,18 +110,34 @@ class GW_Plotter(object):
                    color='black', weight='light',
                    fontstyle='italic')
         g.set(xscale="log")
-        plt.title('Regulator genes',size=font_sz)
+        plt.title(plot_title,size=font_sz)
         filename = 'regulators_x_'+xvar+'_y_'+yvar+'.'
         plt.savefig(os.path.join(self.path, filename+'pdf'),
                     bbox_inches="tight", transparent=True)
         plt.savefig(os.path.join(self.path, filename+'png'),
                     bbox_inches="tight", transparent=True)
-        logger.info('Regulators plotted in %s...' % filename)
+        
+        ### plotly interactive plot
+        fig = px.scatter(self.scatter_data[~self.scatter_data[yvar].isna()], 
+                         x=xvar, y=yvar, 
+                         color=yvar, size='rel_go',
+                         hover_name='hgnc_symbol',
+                         hover_data=['hgnc_symbol', self.id_type],
+                         title=plot_title, labels={xvar: xlab,yvar: ylab},
+                         log_x=True, range_x=[xmin, xmax])
+        fig.add_shape(type='line', x0=xmin, y0=T_frac, x1=xmax, y1=T_frac,
+                      line=dict(color='grey',dash='dash'))
+        fig.add_shape(type='line', x0=T_gcon, y0=0, x1=T_gcon, y1=1,
+                      line=dict(color='grey',dash='dash'))
+        fig.write_html(os.path.join(self.path, filename+'.html'))
+        logger.info('%s plotted in %s...' % (plot_title, filename))
+        
         df = pd.DataFrame(sorted(regulators), columns=['gw_regulators'])
         filename = 'genewalk_regulators.csv'
         df.to_csv(os.path.join(self.path, filename), index=False)
-        logger.info('Regulators listed in %s...' % filename)
+        logger.info('%s listed in %s...' % (plot_title, filename))
 
+        
     def scatterplot_moonlighters(self):
         """Scatter plot with fraction of (globally) relevant GO annotations 
         as a function of number of GO annotations for all input genes.
@@ -125,11 +151,18 @@ class GW_Plotter(object):
         set to max of 30 and 75th quartile of distribution.
         """
         if self.scatter_data.empty:
-            self._get_scatter_data()    
+            self._get_scatter_data() 
+        plot_title = 'Moonlighting genes'
         xvar = 'go_con'
         yvar = 'frac_rel_go'
+        xlab = 'Number of GO annotations (per gene)'
+        ylab = 'Fraction of relevant GO terms (per gene)'
+        xmin = 0.45
+        xmax = max(self.scatter_data[xvar])*1.2
         T_gocon = max(30,self.scatter_data[xvar].quantile(q=0.75))
         T_frac = 0.5
+        
+        #seaborn static plot
         sns.set(style="whitegrid")    
         fig, ax = plt.subplots(figsize=(12,12))  # inches
         g = sns.scatterplot(x=xvar, y=yvar, hue=yvar, 
@@ -137,12 +170,12 @@ class GW_Plotter(object):
                             sizes=(40, 400), 
                             data=self.scatter_data,
                             ax=ax,legend=False)
-        plt.axvline(x=T_gocon, color=[0.7,0.7,0.7], linestyle='--')
-        plt.axhline(y=T_frac, color=[0.7,0.7,0.7], linestyle='--')
+        plt.axvline(x=T_gocon, color='grey', linestyle='--')
+        plt.axhline(y=T_frac, color='grey', linestyle='--')
         font_sz=16
-        plt.xlabel('Number of GO annotations (per gene)', size=font_sz)
-        plt.ylabel('Fraction of relevant GO terms (per gene)', size=font_sz)
-        plt.xlim([0.45,max(self.scatter_data[xvar])*1.2])
+        plt.xlabel(xlab, size=font_sz)
+        plt.ylabel(ylab, size=font_sz)
+        plt.xlim([xmin, xmax])
         plt.xticks(size=font_sz)
         plt.yticks(size=font_sz)
 
@@ -158,18 +191,34 @@ class GW_Plotter(object):
                    color='black',weight='light',
                    fontstyle='italic')
         g.set(xscale="log")
-        plt.title('Moonlighting genes',size=font_sz)
+        plt.title(plot_title, size=font_sz)
         filename = 'moonlighters_x_'+xvar+'_y_'+yvar+'.'
         plt.savefig(os.path.join(self.path,filename+'pdf'),
                     bbox_inches="tight", transparent=True)
         plt.savefig(os.path.join(self.path,filename+'png'),
                     bbox_inches="tight", transparent=True)
-        logger.info('Moonlighting genes plotted in %s...' % filename)
+        
+        ### plotly interactive plot
+        fig = px.scatter(self.scatter_data[~self.scatter_data[yvar].isna()], 
+                         x=xvar, y=yvar, 
+                         color=yvar, size='gene_con',
+                         hover_name='hgnc_symbol',
+                         hover_data=['hgnc_symbol', self.id_type],
+                         title=plot_title, labels={xvar: xlab,yvar: ylab},
+                         log_x=True, range_x=[xmin, xmax])
+        fig.add_shape(type='line', x0=xmin, y0=T_frac, x1=xmax, y1=T_frac,
+                      line=dict(color='grey',dash='dash'))
+        fig.add_shape(type='line', x0=T_gocon, y0=0, x1=T_gocon, y1=1,
+                      line=dict(color='grey',dash='dash'))
+        fig.write_html(os.path.join(self.path, filename+'.html'))
+        logger.info('%s plotted in %s...' % (plot_title, filename))
+        
         df = pd.DataFrame(sorted(moonlighters), columns=['gw_moonlighter'])
         filename = 'genewalk_moonlighters.csv'
         df.to_csv(os.path.join(self.path, filename),index=False)
-        logger.info('Moonlighters listed in %s...' % filename)
+        logger.info('%s listed in %s...' % (plot_title, filename))
 
+        
     def barplot_goanno(self):
         """Visualize statistical significances of GO annotations for a given 
         gene of interest. Four separate plots are generated: one with all GO 
@@ -212,7 +261,7 @@ class GW_Plotter(object):
                 genecon = con - gocon
                 relgo = min(len(df[df['global_padj'] < self.alpha_fdr]),
                             len(df[df['gene_padj'] < self.alpha_fdr]))
-                fracrelgo = float(relgo)/gocon
+                fracrelgo = round(float(relgo)/gocon,3)
 
             if self.std_id:
                 scd[gid] = [gid, gname, con, gocon, 
