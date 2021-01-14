@@ -238,7 +238,7 @@ class GW_Plotter(object):
 
     def _get_scatter_data(self):
         """
-        Data processing function to for scatter plots.
+        Data processing function for scatter plots.
         """
         scd = dict()
         if not self.std_id:
@@ -326,6 +326,9 @@ class GW_Plotter(object):
                             could not produce barplot' % gene_id)
 
     def make_html(self):
+        """
+        Generates Index.html, the html file that shows all the visualizations.
+        """
         template_path = os.path.join(os.path.dirname(
             os.path.abspath(__file__)), 'results_template.html')
         with open(template_path, 'r') as fh:
