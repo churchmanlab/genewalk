@@ -372,3 +372,5 @@ class GW_Plotter(object):
         output_html = os.path.join(self.path, 'index.html')
         with open(output_html, 'w') as fh:
             fh.write(template)
+        logger.info('index.html file generated with interactive visualizations ' 
+                    'of all GeneWalk results...')
