@@ -122,6 +122,9 @@ class GW_Plotter(object):
                          hover_data=['hgnc_symbol', self.id_type],
                          title=plot_title, labels={xvar: xlab, yvar: ylab},
                          log_x=True, range_x=[xmin, xmax])
+        fig.add_shape(type='rect', x0=T_gcon, y0=T_frac, x1=xmax, y1=1,
+                      fillcolor="LightSkyBlue", opacity=0.2,
+                      layer="below", line_width=0)
         fig.add_shape(type='line', x0=xmin, y0=T_frac, x1=xmax, y1=T_frac,
                       line=dict(color='grey', dash='dash'))
         fig.add_shape(type='line', x0=T_gcon, y0=0, x1=T_gcon, y1=1,
@@ -184,7 +187,7 @@ class GW_Plotter(object):
             gname = dmoon['hgnc_symbol'][m]
             moonlighters.append(gname)
             x_txt = dmoon[xvar][m]
-            y_txt = dmoon[yvar][m]  #+np.random.normal(0, 0.005)
+            y_txt = dmoon[yvar][m]
             g.text(x_txt, y_txt, gname, size=6, horizontalalignment='center',
                    color='black', weight='light',
                    fontstyle='italic')
@@ -204,6 +207,9 @@ class GW_Plotter(object):
                          hover_data=['hgnc_symbol', self.id_type],
                          title=plot_title, labels={xvar: xlab, yvar: ylab},
                          log_x=True, range_x=[xmin, xmax])
+        fig.add_shape(type='rect', x0=T_gocon, y0=0, x1=xmax, y1=T_frac,
+                      fillcolor="LightSkyBlue", opacity=0.2,
+                      layer="below", line_width=0)
         fig.add_shape(type='line', x0=xmin, y0=T_frac, x1=xmax, y1=T_frac,
                       line=dict(color='grey', dash='dash'))
         fig.add_shape(type='line', x0=T_gocon, y0=0, x1=T_gocon, y1=1,
