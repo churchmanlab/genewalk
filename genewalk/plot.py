@@ -327,7 +327,7 @@ class GW_Plotter(object):
 
     def make_html(self, global_htmls):
         """
-        Generates Index.html, the html file that shows all the visualizations.
+        Generates index.html, the html file that shows all the visualizations.
         """
         template_path = os.path.join(os.path.dirname(
             os.path.abspath(__file__)), 'results_template.html')
