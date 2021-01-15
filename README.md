@@ -150,7 +150,7 @@ given list of genes, an interaction network, GO annotations, and the GO ontology
 ### Figure files
 GeneWalk also automatically generates figures to visualize its results in the
 project/figures sub-folder:
-- `index.html`: an HTML page that includes all the figures generated, as
+- **`index.html`**: an HTML page that includes all the figures generated, as
   described below.
 - barplots with GO annotations ranked by relevance for each input gene that
   GeneWalk was able to generate results for. The filenames contain the
