@@ -358,11 +358,11 @@ class GW_Plotter(object):
                                 <img src='{img_path}' style="width:100%">
                             </a>
                             <div class="caption">
-                                <a href="https://identifiers.org/hgnc.symbol:{symbol}">{symbol}</a>
+                                <a href="https://identifiers.org/hgnc.symbol:{symbol}">{symbol} ({gid})</a>
                             </div>
                         </div>
                     </div>
-                    """.format(symbol=gsymbol, img_path=img_path)
+                    """.format(symbol=gsymbol, gid=gid, img_path=img_path)
             except StopIteration:
                 break
             finally:
