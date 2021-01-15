@@ -49,10 +49,10 @@ class GW_Plotter(object):
 
     def generate_plots(self):
         """Wrapper that calls scatter and bar plot generating functions."""
-        self.scatterplot_regulators()
-        self.scatterplot_moonlighters()
+        reg_html = self.scatterplot_regulators()
+        moonlight_html = self.scatterplot_moonlighters()
         self.barplot_goanno()
-        self.make_html()
+        self.make_html([reg_html, moonlight_html])
 
     def scatterplot_regulators(self):
         """Scatter plot with fraction of (globally) relevant GO annotations
@@ -126,6 +126,7 @@ class GW_Plotter(object):
                       line=dict(color='grey', dash='dash'))
         fig.add_shape(type='line', x0=T_gcon, y0=0, x1=T_gcon, y1=1,
                       line=dict(color='grey', dash='dash'))
+        plotly_html = fig.to_html(full_html=False)
         fig.write_html(os.path.join(self.path, filename + '.html'))
         logger.info('%s plotted in %s...' % (plot_title, filename))
 
@@ -133,6 +134,7 @@ class GW_Plotter(object):
         filename = 'genewalk_regulators.csv'
         df.to_csv(os.path.join(self.path, filename), index=False)
         logger.info('%s listed in %s...' % (plot_title, filename))
+        return plotly_html
 
     def scatterplot_moonlighters(self):
         """Scatter plot with fraction of (globally) relevant GO annotations
@@ -175,7 +177,7 @@ class GW_Plotter(object):
         plt.xticks(size=font_sz)
         plt.yticks(size=font_sz)
 
-        moonlighters=[]
+        moonlighters = []
         dmoon = self.scatter_data[self.scatter_data[xvar] >= T_gocon]
         dmoon = dmoon[(dmoon[yvar] < T_frac) & (dmoon[yvar] > 0)]
         for m in dmoon.index:
@@ -207,12 +209,14 @@ class GW_Plotter(object):
         fig.add_shape(type='line', x0=T_gocon, y0=0, x1=T_gocon, y1=1,
                       line=dict(color='grey', dash='dash'))
         fig.write_html(os.path.join(self.path, filename + '.html'))
+        plotly_html = fig.to_html(full_html=False)
         logger.info('%s plotted in %s...' % (plot_title, filename))
 
         df = pd.DataFrame(sorted(moonlighters), columns=['gw_moonlighter'])
         filename = 'genewalk_moonlighters.csv'
         df.to_csv(os.path.join(self.path, filename), index=False)
         logger.info('%s listed in %s...' % (plot_title, filename))
+        return plotly_html
 
     def barplot_goanno(self):
         """Visualize statistical significances of GO annotations for a given
@@ -321,7 +325,7 @@ class GW_Plotter(object):
             logger.warning('No results for gene id %s: \
                             could not produce barplot' % gene_id)
 
-    def make_html(self):
+    def make_html(self, global_htmls):
         """
         Generates Index.html, the html file that shows all the visualizations.
         """
@@ -329,6 +333,9 @@ class GW_Plotter(object):
             os.path.abspath(__file__)), 'results_template.html')
         with open(template_path, 'r') as fh:
             template = fh.read()
+
+        template = template.replace('{{ GLOBAL_RESULTS }}',
+                                    '\n'.join(global_htmls))
 
         genes = iter(self.dGW[self.id_type].unique())
         gene_results_html = ""
