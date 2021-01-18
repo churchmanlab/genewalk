@@ -1,5 +1,6 @@
 <html>
     <head>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
     </head>
     <h1>
@@ -9,20 +10,7 @@
         Global analyses
     </h2>
     <div class="row">
-        <div class="col-md-4">
-            <div class="thumbnail">
-                <a href="regulators_x_gene_con_y_frac_rel_go.png">
-                    <img src='regulators_x_gene_con_y_frac_rel_go.png' style="width:100%">
-                </a>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="thumbnail">
-                <a href="moonlighters_x_go_con_y_frac_rel_go.png">
-                    <img src='moonlighters_x_go_con_y_frac_rel_go.png' style="width:100%">
-                </a>
-            </div>
-        </div>
+        {{ GLOBAL_RESULTS }}}
     </div>
     <h2>
         Gene-specific results
