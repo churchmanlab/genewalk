@@ -29,12 +29,15 @@ class ArgparseMock:
         self.random_seed = random_seed
 
 
-def place_test_files():
+def _place_files():
     test_resource_files = glob.glob(os.path.join(HERE, 'resources', '*'))
+    test_resource_folder = \
+        os.path.join(TEST_BASE_FOLDER, 'resources')
+    os.mkdir(test_resource_folder)
     for test_file in test_resource_files:
         shutil.copy(test_file,
-                    os.path.join(TEST_BASE_FOLDER,
-                                 'resources', os.path.basename(test_file)))
+                    os.path.join(test_resource_folder,
+                                 os.path.basename(test_file)))
 
 
 def test_default():
@@ -42,7 +45,7 @@ def test_default():
     gene_list = os.path.join(HERE, 'resources', 'hgnc_symbols.txt')
     args = ArgparseMock(project_name, gene_list, 'hgnc_symbol')
 
-    place_test_files()
+    _place_files()
 
     run_main(args)
 
