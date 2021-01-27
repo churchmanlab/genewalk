@@ -1,10 +1,9 @@
 import os
+import glob
 import shutil
 from genewalk.cli import run_main, default_base_folder
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-go_obo_path = os.path.join(default_base_folder, 'go.obo')
-go_test_obo_path = os.path.join(HERE, 'go_test.obo')
 
 
 class ArgparseMock:
@@ -29,12 +28,20 @@ class ArgparseMock:
         self.random_seed = random_seed
 
 
+def place_test_files():
+    test_resource_files = glob.glob(os.path.join(HERE, 'resources', '*'))
+    for test_file in test_resource_files:
+        shutil.copy(test_file,
+                    os.path.join(default_base_folder,
+                                 'resources', os.path.basename(test_file)))
+
+
 def test_default():
     project_name = 'test1'
     gene_list = os.path.join(HERE, 'hgnc_symbols.txt')
     args = ArgparseMock(project_name, gene_list, 'hgnc_symbol')
 
-    shutil.copy(go_test_obo_path, go_obo_path)
+    place_test_files()
 
     run_main(args)
 
