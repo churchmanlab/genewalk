@@ -85,16 +85,16 @@ class ResourceManager(object):
                 if latest_symbol != sym:
                     symbol_map[sym] = latest_symbol
         if symbol_map:
-            pc.replace(symbol_map,inplace=True)         
+            pc.replace(symbol_map,inplace=True)
         pc.to_csv(pc_current, sep='\t', header=False, index=False)
         os.remove(pc_old)
-        
+
     def download_all(self):
         self.get_go_obo()
         self.get_goa_gaf()
         self.get_pc()
         self.get_mgi_entrez()
-        
+
 
 def download_url(url, fname):
     logger.info('Downloading %s into %s' % (url, fname))

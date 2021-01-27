@@ -1,0 +1,171 @@
+format-version: 1.2
+data-version: releases/2021-01-01
+subsetdef: chebi_ph7_3 "Rhea list of ChEBI terms representing the major species at pH 7.3."
+subsetdef: gocheck_do_not_annotate "Term not to be used for direct annotation"
+subsetdef: gocheck_do_not_manually_annotate "Term not to be used for direct manual annotation"
+subsetdef: goslim_agr "AGR slim"
+subsetdef: goslim_aspergillus "Aspergillus GO slim"
+subsetdef: goslim_candida "Candida GO slim"
+subsetdef: goslim_chembl "ChEMBL protein targets summary"
+subsetdef: goslim_drosophila "Drosophila GO slim"
+subsetdef: goslim_flybase_ribbon "FlyBase Drosophila GO ribbon slim"
+subsetdef: goslim_generic "Generic GO slim"
+subsetdef: goslim_metagenomics "Metagenomics GO slim"
+subsetdef: goslim_mouse "Mouse GO slim"
+subsetdef: goslim_pir "PIR GO slim"
+subsetdef: goslim_plant "Plant GO slim"
+subsetdef: goslim_pombe "Fission yeast GO slim"
+subsetdef: goslim_synapse "synapse GO slim"
+subsetdef: goslim_yeast "Yeast GO slim"
+synonymtypedef: syngo_official_label "label approved by the SynGO project"
+synonymtypedef: systematic_synonym "Systematic synonym" EXACT
+default-namespace: gene_ontology
+ontology: go
+property_value: http://purl.org/dc/elements/1.1/description "The Gene Ontology (GO) provides a framework and set of concepts for describing the functions of gene products from all organisms." xsd:string
+property_value: http://purl.org/dc/elements/1.1/title "Gene Ontology" xsd:string
+property_value: http://purl.org/dc/terms/license http://creativecommons.org/licenses/by/4.0/
+property_value: owl:versionInfo "2021-01-01" xsd:string
+
+[Term]
+id: GO:0000001
+name: mitochondrion inheritance
+namespace: biological_process
+def: "The distribution of mitochondria, including the mitochondrial genome, into daughter cells after mitosis or meiosis, mediated by interactions between mitochondria and the cytoskeleton." [GOC:mcc, PMID:10873824, PMID:11389764]
+synonym: "mitochondrial inheritance" EXACT []
+
+[Term]
+id: GO:0000186
+name: activation of MAPKK activity
+namespace: biological_process
+alt_id: GO:0007255
+def: "The initiation of the activity of the inactive enzyme MAP kinase kinase (MAPKK)." [PMID:9561267]
+synonym: "activation of MAP kinase kinase activity" EXACT []
+synonym: "activation of MAP/ERK kinase kinase" EXACT []
+synonym: "activation of MAP2K activity" EXACT [GOC:bf]
+synonym: "activation of MAPKK activity during sporulation" NARROW []
+synonym: "positive regulation of MAPKK activity" BROAD []
+is_a: GO:0032147 ! activation of protein kinase activity
+relationship: positively_regulates GO:0004708 ! MAP kinase kinase activity
+
+[Term]
+id: GO:0032147
+name: activation of protein kinase activity
+namespace: biological_process
+def: "Any process that initiates the activity of an inactive protein kinase." [GOC:mah]
+synonym: "protein kinase activation" RELATED []
+
+[Term]
+id: GO:0003924
+name: GTPase activity
+namespace: molecular_function
+def: "Catalysis of the reaction: GTP + H2O = GDP + phosphate." [ISBN:0198547684]
+subset: goslim_chembl
+subset: goslim_drosophila
+subset: goslim_generic
+subset: goslim_yeast
+synonym: "ARF small monomeric GTPase activity" NARROW []
+synonym: "dynamin GTPase activity" NARROW []
+synonym: "heterotrimeric G-protein GTPase activity" NARROW []
+synonym: "heterotrimeric G-protein GTPase, alpha-subunit" RELATED []
+synonym: "heterotrimeric G-protein GTPase, beta-subunit" RELATED []
+synonym: "heterotrimeric G-protein GTPase, gamma-subunit" RELATED []
+synonym: "hydrolase activity, acting on acid anhydrides, acting on GTP, involved in cellular and subcellular movement" BROAD []
+synonym: "protein-synthesizing GTPase activity" NARROW []
+synonym: "protein-synthesizing GTPase activity, elongation" NARROW []
+synonym: "protein-synthesizing GTPase activity, initiation" NARROW []
+synonym: "protein-synthesizing GTPase activity, termination" NARROW []
+synonym: "Rab small monomeric GTPase activity" NARROW []
+synonym: "Ran small monomeric GTPase activity" NARROW []
+synonym: "Ras small monomeric GTPase activity" NARROW []
+synonym: "RHEB small monomeric GTPase activity" NARROW []
+synonym: "Rho small monomeric GTPase activity" NARROW []
+synonym: "Sar small monomeric GTPase activity" NARROW []
+synonym: "signal-recognition-particle GTPase activity" NARROW []
+synonym: "small monomeric GTPase activity" NARROW []
+synonym: "tubulin GTPase activity" NARROW []
+xref: Reactome:R-HSA-1445143 "RAB8A,10,13,14 hydrolyze GTP"
+xref: Reactome:R-HSA-1458485 "RALA hydrolyzes GTP"
+xref: Reactome:R-HSA-156923 "Hydrolysis of eEF1A:GTP"
+xref: Reactome:R-HSA-164381 "G alpha (s) auto-inactivates by hydrolysing GTP to GDP"
+xref: Reactome:R-HSA-165055 "Hydrolysis of Ran:GTP to Ran:GDP"
+xref: Reactome:R-HSA-167415 "G-protein alpha subunit is inactivated"
+xref: Reactome:R-HSA-170666 "Adenylate cyclase increases the GTPase activity of G alpha-olf"
+xref: Reactome:R-HSA-170685 "Adenylaye cyclase increases the GTPase activity of G alpha-olf"
+xref: Reactome:R-HSA-170686 "Adenylate cyclase increases the GTPase activity of Gi alpha"
+xref: Reactome:R-HSA-177501 "Endocytosis (internalization) of clathrin-coated vesicle"
+xref: Reactome:R-HSA-203973 "Vesicle budding"
+xref: Reactome:R-HSA-2130641 "Translocation of TGN-lysosome vesicle to lysosome"
+xref: Reactome:R-HSA-2130725 "Internalization of MHC II:Ii clathrin coated vesicle"
+xref: Reactome:R-HSA-2584246 "GNAT1-GTP hydrolyses its bound GTP to GDP"
+xref: Reactome:R-HSA-380979 "RHEB in mTORC1:RHEB:GTP hydrolyses GTP"
+xref: Reactome:R-HSA-392133 "G alpha (z) auto-inactivates by hydrolysing GTP to GDP"
+xref: Reactome:R-HSA-392212 "G alpha (i) auto-inactivates by hydrolysing GTP to GDP"
+xref: Reactome:R-HSA-418574 "G alpha (12/13) auto-inactivates by hydrolysing GTP to GDP"
+xref: Reactome:R-HSA-418582 "G alpha (q) auto-inactivates by hydrolysing GTP to GDP"
+xref: Reactome:R-HSA-421835 "trans-Golgi Network Vesicle Scission"
+xref: Reactome:R-HSA-428941 "P2Y purinoceptor 1 activates MAP kinase p38 alpha"
+xref: Reactome:R-HSA-432707 "trans-Golgi Network Lysosomal Vesicle Scission"
+xref: Reactome:R-HSA-5333615 "80S:Met-tRNAi:mRNA:SECISBP2:Sec-tRNA(Sec):EEFSEC:GTP is hydrolysed to 80S:Met-tRNAi:mRNA:SECISBP2:Sec and EEFSEC:GDP by EEFSEC"
+xref: Reactome:R-HSA-5389839 "39S subunit binds 28S subunit:mRNA:fMet-tRNA"
+xref: Reactome:R-HSA-5389842 "TUFM hydrolyzes GTP and TUFM:GDP dissociates from 55S ribosome"
+xref: Reactome:R-HSA-5419273 "Hydrolysis of GTP and dissociation of 28S and 39S subunits"
+xref: Reactome:R-HSA-5419279 "Translocation of peptidyl-tRNA from A-site to P-site (and translocation of 55S ribosome by 3 bases along mRNA)"
+xref: Reactome:R-HSA-555065 "Formation of clathrin coated vesicle"
+xref: Reactome:R-HSA-5623513 "ASAP1 stimulates GTPase activity of ARF4"
+xref: Reactome:R-HSA-5638006 "ARL3 hydrolyzes GTP"
+xref: Reactome:R-HSA-5658231 "RAS GAPs stimulate RAS GTPase activity"
+xref: Reactome:R-HSA-5665809 "SRGAP2 stimulates RAC1 GTP-ase activity and ends FMNL1-mediated elongation of actin filaments"
+xref: Reactome:R-HSA-5672017 "Rheb in the mTORC1 complex hydrolyses GTP"
+xref: Reactome:R-HSA-5694527 "Loss of SAR1B GTPase"
+xref: Reactome:R-HSA-6807877 "ARFGAPs stimulate ARF GTPase activity"
+xref: Reactome:R-HSA-6814833 "TBC1D20 stimulates GTPase activity of RAB1, resulting in hydrolysis of GTP"
+xref: Reactome:R-HSA-8847534 "RAB43 hydrolyses GTP"
+xref: Reactome:R-HSA-8847883 "CYTH proteins stimulate ARF1 GTPase activity"
+xref: Reactome:R-HSA-8849082 "ARHGAP35 stimulates RHOA GTPase activity"
+xref: Reactome:R-HSA-8854173 "TBC RabGAPs accelerate GTP hydrolysis by RAB35"
+xref: Reactome:R-HSA-8854255 "TBC1D2A accelerates GTP hydrolysis by RAB7"
+xref: Reactome:R-HSA-8854329 "TBC1D15 accelerates GTP hydrolysis by RAB7"
+xref: Reactome:R-HSA-8854604 "TBC1D16 accelerates GTP hydrolysis by RAB4A"
+xref: Reactome:R-HSA-8854612 "TBC1D25 accelerates GTP hydrolysis by RAB33B"
+xref: Reactome:R-HSA-8868661 "Dynamin-mediated GTP hydrolysis promotes vesicle scission"
+xref: Reactome:R-HSA-8981353 "RASA1 stimulates RAS GTPase activity"
+xref: Reactome:R-HSA-8982020 "G alpha (i)i1/i2/i3 in G (i):RGS complex is inactivated"
+xref: Reactome:R-HSA-8982021 "G alpha (z) in G alpha (z):RGS complex is inactivated"
+xref: Reactome:R-HSA-8982025 "G alpha (q) in G (q):RGS complex is inactivated"
+xref: Reactome:R-HSA-983422 "Disassembly of COPII coated vesicle"
+xref: RHEA:19669
+
+[Term]
+id: GO:0001934
+name: positive regulation of protein phosphorylation
+namespace: biological_process
+def: "Any process that activates or increases the frequency, rate or extent of addition of phosphate groups to amino acids within a protein." [GOC:hjd]
+synonym: "activation of protein amino acid phosphorylation" NARROW []
+synonym: "positive regulation of protein amino acid phosphorylation" EXACT [GOC:bf]
+synonym: "stimulation of protein amino acid phosphorylation" NARROW []
+synonym: "up regulation of protein amino acid phosphorylation" EXACT []
+synonym: "up-regulation of protein amino acid phosphorylation" EXACT []
+synonym: "upregulation of protein amino acid phosphorylation" EXACT []
+intersection_of: GO:0008150 ! biological_process
+intersection_of: positively_regulates GO:0006468 ! protein phosphorylation
+relationship: positively_regulates GO:0006468 ! protein phosphorylation
+
+[Term]
+id: GO:0005515
+name: protein binding
+namespace: molecular_function
+alt_id: GO:0001948
+alt_id: GO:0045308
+def: "Interacting selectively and non-covalently with any protein or protein complex (a complex of two or more proteins that may include other nonprotein molecules)." [GOC:go_curators]
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_chembl
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_plant
+synonym: "glycoprotein binding" NARROW []
+synonym: "protein amino acid binding" EXACT []
+xref: MIPS_funcat:16.01
+xref: MIPS_funcat:18.01.07
+xref: Reactome:R-HSA-170835 "An anchoring protein, ZFYVE9 (SARA), recruits SMAD2/3"
+xref: Reactome:R-HSA-170846 "TGFBR2 recruits TGFBR1"

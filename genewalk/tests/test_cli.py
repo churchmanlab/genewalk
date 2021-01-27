@@ -1,5 +1,10 @@
 import os
+import shutil
 from genewalk.cli import run_main, default_base_folder
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+go_obo_path = os.path.join(default_base_folder, 'go.obo')
+go_test_obo_path = os.path.join(HERE, 'go_test.obo')
 
 
 class ArgparseMock:
@@ -26,9 +31,11 @@ class ArgparseMock:
 
 def test_default():
     project_name = 'test1'
-    gene_list = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                             'hgnc_symbols.txt')
+    gene_list = os.path.join(HERE, 'hgnc_symbols.txt')
     args = ArgparseMock(project_name, gene_list, 'hgnc_symbol')
+
+    shutil.copy(go_test_obo_path, go_obo_path)
+
     run_main(args)
 
     assert os.path.exists(default_base_folder)
