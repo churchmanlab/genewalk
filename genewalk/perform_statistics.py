@@ -77,13 +77,13 @@ class GeneWalk(object):
         for idx in range(len(go_attribs)):
             go_attribs[idx]['qval'] = qvals[idx]
         return go_attribs
-        
+
     def log_stats(self, vals):
         eps = 1e-16
         nreps = len(vals)
         vals = np.asarray(vals)+eps
         g_mean = gmean(vals)-eps
-        g_std = gstd(vals)
+        g_std = gstd(vals) if len(vals) > 1 else eps
         return g_mean, g_mean*(g_std**(-1.96/np.sqrt(nreps))), \
             g_mean*(g_std**(1.96/np.sqrt(nreps)))
 
