@@ -263,9 +263,10 @@ For further code documentation see our [readthedocs page](https://genewalk.readt
 
 ### Citation
 Robert Ietswaart, Benjamin M. Gyori, John A. Bachman, Peter K. Sorger, and
-L. Stirling Churchman
+L. Stirling Churchman  
 *GeneWalk identifies relevant gene functions for a biological context using network
-representation learning* (2021), Genome Biology, in press, [DOI: 10.1186/s13059-021-02264-8](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8)  
+representation learning* (2021),  
+Genome Biology, in press, [DOI: 10.1186/s13059-021-02264-8](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02264-8)  
 
 Preprint: [BioRxiv; 755579](https://www.biorxiv.org/content/10.1101/755579v2)
 
