@@ -22,6 +22,14 @@ To install the latest code from Github (typically ahead of releases):
 pip install git+https://github.com/churchmanlab/genewalk.git
 ```
 
+GeneWalk uses a number of resource files that it downloads as needed during
+runtime. To optionally pre-download these resource files in the default resource folder,
+the command
+```
+python -m genewalk.resources
+```
+can be run.
+
 ## Using GeneWalk
 
 ### Gene list file
