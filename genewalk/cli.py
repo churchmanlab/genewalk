@@ -162,9 +162,8 @@ def run_main(args):
         logger.info('Running with random seed %d' % args.random_seed)
         random.seed(a=int(args.random_seed))
 
-    # Make sure we have all the resource files
+    # Instantiate the resource manager
     rm = ResourceManager(base_folder=args.base_folder)
-    rm.download_all()
 
     if args.stage in ('all', 'node_vectors'):
         genes = read_gene_list(args.genes, args.id_type, rm)
