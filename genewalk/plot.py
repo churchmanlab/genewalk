@@ -256,11 +256,11 @@ class GW_Plotter(object):
             df = self.dGW[ self.dGW[self.id_type] == gid ]
             gname = df['hgnc_symbol'].unique()[0]
             con = df['ncon_gene'].unique()[0]
-            if np.isnan(con):#no GO annotations
+            if pd.isna(df['go_id'].unique()[0]):  # no GO annotations
                 gocon = np.nan
-                genecon = np.nan
-                relgo = np.nan
-                fracrelgo = np.nan
+                genecon = con
+                relgo = 0
+                fracrelgo = 0
             else:
                 gocon = len(df)
                 genecon = con - gocon

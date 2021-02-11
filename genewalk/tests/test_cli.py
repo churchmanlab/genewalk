@@ -1,5 +1,6 @@
 import os
 import glob
+import pandas
 import shutil
 import logging
 from genewalk.cli import run_main, default_base_folder
@@ -36,7 +37,7 @@ def _place_files():
     test_resource_files = glob.glob(os.path.join(HERE, 'resources', '*'))
     test_resource_folder = \
         os.path.join(TEST_BASE_FOLDER, 'resources')
-    os.makedirs(test_resource_folder)
+    os.makedirs(test_resource_folder, exist_ok=True)
     for test_file in test_resource_files:
         logger.debug('Copying %s into %s' % (test_file, test_resource_folder))
         shutil.copy(test_file,
@@ -54,5 +55,8 @@ def test_default():
     run_main(args)
 
     assert os.path.exists(TEST_BASE_FOLDER)
-    assert os.path.exists(os.path.join(TEST_BASE_FOLDER, project_name,
-                                       'genewalk_results.csv'))
+    result_csv = os.path.join(TEST_BASE_FOLDER, project_name,
+                              'genewalk_results.csv')
+    assert os.path.exists(result_csv)
+    df = pandas.read_csv(result_csv)
+    assert 'MAP2K2' in set(df['hgnc_symbol']), df['hgnc_symbol']
