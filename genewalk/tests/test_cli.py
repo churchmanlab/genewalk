@@ -36,7 +36,7 @@ def _place_files():
     test_resource_files = glob.glob(os.path.join(HERE, 'resources', '*'))
     test_resource_folder = \
         os.path.join(TEST_BASE_FOLDER, 'resources')
-    os.makedirs(test_resource_folder)
+    os.makedirs(test_resource_folder, exist_ok=True)
     for test_file in test_resource_files:
         logger.debug('Copying %s into %s' % (test_file, test_resource_folder))
         shutil.copy(test_file,

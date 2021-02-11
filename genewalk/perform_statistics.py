@@ -128,7 +128,7 @@ class GeneWalk(object):
                 all_go_attribs = [self.get_go_attribs(gene_attribs, nv,
                                                       alpha_fdr)
                                   for nv in self.nvs]
-                if all_go_attribs:  # gene has GO connections
+                if any(all_go_attribs):  # gene has GO connections
                     go_attrib_dict = {}
                     for go_attrib_list in all_go_attribs:
                         for go_attribs in go_attrib_list:
