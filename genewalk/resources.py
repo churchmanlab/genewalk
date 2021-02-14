@@ -53,6 +53,31 @@ class ResourceManager(object):
             download_url(url, fname)
         return fname
 
+    def get_hgnc(self):
+        fname = os.path.join(self.resource_folder, 'hgnc_entries.tsv')
+        if not os.path.exists(fname):
+            # Select relevant columns and parameters
+            cols = ['gd_hgnc_id', 'gd_app_sym', 'gd_prev_sym',
+                    'gd_status', 'md_eg_id', 'md_prot_id',
+                    'md_mgd_id', 'md_rgd_id', 'gd_pub_ensembl_id']
+            statuses = ['Approved', 'Entry%20Withdrawn']
+            params = {
+                'hgnc_dbtag': 'on',
+                'order_by': 'gd_app_sym_sort',
+                'format': 'text',
+                'submit': 'submit'
+            }
+
+            # Construct a download URL from the above parameters
+            url = 'https://www.genenames.org/cgi-bin/download/custom?'
+            url += '&'.join(['col=%s' % c for c in cols]) + '&'
+            url += '&'.join(['status=%s' % s for s in statuses]) + '&'
+            url += '&'.join(['%s=%s' % (k, v) for k, v in params.items()])
+
+            # Save the download into a file
+            download_url(url, fname)
+        return fname
+
     def _get_resource_folder(self):
         resource_dir = os.path.join(self.base_folder, 'resources')
         if not os.path.isdir(resource_dir):
@@ -93,6 +118,7 @@ class ResourceManager(object):
         self.get_go_obo()
         self.get_goa_gaf()
         self.get_pc()
+        self.get_hgnc()
         self.get_mgi_entrez()
 
 
