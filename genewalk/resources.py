@@ -2,9 +2,9 @@ import os
 import gzip
 import shutil
 import logging
-import urllib.request
 import pandas
-from indra.databases import hgnc_client
+import urllib.request
+from genewalk.gene_lists import GeneMapper
 
 logger = logging.getLogger('genewalk.resources')
 
@@ -88,6 +88,7 @@ class ResourceManager(object):
         return resource_dir
 
     def _replace_outdated_hgnc_symbols(self, pc_old, pc_current):
+        gm = GeneMapper(self)
         logger.info('Replacing outdated HGNC symbols in %s and '
                     'saving as %s' % (pc_old, pc_current))
         pc = pandas.read_csv(pc_old, sep='\t', dtype=str, header=None)
@@ -97,13 +98,13 @@ class ResourceManager(object):
         symbol_map = {}
         for sym in all_symbols:
             if not sym.startswith('CHEBI:'):
-                hgnc_id = hgnc_client.get_current_hgnc_id(sym)
+                hgnc_id = gm.get_current_hgnc_id(sym)
                 if not hgnc_id:
                     continue
                 elif isinstance(hgnc_id, list):
                     # outdated gene symbol is ambiguous: maps to multiple genes
                     continue
-                latest_symbol = hgnc_client.get_hgnc_name(hgnc_id)
+                latest_symbol = gm.get_hgnc_name(hgnc_id)
                 if latest_symbol != sym:
                     symbol_map[sym] = latest_symbol
         if symbol_map:
