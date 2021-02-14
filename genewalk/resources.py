@@ -57,9 +57,9 @@ class ResourceManager(object):
         fname = os.path.join(self.resource_folder, 'hgnc_entries.tsv')
         if not os.path.exists(fname):
             # Select relevant columns and parameters
-            cols = ['gd_hgnc_id', 'gd_app_sym', 'gd_prev_sym',
-                    'gd_status', 'md_eg_id', 'md_prot_id',
-                    'md_mgd_id', 'md_rgd_id', 'gd_pub_ensembl_id']
+            cols = ['gd_hgnc_id', 'gd_app_sym', 'gd_app_name', 'gd_prev_sym',
+                    'gd_status', 'md_eg_id', 'md_prot_id', 'md_mgd_id',
+                    'md_rgd_id', 'gd_pub_ensembl_id']
             statuses = ['Approved', 'Entry%20Withdrawn']
             params = {
                 'hgnc_dbtag': 'on',
@@ -87,14 +87,11 @@ class ResourceManager(object):
                 logger.warning(resource_dir + ' already exists')
         return resource_dir
 
-    def _replace_outdated_hgnc_symbols(self,pc_old,pc_current):
-        logger.info('Replacing outdated HGNC symbols in %s and save as %s' % \
-                    (pc_old, pc_current))
-        pc = pandas.read_csv(pc_old,sep='\t',dtype=str, header=None)
-        col_mapper = {}
-        col_mapper[0] = 'source'
-        col_mapper[1] = 'rel_type'
-        col_mapper[2] = 'target'
+    def _replace_outdated_hgnc_symbols(self, pc_old, pc_current):
+        logger.info('Replacing outdated HGNC symbols in %s and '
+                    'saving as %s' % (pc_old, pc_current))
+        pc = pandas.read_csv(pc_old, sep='\t', dtype=str, header=None)
+        col_mapper = {0: 'source', 1: 'rel_type', 2: 'target'}
         pc = pc.rename(mapper=col_mapper, axis='columns')
         all_symbols = set(pc['source']).union(pc['target'])
         symbol_map = {}
@@ -104,7 +101,7 @@ class ResourceManager(object):
                 if not hgnc_id:
                     continue
                 elif isinstance(hgnc_id, list):
-                    #outdated gene symbol is ambiguous: maps to multiple genes
+                    # outdated gene symbol is ambiguous: maps to multiple genes
                     continue
                 latest_symbol = hgnc_client.get_hgnc_name(hgnc_id)
                 if latest_symbol != sym:

@@ -1,3 +1,4 @@
+import re
 import csv
 import logging
 from indra.databases import hgnc_client
@@ -28,6 +29,7 @@ def read_gene_list(fname, id_type, resource_manager):
         and if id_type is mgi_id, MGI, with values corresponding to the
         identifiers of the provided list of genes.
     """
+    gene_mapper = GeneMapper(resource_manager)
     with open(fname, 'r') as fh:
         # This is to make the list unique while preserving
         # the original order as much as possible
@@ -202,3 +204,95 @@ def map_entrez_mouse(entrez_ids, rm):
         ref.update(mgi_refs)
         refs.append(ref)
     return refs
+
+
+class GeneMapper:
+    def __init__(self, resource_manager):
+        self.resource_manager = resource_manager
+        self.hgnc_file = self.resource_manager.get_hgnc()
+        self.mgi_entrez_file = self.resource_manager.get_mgi_entrez()
+
+        # Process the MGI-Entrez mapping file
+        self.entrez_to_mgi = {}
+        with open(self.mgi_entrez_file, 'r') as f:
+            csvreader = csv.reader(f, delimiter='\t')
+            for row in csvreader:
+                # Remove "MGI:" prefix
+                mgi = row[0][4:]
+                entrez = row[8]
+                self.entrez_to_mgi[entrez] = mgi
+
+        self.hgnc_id_to_name = {}
+        self.hgnc_name_to_id = {}
+        self.hgnc_withdrawn_to_new = {}
+        self.hgnc_to_uniprot = {}
+        self.mgi_to_hgnc = {}
+        self.rgd_to_hgnc = {}
+        self.entrez_to_hgnc = {}
+        self.ensembl_to_hgnc = {}
+
+
+        prev_sym_map = {}
+
+        with open(self.hgnc_file, 'r') as fh:
+            csvreader = csv.reader(f, delimiter='\t', encoding='utf-8')
+            # Skip the header
+            next(csvreader)
+            for row in csvreader:
+                hgnc_id, hgnc_name, description, prev_sym_entry, hgnc_status,\
+                    entrez_id, uniprot_id, mgi_id, rgd_id, ensembl_id = row
+                hgnc_id = hgnc_id[5:]
+                if hgnc_status in {'Approved', 'Entry Withdrawn'}:
+                    self.hgnc_id_to_name[hgnc_id] = hgnc_name
+                    # Note that withdrawn entries don't overlap with approved
+                    # entries at this point so it's safe to add mappings for
+                    # withdrawn names
+                    self.hgnc_name_to_id[hgnc_name] = hgnc_id
+                elif hgnc_status == 'Symbol Withdrawn':
+                    m = re.match(r'symbol withdrawn, see \[HGNC:(?: ?)(\d+)\]',
+                                 description)
+                    new_id = m.groups()[0]
+                    self.hgnc_withdrawn_to_new[hgnc_id] = new_id
+                # Uniprot
+                if uniprot_id:
+                    self.hgnc_to_uniprot[hgnc_id] = uniprot_id
+                # Entrez
+                if entrez_id:
+                    self.entrez_to_hgnc[entrez_id] = hgnc_id
+                # Mouse
+                if mgi_id:
+                    mgi_ids = mgi_id.split(', ')
+                    for mgi_id in mgi_ids:
+                        if mgi_id.startswith('MGI:'):
+                            mgi_id = mgi_id[4:]
+                        self.mgi_to_hgnc[mgi_id] = hgnc_id
+                # Rat
+                if rgd_id:
+                    rgd_ids = rgd_id.split(', ')
+                    for rgd_id in rgd_ids:
+                        if rgd_id.startswith('RGD:'):
+                            rgd_id = rgd_id[4:]
+                        self.rgd_to_hgnc[rgd_id] = hgnc_id
+                # Previous symbols
+                if prev_sym_entry:
+                    prev_syms = prev_sym_entry.split(', ')
+                    for prev_sym in prev_syms:
+                        # If we already mapped this previous symbol
+                        # to another ID
+                        if prev_sym in prev_sym_map:
+                            # If we already have a list here, we just extend it
+                            if isinstance(prev_sym_map[prev_sym], list):
+                                prev_sym_map[prev_sym].append(hgnc_id)
+                            # Otherwise we create a list and start it with the
+                            # two IDs we know the symbol is mapped to
+                            else:
+                                prev_sym_map[prev_sym] = \
+                                    [prev_sym_map[prev_sym], hgnc_id]
+                        # Otherwise we just make a string entry here
+                        else:
+                            prev_sym_map[prev_sym] = hgnc_id
+                # Ensembl IDs
+                if ensembl_id:
+                    self.ensembl_to_hgnc[ensembl_id] = hgnc_id
+            for old_id, new_id in self.hgnc_withdrawn_to_new.items():
+                self.hgnc_id_to_name[old_id] = self.hgnc_id_to_name[new_id]
