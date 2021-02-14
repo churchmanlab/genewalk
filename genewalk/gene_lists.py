@@ -203,8 +203,8 @@ class GeneMapper:
 
         # Process the MGI-Entrez mapping file
         self.entrez_to_mgi = {}
-        with open(self.mgi_entrez_file, 'r') as f:
-            csvreader = csv.reader(f, delimiter='\t')
+        with open(self.mgi_entrez_file, 'r') as fh:
+            csvreader = csv.reader(fh, delimiter='\t')
             for row in csvreader:
                 # Remove "MGI:" prefix
                 mgi = row[0][4:]
@@ -221,8 +221,8 @@ class GeneMapper:
         self.ensembl_to_hgnc = {}
         self.prev_sym_map = {}
 
-        with open(self.hgnc_file, 'r') as fh:
-            csvreader = csv.reader(f, delimiter='\t', encoding='utf-8')
+        with open(self.hgnc_file, 'r', encoding='utf-8') as fh:
+            csvreader = csv.reader(fh, delimiter='\t')
             # Skip the header
             next(csvreader)
             for row in csvreader:

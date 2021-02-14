@@ -12,4 +12,4 @@ def test_indra_assembly():
     mg = IndraNxMgAssembler(genes, stmts)
     assert mg.graph
     assert mg.graph.nodes['KRAS']
-    assert len(mg.graph.edges('BRAF')) > 5
+    assert len(mg.graph.edges('BRAF')) > 5, mg.graph.edges

@@ -3,8 +3,12 @@ from genewalk.gene_lists import *
 from genewalk.cli import default_base_folder
 from genewalk.resources import ResourceManager
 
+rm = ResourceManager()
+gm = GeneMapper(rm)
+
+
 def test_map_lists():
-    refs = map_hgnc_symbols(['BRAF', 'KRAS'])
+    refs = map_hgnc_symbols(['BRAF', 'KRAS'], gm)
     assert refs[0]['HGNC'] == '1097', refs
     assert refs[0]['UP'] == 'P15056', refs
     assert refs[0]['HGNC_SYMBOL'] == 'BRAF', refs
@@ -12,7 +16,7 @@ def test_map_lists():
     assert refs[1]['UP'] == 'P01116', refs
     assert refs[1]['HGNC_SYMBOL'] == 'KRAS', refs
 
-    refs = map_hgnc_ids(['1097', '6407'])
+    refs = map_hgnc_ids(['1097', '6407'], gm)
     assert refs[0]['HGNC'] == '1097', refs
     assert refs[0]['UP'] == 'P15056', refs
     assert refs[0]['HGNC_SYMBOL'] == 'BRAF', refs
@@ -20,17 +24,17 @@ def test_map_lists():
     assert refs[1]['UP'] == 'P01116', refs
     assert refs[1]['HGNC_SYMBOL'] == 'KRAS', refs
 
-    refs = map_mgi_ids(['MGI:892970'])
+    refs = map_mgi_ids(['MGI:892970'], gm)
     assert refs[0]['HGNC'] == '6817', refs
     assert refs[0]['HGNC_SYMBOL'] == 'MAL', refs
     assert refs[0]['UP'] == 'P21145', refs
 
-    refs = map_ensembl_ids(['ENSG00000157764'])
+    refs = map_ensembl_ids(['ENSG00000157764'], gm)
     assert refs[0]['HGNC'] == '1097', refs
     assert refs[0]['UP'] == 'P15056', refs
     assert refs[0]['HGNC_SYMBOL'] == 'BRAF', refs
 
-    refs = map_ensembl_ids(['ENSG00000157764.9'])
+    refs = map_ensembl_ids(['ENSG00000157764.9'], gm)
     assert refs[0]['HGNC'] == '1097', refs
     assert refs[0]['UP'] == 'P15056', refs
     assert refs[0]['HGNC_SYMBOL'] == 'BRAF', refs
@@ -39,7 +43,7 @@ def test_map_lists():
 def test_read_gene_list():
     with open('test_gene_list.txt', 'w') as fh:
         fh.write('HGNC:1097')
-    refs = read_gene_list('test_gene_list.txt', 'hgnc_id', None)
+    refs = read_gene_list('test_gene_list.txt', 'hgnc_id', rm)
     assert len(refs) == 1
 
 
@@ -47,7 +51,7 @@ def test_read_gene_list():
 def test_read_gene_list_bad():
     with open('test_gene_list.txt', 'w') as fh:
         fh.write('HGNC:1097')
-    refs = read_gene_list('test_gene_list.txt', 'ensembl_id', None)
+    refs = read_gene_list('test_gene_list.txt', 'ensembl_id', rm)
     assert len(refs) == 1
 
 
@@ -55,7 +59,7 @@ def test_read_gene_list_entrez_human():
     with open('test_gene_list_entrez_human.txt', 'w') as fh:
         fh.write('2597')
     refs = read_gene_list('test_gene_list_entrez_human.txt',
-                          'entrez_human', None)
+                          'entrez_human', rm)
     assert refs[0]['HGNC_SYMBOL'] == 'GAPDH'
     assert len(refs) == 1
 
