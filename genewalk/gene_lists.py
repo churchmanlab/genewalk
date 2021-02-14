@@ -230,9 +230,7 @@ class GeneMapper:
         self.rgd_to_hgnc = {}
         self.entrez_to_hgnc = {}
         self.ensembl_to_hgnc = {}
-
-
-        prev_sym_map = {}
+        self.prev_sym_map = {}
 
         with open(self.hgnc_file, 'r') as fh:
             csvreader = csv.reader(f, delimiter='\t', encoding='utf-8')
@@ -279,20 +277,159 @@ class GeneMapper:
                     for prev_sym in prev_syms:
                         # If we already mapped this previous symbol
                         # to another ID
-                        if prev_sym in prev_sym_map:
+                        if prev_sym in self.prev_sym_map:
                             # If we already have a list here, we just extend it
-                            if isinstance(prev_sym_map[prev_sym], list):
-                                prev_sym_map[prev_sym].append(hgnc_id)
+                            if isinstance(self.prev_sym_map[prev_sym], list):
+                                self.prev_sym_map[prev_sym].append(hgnc_id)
                             # Otherwise we create a list and start it with the
                             # two IDs we know the symbol is mapped to
                             else:
-                                prev_sym_map[prev_sym] = \
-                                    [prev_sym_map[prev_sym], hgnc_id]
+                                self.prev_sym_map[prev_sym] = \
+                                    [self.prev_sym_map[prev_sym], hgnc_id]
                         # Otherwise we just make a string entry here
                         else:
-                            prev_sym_map[prev_sym] = hgnc_id
+                            self.prev_sym_map[prev_sym] = hgnc_id
                 # Ensembl IDs
                 if ensembl_id:
                     self.ensembl_to_hgnc[ensembl_id] = hgnc_id
             for old_id, new_id in self.hgnc_withdrawn_to_new.items():
                 self.hgnc_id_to_name[old_id] = self.hgnc_id_to_name[new_id]
+
+    def get_hgnc_name(self, hgnc_id):
+        """Return the HGNC symbol corresponding to the given HGNC ID.
+
+        Parameters
+        ----------
+        hgnc_id : str
+            The HGNC ID to be converted.
+
+        Returns
+        -------
+        hgnc_name : str
+            The HGNC symbol corresponding to the given HGNC ID.
+        """
+        hgnc_name = self.hgnc_id_to_name.get(hgnc_id)
+        return hgnc_name
+
+    def get_hgnc_id(self, hgnc_name):
+        """Return the HGNC ID corresponding to the given HGNC symbol.
+
+        Parameters
+        ----------
+        hgnc_name : str
+            The HGNC symbol to be converted. Example: BRAF
+
+        Returns
+        -------
+        hgnc_id : str
+            The HGNC ID corresponding to the given HGNC symbol.
+        """
+        return self.hgnc_name_to_id.get(hgnc_name)
+
+    def get_current_hgnc_id(self, hgnc_name):
+        """Return HGNC ID(s) corresponding to a current or outdated HGNC symbol.
+
+        Parameters
+        ----------
+        hgnc_name : str
+            The HGNC symbol to be converted, possibly an outdated symbol.
+
+        Returns
+        -------
+        str or list of str or None
+            If there is a single HGNC ID corresponding to the given current or
+            outdated HGNC symbol, that ID is returned as a string. If the symbol
+            is outdated and maps to multiple current IDs, a list of these
+            IDs is returned. If the given name doesn't correspond to either
+            a current or an outdated HGNC symbol, None is returned.
+        """
+        hgnc_id = self.get_hgnc_id(hgnc_name)
+        if hgnc_id:
+            return hgnc_id
+        hgnc_id = self.prev_sym_map.get(hgnc_name)
+        return hgnc_id
+
+    def get_uniprot_id(self, hgnc_id):
+        """Return the UniProt ID corresponding to the given HGNC ID.
+
+        Parameters
+        ----------
+        hgnc_id : str
+            The HGNC ID to be converted. Note that the HGNC ID is a number that is
+            passed as a string. It is not the same as the HGNC gene symbol.
+
+        Returns
+        -------
+        uniprot_id : str
+            The UniProt ID corresponding to the given HGNC ID.
+        """
+        uniprot_id = self.hgnc_to_uniprot.get(hgnc_id)
+        # The lookup can yield an empty string. Instead return None.
+        if not uniprot_id:
+            return None
+        return uniprot_id
+
+    def get_hgnc_from_entrez(self, entrez_id):
+        """Return the HGNC ID corresponding to the given Entrez ID.
+
+        Parameters
+        ----------
+        entrez_id : str
+            The Entrez ID to be converted, a number passed as a string.
+
+        Returns
+        -------
+        hgnc_id : str
+            The HGNC ID corresponding to the given Entrez ID.
+        """
+        hgnc_id = self.entrez_to_hgnc.get(entrez_id)
+        return hgnc_id
+
+    def get_hgnc_from_ensembl(self, ensembl_id):
+        """Return the HGNC ID corresponding to the given Ensembl ID.
+
+        Parameters
+        ----------
+        ensembl_id : str
+            The Ensembl ID to be converted, a number passed as a string.
+
+        Returns
+        -------
+        hgnc_id : str
+            The HGNC ID corresponding to the given Ensembl ID.
+        """
+        return self.ensembl_to_hgnc.get(ensembl_id)
+
+    def get_hgnc_from_mgi(self, mgi_id):
+        """Return the HGNC ID corresponding to the given MGI mouse gene ID.
+
+        Parameters
+        ----------
+        mgi_id : str
+            The MGI ID to be converted. Example: "2444934"
+
+        Returns
+        -------
+        hgnc_id : str
+            The HGNC ID corresponding to the given MGI ID.
+        """
+        if mgi_id.startswith('MGI:'):
+            mgi_id = mgi_id[4:]
+        return self.mgi_to_hgnc.get(mgi_id)
+
+    def get_hgnc_from_rgd(self, rgd_id):
+        """Return the HGNC ID corresponding to the given RGD rat gene ID.
+
+        Parameters
+        ----------
+        rgd_id : str
+            The RGD ID to be converted. Example: "1564928"
+
+        Returns
+        -------
+        hgnc_id : str
+            The HGNC ID corresponding to the given RGD ID.
+        """
+        if rgd_id.startswith('RGD:'):
+            rgd_id = rgd_id[4:]
+        return self.rgd_to_hgnc.get(rgd_id)
