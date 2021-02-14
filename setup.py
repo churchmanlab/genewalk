@@ -9,8 +9,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 def main():
     install_list = ['numpy', 'pandas', 'networkx>=2.1', 'gensim', 'goatools',
-                    'indra>=1.14.1', 'scipy>=1.3.0', 'matplotlib', 'seaborn',
-                    'plotly>=4.0.0']
+                    'scipy>=1.3.0', 'matplotlib', 'seaborn', 'plotly>=4.0.0']
 
     setup(name='genewalk',
           version='1.4.0',
@@ -34,6 +33,7 @@ def main():
           keywords=['gene function', 'network', 'embedding'],
           packages=find_packages(),
           install_requires=install_list,
+          extras_require={'indra': ['indra']},
           tests_require=['nose'],
           include_package_data=True,
           entry_points={'console_scripts': ['genewalk = genewalk.cli:main']},

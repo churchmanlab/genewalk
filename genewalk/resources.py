@@ -2,9 +2,9 @@ import os
 import gzip
 import shutil
 import logging
-import urllib.request
 import pandas
-from indra.databases import hgnc_client
+import urllib.request
+from genewalk.gene_lists import GeneMapper
 
 logger = logging.getLogger('genewalk.resources')
 
@@ -53,6 +53,31 @@ class ResourceManager(object):
             download_url(url, fname)
         return fname
 
+    def get_hgnc(self):
+        fname = os.path.join(self.resource_folder, 'hgnc_entries.tsv')
+        if not os.path.exists(fname):
+            # Select relevant columns and parameters
+            cols = ['gd_hgnc_id', 'gd_app_sym', 'gd_app_name', 'gd_prev_sym',
+                    'gd_status', 'md_eg_id', 'md_prot_id', 'md_mgd_id',
+                    'md_rgd_id', 'gd_pub_ensembl_id']
+            statuses = ['Approved', 'Entry%20Withdrawn']
+            params = {
+                'hgnc_dbtag': 'on',
+                'order_by': 'gd_app_sym_sort',
+                'format': 'text',
+                'submit': 'submit'
+            }
+
+            # Construct a download URL from the above parameters
+            url = 'https://www.genenames.org/cgi-bin/download/custom?'
+            url += '&'.join(['col=%s' % c for c in cols]) + '&'
+            url += '&'.join(['status=%s' % s for s in statuses]) + '&'
+            url += '&'.join(['%s=%s' % (k, v) for k, v in params.items()])
+
+            # Save the download into a file
+            download_url(url, fname)
+        return fname
+
     def _get_resource_folder(self):
         resource_dir = os.path.join(self.base_folder, 'resources')
         if not os.path.isdir(resource_dir):
@@ -62,26 +87,24 @@ class ResourceManager(object):
                 logger.warning(resource_dir + ' already exists')
         return resource_dir
 
-    def _replace_outdated_hgnc_symbols(self,pc_old,pc_current):
-        logger.info('Replacing outdated HGNC symbols in %s and save as %s' % \
-                    (pc_old, pc_current))
-        pc = pandas.read_csv(pc_old,sep='\t',dtype=str, header=None)
-        col_mapper = {}
-        col_mapper[0] = 'source'
-        col_mapper[1] = 'rel_type'
-        col_mapper[2] = 'target'
+    def _replace_outdated_hgnc_symbols(self, pc_old, pc_current):
+        gm = GeneMapper(self)
+        logger.info('Replacing outdated HGNC symbols in %s and '
+                    'saving as %s' % (pc_old, pc_current))
+        pc = pandas.read_csv(pc_old, sep='\t', dtype=str, header=None)
+        col_mapper = {0: 'source', 1: 'rel_type', 2: 'target'}
         pc = pc.rename(mapper=col_mapper, axis='columns')
         all_symbols = set(pc['source']).union(pc['target'])
         symbol_map = {}
         for sym in all_symbols:
             if not sym.startswith('CHEBI:'):
-                hgnc_id = hgnc_client.get_current_hgnc_id(sym)
+                hgnc_id = gm.get_current_hgnc_id(sym)
                 if not hgnc_id:
                     continue
                 elif isinstance(hgnc_id, list):
-                    #outdated gene symbol is ambiguous: maps to multiple genes
+                    # outdated gene symbol is ambiguous: maps to multiple genes
                     continue
-                latest_symbol = hgnc_client.get_hgnc_name(hgnc_id)
+                latest_symbol = gm.get_hgnc_name(hgnc_id)
                 if latest_symbol != sym:
                     symbol_map[sym] = latest_symbol
         if symbol_map:
@@ -93,6 +116,7 @@ class ResourceManager(object):
         self.get_go_obo()
         self.get_goa_gaf()
         self.get_pc()
+        self.get_hgnc()
         self.get_mgi_entrez()
 
 

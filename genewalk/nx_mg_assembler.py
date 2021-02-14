@@ -3,7 +3,6 @@ import logging
 import itertools
 import pandas as pd
 import networkx as nx
-from indra.databases import go_client
 from goatools.obo_parser import GODag
 from genewalk.resources import ResourceManager
 
@@ -299,7 +298,12 @@ class IndraNxMgAssembler(NxMgAssembler):
         if go_id:
             go_id = go_id if go_id.startswith('GO:') else 'GO:%s' % go_id
             node_key = go_id
-            name = go_client.get_go_label(go_id)
+            # INDRA standardizes GO names so this is generally not
+            # necessary
+            try:
+                name = self.go_dag[go_id].name
+            except KeyError:
+                name = agent.name
             self.graph.add_node(node_key, name=name,
                                 source='indra', **agent.db_refs)
         else:
