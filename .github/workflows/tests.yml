@@ -21,6 +21,6 @@ jobs:
     - name: Install dependencies
       run: |
         pip install nose coverage
-        pip install .
+        pip install .[indra]
     - name: Run unit tests
       run: nosetests genewalk -v --with-coverage --cover-inclusive --cover-package=genewalk
