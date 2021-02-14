@@ -1,11 +1,6 @@
 import csv
-import pickle
 import logging
-from io import StringIO
-from os.path import join, abspath, dirname
-from collections import Counter
-import requests
-from indra.databases import hgnc_client, uniprot_client
+from indra.databases import hgnc_client
 
 
 logger = logging.getLogger('genewalk.gene_lists')
