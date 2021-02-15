@@ -45,6 +45,8 @@ def read_gene_list(fname, id_type, resource_manager):
         refs = map_ensembl_ids(unique_lines, gene_mapper)
     elif id_type == 'mgi_id':
         refs = map_mgi_ids(unique_lines, gene_mapper)
+    elif id_type == 'rgd_id':
+        refs = map_rgd_ids(unique_lines, gene_mapper)
     elif id_type == 'entrez_human':
         refs = map_entrez_human(unique_lines, gene_mapper)
     elif id_type == 'entrez_mouse':
@@ -131,6 +133,33 @@ def _refs_from_mgi_id(mgi_id, gene_mapper):
     if hgnc_id is None:
         logger.warning('Could not get HGNC ID for MGI ID %s' %
                        mgi_id)
+        return None
+    hgnc_ref = _refs_from_hgnc_id(hgnc_id, gene_mapper)
+    if hgnc_ref is None:
+        return None
+    ref.update(hgnc_ref)
+    return ref
+
+
+def map_rgd_ids(rgd_ids, gene_mapper):
+    """Return references based on a list of RGD IDs."""
+    refs = []
+    for rgd_id in rgd_ids:
+        if rgd_id.startswith('RGD:'):
+            rgd_id = rgd_id[4:]
+        rgd_ref = _refs_from_rgd_id(rgd_id, gene_mapper)
+        if rgd_ref is None:
+            continue
+        refs.append(rgd_ref)
+    return refs
+
+
+def _refs_from_rgd_id(rgd_id, gene_mapper):
+    ref = {'RGD': rgd_id}
+    hgnc_id = gene_mapper.get_hgnc_from_rgd(rgd_id)
+    if hgnc_id is None:
+        logger.warning('Could not get HGNC ID for RGD ID %s' %
+                       rgd_id)
         return None
     hgnc_ref = _refs_from_hgnc_id(hgnc_id, gene_mapper)
     if hgnc_ref is None:
