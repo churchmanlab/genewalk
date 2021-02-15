@@ -74,3 +74,16 @@ def test_read_gene_list_entrez_mouse():
     assert refs[0]['MGI'] == '95640'
     assert refs[0]['HGNC_SYMBOL'] == 'GAPDH'
 
+
+def test_read_gene_list_rgd():
+    rm = ResourceManager(base_folder=default_base_folder)
+    with open('test_gene_list_rgd.txt', 'w') as fh:
+        fh.write('2561\n')
+        fh.write('RGD:69323')
+    refs = read_gene_list('test_gene_list_rgd.txt',
+                          'rgd_id', rm)
+    assert len(refs) == 2, refs
+    assert refs[0]['RGD'] == '2561'
+    assert refs[0]['HGNC_SYMBOL'] == 'ERBB2'
+    assert refs[1]['RGD'] == '69323'
+    assert refs[1]['HGNC_SYMBOL'] == 'ERBB3'
