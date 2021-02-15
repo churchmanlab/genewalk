@@ -37,8 +37,9 @@ GeneWalk always requires as input a text file containing a list with genes of in
 relevant to the biological context. For example, differentially expressed genes
 from a sequencing experiment that compares an experimental versus control condition.
 GeneWalk supports gene list files containing HGNC human gene symbols,
-HGNC IDs, human Ensembl gene IDs, MGI mouse gene IDs, or human or mouse entrez IDs. 
-Each line in the file contains a gene identifier of one of these types.
+HGNC IDs, human Ensembl gene IDs, MGI mouse gene IDs, RGD rat gene IDs, or
+human or mouse entrez IDs. Each line in the file contains a gene identifier
+of one of these types.
 
 ### GeneWalk command line interface
 Once installed, GeneWalk can be run from the command line as `genewalk`, with
@@ -55,7 +56,7 @@ Below is the full documentation of the command line interface:
 
 ```
 genewalk [-h] [--version] --project PROJECT --genes GENES --id_type
-              {hgnc_symbol,hgnc_id,mgi_id,ensembl_id}
+              {hgnc_symbol,hgnc_id,ensembl_id,mgi_id,rgd_id,entrez_human,entrez_mouse}
               [--stage {all,node_vectors,null_distribution,statistics}]
               [--base_folder BASE_FOLDER]
               [--network_source {pc,indra,edge_list,sif}]
@@ -73,10 +74,10 @@ required arguments:
   --genes GENES         Path to a text file with a list of differentially
                         expressed genes. Thetype of gene identifiers used in
                         the text file are provided in the id_type argument.
-  --id_type {hgnc_symbol,hgnc_id,ensembl_id,mgi_id,entrez_human,entrez_mouse}
+  --id_type {hgnc_symbol,hgnc_id,ensembl_id,mgi_id,rgd_id,entrez_human,entrez_mouse}
                         The type of gene IDs provided in the text file in the
                         genes argument. Possible values are: hgnc_symbol,
-                        hgnc_id, ensembl_id, mgi_id, entrez_human and
+                        hgnc_id, ensembl_id, mgi_id, rgd_id, entrez_human and
                         entrez_mouse.
 
 optional arguments:
@@ -224,7 +225,7 @@ hypothesis testing. Average over nreps_graph repeat runs.
 - cilow_pval - lower bound of 95% confidence interval on pval (mean estimate)
 from the nreps_graph repeat analyses.
 - ciupp_pval - upper bound of 95% confidence interval on pval.
-- mgi_id, ensembl_id, mgi_id, entrez_human or entrez_mouse - in case one of
+- mgi_id, rgd_id, ensembl_id, entrez_human or entrez_mouse - in case one of
   these gene identifiers were provided as input, the GeneWalk results table
   starts with an additional column to indicate the gene identifiers. In the
   case of mouse genes, the corresponding hgnc_id and hgnc_symbol resemble its
