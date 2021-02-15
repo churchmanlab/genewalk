@@ -23,7 +23,7 @@ jobs:
         pip install nose coverage
         pip install .
     - name: Run unit tests
-      run: nosetests genewalk -v --with-coverage --cover-inclusive --cover-package=genewalk
+      run: nosetests genewalk/tests -v
     - name: Install with INDRA
       run: |
         pip install .[indra]
