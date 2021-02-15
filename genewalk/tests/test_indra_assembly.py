@@ -1,5 +1,9 @@
-from indra.statements import *
+import unittest
 from genewalk.nx_mg_assembler import IndraNxMgAssembler
+try:
+    from indra.statements import *
+except ImportError:
+    raise unittest.SkipTest('INDRA not installed skipping these tests.')
 
 
 def test_indra_assembly():
