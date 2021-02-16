@@ -40,14 +40,11 @@ def load_network(network_type, network_file, genes, resource_manager=None):
             stmts = pickle.load(fh)
         mg = IndraNxMgAssembler(genes, stmts,
                                 resource_manager=resource_manager)
-    elif network_type == 'edge_list':
+    elif network_type in {'edge_list', 'sif', 'sif_annot', 'sif_full'}:
         logger.info('Loading user-provided GeneWalk Network from %s.' %
                     network_file)
-        mg = UserNxMgAssembler(network_file, gwn_format='el')
-    elif network_type in {'sif', 'sif_annot', 'sif_full'}:
-        logger.info('Loading user-provided GeneWalk Network from %s.' %
-                    network_file)
-        mg = UserNxMgAssembler(network_file, gwn_format=network_type)
+        mg = UserNxMgAssembler(genes, resource_manager,
+                               network_file, gwn_format=network_type)
     else:
         raise ValueError('Unknown network_type: %s' % network_type)
     return mg
@@ -372,7 +369,7 @@ class UserNxMgAssembler(NxMgAssembler):
         """Assemble the GeneWalk Network from the user-provided file path."""
         gwn_df = pd.read_csv(self.filepath, dtype=str, header=None)
         col_mapper = {}
-        if self.gwn_format == 'el':
+        if self.gwn_format == 'edge_list':
             col_mapper[0] = 'source'
             col_mapper[1] = 'target'
             if len(gwn_df.columns) > 2:
