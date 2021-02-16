@@ -235,9 +235,8 @@ def run_main(args):
                            'deepwalk_node_vectors_%d' % (i + 1))
                for i in range(args.nreps_graph)]
         null_dist = load_pickle(project_folder, 'genewalk_rand_simdists')
-        GW = GeneWalk(MG, genes, nvs, null_dist)
-        df = GW.generate_output(alpha_fdr=args.alpha_fdr,
-                                base_id_type=args.id_type)
+        GW = GeneWalk(MG, genes, nvs, null_dist, gene_id_type=args.id_type)
+        df = GW.generate_output(alpha_fdr=args.alpha_fdr)
         fname = os.path.join(project_folder, 'genewalk_results.csv')
         logger.info('Saving final results into %s' % fname)
         df.to_csv(fname, index=False, float_format='%.3e')

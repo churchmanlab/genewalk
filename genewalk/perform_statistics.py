@@ -34,12 +34,19 @@ class GeneWalk(object):
         Node vectors for nodes in the graph.
     null_dist : np.array
         Similarity random (null) distribution.
+    gene_id_type : Optional[str]
+        The type of gene IDs that were the basis of doing the analysis.
+        In case of mgi_id, rgd_id or ensembl_id, we prepend a column to
+        the table for MGI, RGD, or ENSEMBL IDs, respectively.
+        Default: hgnc_symbol
     """
-    def __init__(self, graph, genes, nvs, null_dist):
+    def __init__(self, graph, genes, nvs, null_dist,
+                 gene_id_type='hgnc_symbol'):
         self.graph = graph
         self.genes = genes
         self.nvs = nvs
         self.srd = null_dist
+        self.gene_id_type = gene_id_type
         self.go_nodes = set(nx.get_node_attributes(self.graph, 'GO'))
         self.gene_nodes = set([g['HGNC_SYMBOL'] for g in self.genes])
 
@@ -87,7 +94,7 @@ class GeneWalk(object):
         return g_mean, g_mean*(g_std**(-1.96/np.sqrt(nreps))), \
             g_mean*(g_std**(1.96/np.sqrt(nreps)))
 
-    def add_empty_row(self, gene, gene_attribs, base_id_type):
+    def add_empty_row(self, gene, gene_attribs, gene_id_type):
         row = [gene_attribs['hgnc_symbol'],
                gene_attribs['hgnc_id'],
                '', '', '',
@@ -95,18 +102,18 @@ class GeneWalk(object):
                np.nan, np.nan, np.nan, np.nan,
                np.nan, np.nan, np.nan, np.nan, np.nan]
         row.extend([np.nan for i in range(len(self.nvs))])
-        if base_id_type == 'mgi_id':
+        if gene_id_type == 'mgi_id':
             row = [gene.get('MGI', '')] + row
-        elif base_id_type == 'rgd_id':
+        elif gene_id_type == 'rgd_id':
             row = [gene.get('RGD', '')] + row
-        elif base_id_type == 'ensembl_id':
+        elif gene_id_type == 'ensembl_id':
             row = [gene.get('ENSEMBL', '')] + row
-        elif base_id_type == 'entrez_mouse' or \
-             base_id_type == 'entrez_human':
+        elif gene_id_type == 'entrez_mouse' or \
+             gene_id_type == 'entrez_human':
             row = [gene.get('EGID', '')] + row
         return row
 
-    def generate_output(self, alpha_fdr=1, base_id_type='hgnc_symbol'):
+    def generate_output(self, alpha_fdr=1):
         """Main function of GeneWalk object that generates the final
         GeneWalk output table (in csv format).
 
@@ -116,11 +123,6 @@ class GeneWalk(object):
             Significance level for FDR [0,1] (default=1, i.e. all GO
             terms and their statistics are output). If set to a lower value,
             only connected GO terms with mean padj < alpha_FDR are output.
-        base_id_type : Optional[str]
-            The type of gene IDs that were the basis of doing the analysis.
-            In case of mgi_id, rgd_id or ensembl_id, we prepend a column to
-            the table for MGI, RGD, or ENSEMBL IDs, respectively.
-            Default: hgnc_symbol
         """
         rows = []
         for gene in self.genes:
@@ -166,22 +168,22 @@ class GeneWalk(object):
                                    low_pval, upp_pval]
                             row.extend([attr['pval'] for attr in go_attribs])
                             # If dealing with mouse genes, prepend the MGI ID
-                            if base_id_type == 'mgi_id':
+                            if self.gene_id_type == 'mgi_id':
                                 row = [gene.get('MGI', '')] + row
                             # If dealing with rat genes, prepend the RGD ID
-                            elif base_id_type == 'rgd_id':
+                            elif self.gene_id_type == 'rgd_id':
                                 row = [gene.get('RGD', '')] + row
-                            elif base_id_type == 'ensembl_id':
+                            elif self.gene_id_type == 'ensembl_id':
                                 row = [gene.get('ENSEMBL', '')] + row
-                            elif base_id_type == 'entrez_mouse' or \
-                                 base_id_type == 'entrez_human':
+                            elif self.gene_id_type == 'entrez_mouse' or \
+                                 self.gene_id_type == 'entrez_human':
                                 row = [gene.get('EGID', '')] + row
                             rows.append(row)
                 elif alpha_fdr == 1:  #case: no GO connections
-                    row = self.add_empty_row(gene, gene_attribs, base_id_type)
+                    row = self.add_empty_row(gene, gene_attribs, self.gene_id_type)
                     rows.append(row)
             elif alpha_fdr == 1:  # case: not in graph
-                row = self.add_empty_row(gene, gene_attribs, base_id_type)
+                row = self.add_empty_row(gene, gene_attribs, self.gene_id_type)
                 rows.append(row)
         header = ['hgnc_symbol', 'hgnc_id',
                   'go_name', 'go_id', 'go_domain',
@@ -191,20 +193,20 @@ class GeneWalk(object):
                   'cilow_gene_padj', 'ciupp_gene_padj',
                   'cilow_pval', 'ciupp_pval']
         header.extend(['pval_rep'+str(i) for i in range(len(self.nvs))])
-        if base_id_type in {'mgi_id', 'rgd_id', 'ensembl_id', 'entrez_human',
-                            'entrez_mouse'}:
-            header = [base_id_type] + header
+        if self.gene_id_type in {'mgi_id', 'rgd_id', 'ensembl_id',
+                                 'entrez_human', 'entrez_mouse'}:
+            header = [self.gene_id_type] + header
 
         df = pd.DataFrame.from_records(rows, columns=header)
         df = self.global_fdr(df,alpha_fdr)
         df.drop(['pval_rep'+str(i) for i in range(len(self.nvs))],
                 axis=1, inplace=True) 
-        df[base_id_type] = df[base_id_type].astype('category')
-        df[base_id_type].cat.set_categories(df[base_id_type].unique(),
+        df[self.gene_id_type] = df[self.gene_id_type].astype('category')
+        df[self.gene_id_type].cat.set_categories(df[self.gene_id_type].unique(),
                                             inplace=True)
         df[['ncon_gene', 'ncon_go']] = \
             df[['ncon_gene', 'ncon_go']].astype('str')
-        df = df.sort_values(by=[base_id_type, 'global_padj', 'gene_padj', 
+        df = df.sort_values(by=[self.gene_id_type, 'global_padj', 'gene_padj',
                                 'sim', 'go_domain', 'go_name'],
                             ascending=[True, True, True, False, True, True])
         return df
