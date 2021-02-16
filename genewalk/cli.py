@@ -170,6 +170,13 @@ def run_main(args):
     if args.stage in ('all', 'node_vectors'):
         genes = read_gene_list(args.genes, args.id_type, rm)
         save_pickle(genes, project_folder, 'genes')
+        # Make sure a network file was provided
+        if args.network_source in {'indra', 'sif', 'sif_annot', 'sif_full',
+                                   'edge_list'}:
+            if not args.network_file:
+                raise ValueError('The --network_file argument must be provided'
+                                 ' when using --network_source %s.' %
+                                 args.network_source)
         MG = load_network(args.network_source, args.network_file, genes,
                           resource_manager=rm)
         save_pickle(MG.graph, project_folder, 'multi_graph')

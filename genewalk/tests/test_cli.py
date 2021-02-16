@@ -1,6 +1,7 @@
 import os
 import pandas
 import logging
+from nose.tools import raises
 from genewalk.cli import run_main
 from .util import place_resource_files, TEST_RESOURCES, TEST_BASE_FOLDER
 
@@ -104,3 +105,13 @@ def test_sif_full():
     # since this means that node attributes are added correctly for
     # GO terms mentioned in the SIF file
     assert 'biological process' in set(df['go_domain'])
+
+
+@raises(ValueError)
+def test_missing_network_file():
+    project_name = 'test_missing_network_file'
+    gene_list = os.path.join(TEST_RESOURCES, 'hgnc_symbols.txt')
+    args = ArgparseMock(project_name, gene_list, 'hgnc_symbol',
+                        network_source='sif')
+    place_resource_files()
+    run_main(args)
