@@ -51,6 +51,8 @@ def read_gene_list(fname, id_type, resource_manager):
         refs = map_entrez_human(unique_lines, gene_mapper)
     elif id_type == 'entrez_mouse':
         refs = map_entrez_mouse(unique_lines, gene_mapper)
+    elif id_type == 'custom':
+        refs = [{'ID': c} for c in unique_lines]
     else:
         raise ValueError('Unknown id_type: %s' % id_type)
     if not refs:

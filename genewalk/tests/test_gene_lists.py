@@ -1,7 +1,9 @@
+import os
 from nose.tools import raises
 from genewalk.gene_lists import *
 from genewalk.cli import default_base_folder
 from genewalk.resources import ResourceManager
+from .util import TEST_RESOURCES
 
 rm = ResourceManager()
 gm = GeneMapper(rm)
@@ -87,3 +89,11 @@ def test_read_gene_list_rgd():
     assert refs[0]['HGNC_SYMBOL'] == 'ERBB2'
     assert refs[1]['RGD'] == '69323'
     assert refs[1]['HGNC_SYMBOL'] == 'ERBB3'
+
+
+def test_read_custom_list():
+    rm = ResourceManager(base_folder=default_base_folder)
+    gene_list_file = os.path.join(TEST_RESOURCES, 'custom_gene_list.txt')
+    refs = read_gene_list(gene_list_file, 'custom', rm)
+    assert len(refs) == 3, refs
+    assert refs[0] == {'ID': 'CUSTOM:ABC'}, refs
