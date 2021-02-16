@@ -48,23 +48,40 @@ class GeneWalk(object):
         self.srd = null_dist
         self.gene_id_type = gene_id_type
         self.go_nodes = set(nx.get_node_attributes(self.graph, 'GO'))
-        self.gene_nodes = set([g['HGNC_SYMBOL'] for g in self.genes])
+        self.gene_nodes = self.get_gene_nodes()
+
+    def get_gene_nodes(self):
+        if self.gene_id_type == 'custom':
+            return {g['ID'] for g in self.genes}
+        else:
+            return {g['HGNC_SYMBOL'] for g in self.genes}
+
+    def get_gene_node_id(self, gene):
+        return gene['HGNC_SYMBOL'] if self.gene_id_type != 'custom' \
+            else gene['ID']
 
     def get_gene_attribs(self, gene):
         """Return an attribute dict for a given gene."""
-        if gene['HGNC_SYMBOL'] in self.graph:
-            ncon_gene = len(self.graph[gene['HGNC_SYMBOL']])
+        gene_id = self.get_gene_node_id(gene)
+        if gene_id in self.graph:
+            ncon_gene = len(self.graph[gene_id])
         else:
             ncon_gene = np.nan
+        hgnc_symbol = gene['HGNC_SYMBOL'] if self.gene_id_type != 'custom' \
+            else None
+        hgnc_id = gene['HGNC_ID'] if self.gene_id_type != 'custom' else None
+        custom_id = gene['ID'] if self.gene_id_type == 'custom' else None
         return {
-            'hgnc_symbol': gene['HGNC_SYMBOL'],
-            'hgnc_id': gene['HGNC'],
+            'hgnc_symbol': hgnc_symbol,
+            'hgnc_id': hgnc_id,
+            'custom_id': custom_id,
             'ncon_gene': ncon_gene
         }
 
     def get_go_attribs(self, gene_attribs, nv, alpha_fdr):
         """Return GO entries and their attributes for a given gene."""
-        gene_node_id = gene_attribs['hgnc_symbol']
+        gene_node_id = gene_attribs['gene_symbol'] \
+            if self.gene_id_type != 'custom' else gene_attribs['custom_id']
         connected = set(self.graph[gene_node_id]) & self.go_nodes
         go_attribs = []
         pvals = []
@@ -94,7 +111,7 @@ class GeneWalk(object):
         return g_mean, g_mean*(g_std**(-1.96/np.sqrt(nreps))), \
             g_mean*(g_std**(1.96/np.sqrt(nreps)))
 
-    def add_empty_row(self, gene, gene_attribs, gene_id_type):
+    def add_empty_row(self, gene, gene_attribs):
         row = [gene_attribs['hgnc_symbol'],
                gene_attribs['hgnc_id'],
                '', '', '',
@@ -102,15 +119,16 @@ class GeneWalk(object):
                np.nan, np.nan, np.nan, np.nan,
                np.nan, np.nan, np.nan, np.nan, np.nan]
         row.extend([np.nan for i in range(len(self.nvs))])
-        if gene_id_type == 'mgi_id':
+        if self.gene_id_type == 'mgi_id':
             row = [gene.get('MGI', '')] + row
-        elif gene_id_type == 'rgd_id':
+        elif self.gene_id_type == 'rgd_id':
             row = [gene.get('RGD', '')] + row
-        elif gene_id_type == 'ensembl_id':
+        elif self.gene_id_type == 'ensembl_id':
             row = [gene.get('ENSEMBL', '')] + row
-        elif gene_id_type == 'entrez_mouse' or \
-             gene_id_type == 'entrez_human':
+        elif self.gene_id_type in {'entrez_mouse', 'entrez_human'}:
             row = [gene.get('EGID', '')] + row
+        elif self.gene_id_type == 'custom':
+            row = [gene.get('ID', '')] + row
         return row
 
     def generate_output(self, alpha_fdr=1):
@@ -175,15 +193,17 @@ class GeneWalk(object):
                                 row = [gene.get('RGD', '')] + row
                             elif self.gene_id_type == 'ensembl_id':
                                 row = [gene.get('ENSEMBL', '')] + row
-                            elif self.gene_id_type == 'entrez_mouse' or \
-                                 self.gene_id_type == 'entrez_human':
+                            elif self.gene_id_type in \
+                                    {'entrez_mouse', 'entrez_human'}:
                                 row = [gene.get('EGID', '')] + row
+                            elif self.gene_id_type == 'custom':
+                                row = [gene.get('ID', '')] + row
                             rows.append(row)
                 elif alpha_fdr == 1:  #case: no GO connections
-                    row = self.add_empty_row(gene, gene_attribs, self.gene_id_type)
+                    row = self.add_empty_row(gene, gene_attribs)
                     rows.append(row)
             elif alpha_fdr == 1:  # case: not in graph
-                row = self.add_empty_row(gene, gene_attribs, self.gene_id_type)
+                row = self.add_empty_row(gene, gene_attribs)
                 rows.append(row)
         header = ['hgnc_symbol', 'hgnc_id',
                   'go_name', 'go_id', 'go_domain',
@@ -194,7 +214,7 @@ class GeneWalk(object):
                   'cilow_pval', 'ciupp_pval']
         header.extend(['pval_rep'+str(i) for i in range(len(self.nvs))])
         if self.gene_id_type in {'mgi_id', 'rgd_id', 'ensembl_id',
-                                 'entrez_human', 'entrez_mouse'}:
+                                 'entrez_human', 'entrez_mouse', 'custom'}:
             header = [self.gene_id_type] + header
 
         df = pd.DataFrame.from_records(rows, columns=header)
