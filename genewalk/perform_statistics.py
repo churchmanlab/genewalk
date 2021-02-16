@@ -40,17 +40,8 @@ class GeneWalk(object):
         self.genes = genes
         self.nvs = nvs
         self.srd = null_dist
-        self.go_nodes = self._get_go_nodes()
+        self.go_nodes = set(nx.get_node_attributes(self.graph, 'GO'))
         self.gene_nodes = set([g['HGNC_SYMBOL'] for g in self.genes])
-
-    def _get_go_nodes(self):
-        go_nodes = set()
-        for node, data in self.graph.nodes(data=True):
-            if 'GO' in data:
-                go_nodes.add(data['GO'])
-            elif node.startswith('GO:'):
-                go_nodes.add(node)
-        return go_nodes
 
     def get_gene_attribs(self, gene):
         """Return an attribute dict for a given gene."""
