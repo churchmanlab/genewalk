@@ -5,4 +5,4 @@ PIK3CA,activates,AKT1
 KRAS,activates,PIK3CA
 BRAF,go_annotation,GO:0000186
 KRAS,go_annotation,GO:0005515
-GO:0000186,isa,GO:0032147
+GO:0000186,isa,GO:0001934

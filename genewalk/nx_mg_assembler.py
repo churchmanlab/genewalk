@@ -398,13 +398,18 @@ class UserNxMgAssembler(NxMgAssembler):
         # then we add those
         if self.gwn_format == 'sif':
             self.add_go_annotations()
-        # If GO annotations and possibly also the GO DAG is provided,
-        # we recognize GO terms based on the GO: prefix
-        if self.gwn_format in {'sif_annot', 'sif_full'}:
-            for node in self.graph.nodes:
-                if node.startswith('GO:'):
-                    self.graph.nodes[node]['GO'] = node
         # If the GO DAG is not provided as part of the SIF then we add
         # it
         if self.gwn_format in {'sif', 'sif_annot'}:
             self.add_go_ontology()
+        # If the SIF contains everything then we still have to add
+        # some basic node meta-data to the GO nodes for later steps
+        if self.gwn_format == 'sif_full':
+            go_dag = self.get_go_dag()
+            for node in self.graph.nodes:
+                if node.startswith('GO:'):
+                    go_term = go_dag.get(node)
+                    if go_term:
+                        self.graph.nodes[node]['GO'] = go_term.id
+                        self.graph.nodes[node]['name'] = go_term.name
+                        self.graph.nodes[node]['domain'] = go_term.namespace
