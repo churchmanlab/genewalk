@@ -60,3 +60,19 @@ def test_default():
     assert os.path.exists(result_csv)
     df = pandas.read_csv(result_csv)
     assert 'MAP2K2' in set(df['hgnc_symbol']), df['hgnc_symbol']
+
+
+def test_sif():
+    project_name = 'test_sif'
+    gene_list = os.path.join(HERE, 'resources', 'hgnc_symbols.txt')
+    sif = os.path.join(HERE, 'resources', 'test.sif')
+    args = ArgparseMock(project_name, gene_list, 'hgnc_symbol',
+                        network_source='sif', network_file=sif)
+    _place_files()
+    run_main(args)
+    assert os.path.exists(TEST_BASE_FOLDER)
+    result_csv = os.path.join(TEST_BASE_FOLDER, project_name,
+                              'genewalk_results.csv')
+    assert os.path.exists(result_csv)
+    df = pandas.read_csv(result_csv)
+    assert 'MAP2K2' in set(df['hgnc_symbol']), df['hgnc_symbol']
