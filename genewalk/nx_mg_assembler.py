@@ -372,6 +372,9 @@ class UserNxMgAssembler(object):
             col_mapper[1] = 'rel_type'
             col_mapper[2] = 'target'
             edge_attributes = True
+        else:
+            raise ValueError('%s is not a valid GeneWalk network format'
+                             % self.gwn_format)
 
         gwn_df.rename(mapper=col_mapper, axis='columns',
                       inplace=True)
