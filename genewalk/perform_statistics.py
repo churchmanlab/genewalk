@@ -97,6 +97,8 @@ class GeneWalk(object):
         row.extend([np.nan for i in range(len(self.nvs))])
         if base_id_type == 'mgi_id':
             row = [gene.get('MGI', '')] + row
+        elif base_id_type == 'rgd_id':
+            row = [gene.get('RGD', '')] + row
         elif base_id_type == 'ensembl_id':
             row = [gene.get('ENSEMBL', '')] + row
         elif base_id_type == 'entrez_mouse' or \
@@ -116,8 +118,8 @@ class GeneWalk(object):
             only connected GO terms with mean padj < alpha_FDR are output.
         base_id_type : Optional[str]
             The type of gene IDs that were the basis of doing the analysis.
-            In case of mgi_id or ensembl_id, we prepend a column to the table
-            for MGI or ENSEMBL IDs, respectively.
+            In case of mgi_id, rgd_id or ensembl_id, we prepend a column to
+            the table for MGI, RGD, or ENSEMBL IDs, respectively.
             Default: hgnc_symbol
         """
         rows = []
@@ -166,6 +168,9 @@ class GeneWalk(object):
                             # If dealing with mouse genes, prepend the MGI ID
                             if base_id_type == 'mgi_id':
                                 row = [gene.get('MGI', '')] + row
+                            # If dealing with rat genes, prepend the RGD ID
+                            elif base_id_type == 'rgd_id':
+                                row = [gene.get('RGD', '')] + row
                             elif base_id_type == 'ensembl_id':
                                 row = [gene.get('ENSEMBL', '')] + row
                             elif base_id_type == 'entrez_mouse' or \
@@ -186,7 +191,7 @@ class GeneWalk(object):
                   'cilow_gene_padj', 'ciupp_gene_padj',
                   'cilow_pval', 'ciupp_pval']
         header.extend(['pval_rep'+str(i) for i in range(len(self.nvs))])
-        if base_id_type in {'mgi_id', 'ensembl_id', 'entrez_human',
+        if base_id_type in {'mgi_id', 'rgd_id', 'ensembl_id', 'entrez_human',
                             'entrez_mouse'}:
             header = [base_id_type] + header
 
