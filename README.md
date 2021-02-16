@@ -59,7 +59,7 @@ genewalk [-h] [--version] --project PROJECT --genes GENES --id_type
               {hgnc_symbol,hgnc_id,ensembl_id,mgi_id,rgd_id,entrez_human,entrez_mouse}
               [--stage {all,node_vectors,null_distribution,statistics}]
               [--base_folder BASE_FOLDER]
-              [--network_source {pc,indra,edge_list,sif}]
+              [--network_source {pc,indra,edge_list,sif,sif_annot,sif_full}]
               [--network_file NETWORK_FILE] [--nproc NPROC] [--nreps NREPS]
               [--alpha_fdr ALPHA_FDR] [--save_dw SAVE_DW]
               [--random_seed RANDOM_SEED]
@@ -87,18 +87,19 @@ optional arguments:
                         The base folder used to store GeneWalk temporary and
                         result files for a given project. Default:
                         ~/genewalk
-  --network_source {pc,indra,edge_list,sif}
+  --network_source {pc,indra,edge_list,sif,sif_annot,sif_full}
                         The source of the network to be used.Possible values
-                        are: pc, indra, edge_list, and sif. In case of indra,
-                        edge_list, and sif, the network_file argument must be
+                        are: pc, indra, edge_list, sif, sif_annot, and
+                        sif_full. In case of indra, edge_list, sif, sif_annot,
+                        and sif_full, the network_file argument must be
                         specified. Default: pc
   --network_file NETWORK_FILE
                         If network_source is indra, this argument points to a
                         Python pickle file in which a list of INDRA Statements
                         constituting the network is contained. In case
-                        network_source is edge_list or sif, the network_file
-                        argument points to a text file representing the
-                        network.
+                        network_source is edge_list, sif, sif_annot, or
+                        sif_full, the network_file argument points to a text
+                        file representing the network.
   --nproc NPROC         The number of processors to use in a multiprocessing
                         environment. Default: 1
   --nreps_graph NREPS_GRAPH
@@ -137,6 +138,40 @@ optional arguments:
 
 ```
 
+### Custom input networks
+By default, GeneWalk uses the PathwayCommons network (`--network_source pc`)
+to create a human gene network. It then automatically adds edges
+reprenting GO annotations for input genes as well as relations between
+GO terms. However, there are also options for supplying a custom network as
+input, as follows.
+
+The `--network_source sif/sif_annot/sif_full` options require supplying the
+path to a simple interaction file (SIF) as the `--network_file` argument. Each
+row of the SIF file consists of three comma-separated entries representing
+source, relation type, and target. Genes in the SIF are assumed to be
+human gene symbols (e.g., KRAS), and GO terms in the SIF (only in the
+`sif_annot` and `sif_full` modes) use the GO: prefix (e.g., GO:0000186).
+
+The difference between the `sif`,
+`sif_annot`, and `sif_full` options are as follows:
+- `sif`: In this case, the input SIF is assumed to contain only gene-gene
+   relations. GO annotations for genes, as well as relations between
+   GO terms are added automatically by GeneWalk.
+- `sif_annot`: In this case, the input SIF is assumed to contain both
+  gene-gene relations, and GO annotations for genes (i.e., rows where the
+  source is a gene, and the target is a GO term). Relations between
+  GO terms are then added automatically by GeneWalk.
+- `sif_full`: In this case, the input SIF is assumed to contain all
+  relations including gene-gene relations, GO annotations for genes,
+  and relations between GO terms. GeneWalk doesn't add any further
+  edges.
+
+The `--network_source indra` option requires supplying the path to a Python
+pickle file containing a list of INDRA Statements as the `--network_file`
+argument. These statements can represent gene-gene, as well as gene-GO
+relations from which network edges are derived. GO annotations, as well as
+relations between GO terms are then added automatically by GeneWalk during
+network construction.
 
 ### Output files
 GeneWalk automatically creates a `genewalk` folder in the user's home folder
