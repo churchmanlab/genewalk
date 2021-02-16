@@ -58,3 +58,49 @@ def test_sif():
     assert os.path.exists(result_csv)
     df = pandas.read_csv(result_csv)
     assert 'MAP2K2' in set(df['hgnc_symbol']), df['hgnc_symbol']
+    assert 'GO:0005515' in set(df['go_id'])
+    assert 'GO:0001934' in set(df['go_id'])
+    assert 'biological process' in set(df['go_domain'])
+
+
+def test_sif_annot():
+    project_name = 'test_sif'
+    gene_list = os.path.join(TEST_RESOURCES, 'hgnc_symbols.txt')
+    sif = os.path.join(TEST_RESOURCES, 'test_sif_annot.sif')
+    args = ArgparseMock(project_name, gene_list, 'hgnc_symbol',
+                        network_source='sif_annot', network_file=sif)
+    place_resource_files()
+    run_main(args)
+    assert os.path.exists(TEST_BASE_FOLDER)
+    result_csv = os.path.join(TEST_BASE_FOLDER, project_name,
+                              'genewalk_results.csv')
+    assert os.path.exists(result_csv)
+    df = pandas.read_csv(result_csv)
+    assert 'MAP2K2' in set(df['hgnc_symbol']), df['hgnc_symbol']
+    assert 'GO:0005515' in set(df['go_id'])
+    # In this case we don't have this annotation in the SIF file
+    assert 'GO:0001934' not in set(df['go_id'])
+    assert 'biological process' in set(df['go_domain'])
+
+
+def test_sif_full():
+    project_name = 'test_sif'
+    gene_list = os.path.join(TEST_RESOURCES, 'hgnc_symbols.txt')
+    sif = os.path.join(TEST_RESOURCES, 'test_sif_full.sif')
+    args = ArgparseMock(project_name, gene_list, 'hgnc_symbol',
+                        network_source='sif_full', network_file=sif)
+    place_resource_files()
+    run_main(args)
+    assert os.path.exists(TEST_BASE_FOLDER)
+    result_csv = os.path.join(TEST_BASE_FOLDER, project_name,
+                              'genewalk_results.csv')
+    assert os.path.exists(result_csv)
+    df = pandas.read_csv(result_csv)
+    assert 'MAP2K2' in set(df['hgnc_symbol']), df['hgnc_symbol']
+    assert 'GO:0005515' in set(df['go_id'])
+    # In this case we don't have this annotation in the SIF file
+    assert 'GO:0001934' not in set(df['go_id'])
+    # It's particularly important here that we have e.g., GO domains
+    # since this means that node attributes are added correctly for
+    # GO terms mentioned in the SIF file
+    assert 'biological process' in set(df['go_domain'])

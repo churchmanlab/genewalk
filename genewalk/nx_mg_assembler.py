@@ -349,7 +349,7 @@ class UserNxMgAssembler(NxMgAssembler):
     gwn_format : Optional[str]
         'el' (default, edge list: nodeA nodeB (if more columns
         present: interpreted as edge attributes) \
-        or 'sif' (simple interaction format: nodeA <relationship type> nodeB).
+        or 'sif' (simple interaction format: nodeA,<relationship type>,nodeB).
         Do not include column headers.
 
     Attributes
