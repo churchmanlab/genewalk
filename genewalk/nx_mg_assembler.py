@@ -397,10 +397,17 @@ class UserNxMgAssembler(NxMgAssembler):
         self.graph = nx.from_pandas_edgelist(gwn_df, 'source', 'target',
                                              edge_attr=edge_attributes,
                                              create_using=nx.MultiGraph)
+        # If the GO annotations are not provided as part of the SIF
+        # then we add those
+        if self.gwn_format == 'sif':
+            self.add_go_annotations()
+        # If GO annotations and possibly also the GO DAG is provided,
+        # we recognize GO terms based on the GO: prefix
         if self.gwn_format in {'sif_annot', 'sif_full'}:
             for node in self.graph.nodes:
                 if node.startswith('GO:'):
                     self.graph.nodes[node]['GO'] = node
+        # If the GO DAG is not provided as part of the SIF then we add
+        # it
         if self.gwn_format in {'sif', 'sif_annot'}:
-
-        # Here we need to
+            self.add_go_ontology()
