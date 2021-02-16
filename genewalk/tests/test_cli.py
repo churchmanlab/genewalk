@@ -1,14 +1,10 @@
 import os
-import glob
 import pandas
-import shutil
 import logging
-from genewalk.cli import run_main, default_base_folder
+from genewalk.cli import run_main
+from .util import place_resource_files, TEST_RESOURCES, TEST_BASE_FOLDER
 
 logger = logging.getLogger(__name__)
-
-HERE = os.path.dirname(os.path.abspath(__file__))
-TEST_BASE_FOLDER = os.path.join(default_base_folder, '.test')
 
 
 class ArgparseMock:
@@ -33,25 +29,11 @@ class ArgparseMock:
         self.random_seed = random_seed
 
 
-def _place_files():
-    test_resource_files = glob.glob(os.path.join(HERE, 'resources', '*'))
-    test_resource_folder = \
-        os.path.join(TEST_BASE_FOLDER, 'resources')
-    os.makedirs(test_resource_folder, exist_ok=True)
-    for test_file in test_resource_files:
-        logger.debug('Copying %s into %s' % (test_file, test_resource_folder))
-        shutil.copy(test_file,
-                    os.path.join(test_resource_folder,
-                                 os.path.basename(test_file)))
-
-
 def test_default():
     project_name = 'test1'
-    gene_list = os.path.join(HERE, 'resources', 'hgnc_symbols.txt')
+    gene_list = os.path.join(TEST_RESOURCES, 'hgnc_symbols.txt')
     args = ArgparseMock(project_name, gene_list, 'hgnc_symbol')
-
-    _place_files()
-
+    place_resource_files()
     run_main(args)
 
     assert os.path.exists(TEST_BASE_FOLDER)
@@ -64,11 +46,11 @@ def test_default():
 
 def test_sif():
     project_name = 'test_sif'
-    gene_list = os.path.join(HERE, 'resources', 'hgnc_symbols.txt')
-    sif = os.path.join(HERE, 'resources', 'test.sif')
+    gene_list = os.path.join(TEST_RESOURCES, 'hgnc_symbols.txt')
+    sif = os.path.join(TEST_RESOURCES, 'test_sif.sif')
     args = ArgparseMock(project_name, gene_list, 'hgnc_symbol',
                         network_source='sif', network_file=sif)
-    _place_files()
+    place_resource_files()
     run_main(args)
     assert os.path.exists(TEST_BASE_FOLDER)
     result_csv = os.path.join(TEST_BASE_FOLDER, project_name,
