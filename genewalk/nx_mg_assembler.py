@@ -44,10 +44,10 @@ def load_network(network_type, network_file, genes, resource_manager=None):
         logger.info('Loading user-provided GeneWalk Network from %s.' %
                     network_file)
         mg = UserNxMgAssembler(network_file, gwn_format='el')
-    elif network_type == 'sif':
+    elif network_type in {'sif', 'sif_annot', 'sif_full'}:
         logger.info('Loading user-provided GeneWalk Network from %s.' %
                     network_file)
-        mg = UserNxMgAssembler(network_file, gwn_format='sif')
+        mg = UserNxMgAssembler(network_file, gwn_format=network_type)
     else:
         raise ValueError('Unknown network_type: %s' % network_type)
     return mg
@@ -75,8 +75,18 @@ class NxMgAssembler(object):
             self.resource_manager = ResourceManager()
         else:
             self.resource_manager = resource_manager
-        self.go_dag = GODag(self.resource_manager.get_go_obo())
-        self.goa = self._load_goa_gaf()
+        self.go_dag = None
+        self.goa = None
+
+    def get_go_annots(self):
+        if self.goa is None:
+            self.goa = self._load_goa_gaf()
+        return self.goa
+
+    def get_go_dag(self):
+        if self.go_dag is None:
+            self.go_dag = GODag(self.resource_manager.get_go_obo())
+        return self.go_dag
 
     def _get_go_terms_for_gene(self, gene):
         # Filter to rows with the given gene's UniProt ID
@@ -84,7 +94,8 @@ class NxMgAssembler(object):
             return []
         elif gene['HGNC_SYMBOL'] not in self.graph:
             return []
-        df = self.goa[self.goa['DB_ID'] == gene['UP']]
+        goa = self.get_go_annots()
+        df = goa[goa['DB_ID'] == gene['UP']]
         go_ids = sorted(list(set(df['GO_ID'])))
         return go_ids
 
@@ -92,11 +103,12 @@ class NxMgAssembler(object):
         """Add edges between gene nodes and GO nodes based on GO
         annotations."""
         logger.info('Adding GO annotations for genes in graph.')
+        go_dag = self.get_go_dag()
         for gene in self.genes:
             go_ids = self._get_go_terms_for_gene(gene)
             for go_id in go_ids:
-                if go_id in self.go_dag:
-                    go_term = self.go_dag[go_id]
+                if go_id in go_dag:
+                    go_term = go_dag[go_id]
                     if go_term.is_obsolete:
                         continue
                     self.graph.add_node(go_term.id,
@@ -109,7 +121,8 @@ class NxMgAssembler(object):
     def add_go_ontology(self):
         """Add edges between GO nodes based on the GO ontology."""
         logger.info('Adding GO ontology edges to graph.')
-        for go_term in list(self.go_dag.values()):
+        go_dag = self.get_go_dag()
+        for go_term in list(go_dag.values()):
             if go_term.is_obsolete:
                 continue
             self.graph.add_node(go_term.id,
@@ -295,13 +308,14 @@ class IndraNxMgAssembler(NxMgAssembler):
     def add_agent_node(self, agent):
         """Add a node corresponding to an INDRA Agent."""
         go_id = agent.db_refs.get('GO')
+        go_dag = self.get_go_dag()
         if go_id:
             go_id = go_id if go_id.startswith('GO:') else 'GO:%s' % go_id
             node_key = go_id
             # INDRA standardizes GO names so this is generally not
             # necessary
             try:
-                name = self.go_dag[go_id].name
+                name = go_dag[go_id].name
             except KeyError:
                 name = agent.name
             self.graph.add_node(node_key, name=name,
@@ -327,7 +341,7 @@ class IndraNxMgAssembler(NxMgAssembler):
         return matching_stmts
 
 
-class UserNxMgAssembler(object):
+class UserNxMgAssembler(NxMgAssembler):
     """Loads a user-provided GeneWalk Network from a given file.
 
     Parameters
@@ -346,7 +360,9 @@ class UserNxMgAssembler(object):
     graph : networkx.MultiGraph
         A GeneWalk Network that is loaded by this assembler.
     """
-    def __init__(self, filepath, gwn_format='el'):
+    def __init__(self, genes, resource_manager, filepath,
+                 gwn_format='el'):
+        super().__init__(genes, resource_manager=resource_manager)
         self.graph = nx.MultiGraph()
         self.filepath = filepath
         self.gwn_format = gwn_format
@@ -367,7 +383,7 @@ class UserNxMgAssembler(object):
                 edge_attributes = True
             else:
                 edge_attributes = False
-        elif self.gwn_format == 'sif':
+        elif self.gwn_format in {'sif', 'sif_annot', 'sif_full'}:
             col_mapper[0] = 'source'
             col_mapper[1] = 'rel_type'
             col_mapper[2] = 'target'
@@ -381,3 +397,10 @@ class UserNxMgAssembler(object):
         self.graph = nx.from_pandas_edgelist(gwn_df, 'source', 'target',
                                              edge_attr=edge_attributes,
                                              create_using=nx.MultiGraph)
+        if self.gwn_format in {'sif_annot', 'sif_full'}:
+            for node in self.graph.nodes:
+                if node.startswith('GO:'):
+                    self.graph.nodes[node]['GO'] = node
+        if self.gwn_format in {'sif', 'sif_annot'}:
+
+        # Here we need to
