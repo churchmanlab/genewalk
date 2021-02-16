@@ -72,10 +72,10 @@ def main():
                         help='The type of gene IDs provided in the text file '
                              'in the genes argument. Possible values are: '
                              'hgnc_symbol, hgnc_id, ensembl_id, mgi_id,'
-                             'rgd_id, entrez_human, and entrez_mouse.',
+                             'rgd_id, entrez_human, entrez_mouse, or custom.',
                         choices=['hgnc_symbol', 'hgnc_id',
                                  'ensembl_id', 'mgi_id', 'rgd_id',
-                                 'entrez_human', 'entrez_mouse'],
+                                 'entrez_human', 'entrez_mouse', 'custom'],
                         required=True)
     parser.add_argument('--stage', default='all',
                         help='The stage of processing to run. Default: '
@@ -160,6 +160,21 @@ def run_main(args):
     project_log_handler.setFormatter(formatter)
     root_logger.addHandler(project_log_handler)
 
+    # Make sure a network file was provided for custom network sources
+    if args.network_source in {'indra', 'sif', 'sif_annot', 'sif_full',
+                               'edge_list'}:
+        if not args.network_file:
+            raise ValueError('The --network_file argument must be provided'
+                             ' when using --network_source %s.' %
+                             args.network_source)
+    # Make sure SIF network is provided for custom gene ID type
+    if args.id_type == 'custom':
+        if args.network_source not in {'sif_annot', 'sif_full'}:
+            raise ValueError('When using --id_type custom, the --network_source'
+                             ' has to be either sif_annot or sif_full, with '
+                             'the --network_file argument pointing to a custom '
+                             'SIF file.')
+
     if args.random_seed:
         logger.info('Running with random seed %d' % args.random_seed)
         random.seed(a=int(args.random_seed))
@@ -170,13 +185,6 @@ def run_main(args):
     if args.stage in ('all', 'node_vectors'):
         genes = read_gene_list(args.genes, args.id_type, rm)
         save_pickle(genes, project_folder, 'genes')
-        # Make sure a network file was provided
-        if args.network_source in {'indra', 'sif', 'sif_annot', 'sif_full',
-                                   'edge_list'}:
-            if not args.network_file:
-                raise ValueError('The --network_file argument must be provided'
-                                 ' when using --network_source %s.' %
-                                 args.network_source)
         MG = load_network(args.network_source, args.network_file, genes,
                           resource_manager=rm)
         save_pickle(MG.graph, project_folder, 'multi_graph')
