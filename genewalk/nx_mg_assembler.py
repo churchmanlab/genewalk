@@ -373,7 +373,8 @@ class UserNxMgAssembler(object):
             col_mapper[2] = 'target'
             edge_attributes = True
 
-        gwn_df.rename(mapper=col_mapper, axis='columns')
+        gwn_df.rename(mapper=col_mapper, axis='columns',
+                      inplace=True)
         self.graph = nx.from_pandas_edgelist(gwn_df, 'source', 'target',
                                              edge_attr=edge_attributes,
                                              create_using=nx.MultiGraph)
