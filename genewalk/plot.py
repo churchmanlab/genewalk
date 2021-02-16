@@ -39,13 +39,19 @@ class GW_Plotter(object):
         self.ci_stat = 'cilow_'+self.stat
         self.dGW = dgw
         self.go_domains = set(self.dGW['go_domain'])
-        if self.dGW.columns[0] in {'mgi_id', 'ensembl_id',
-                                   'entrez_human', 'entrez_mouse'}:
+        if self.dGW.columns[0] in {'mgi_id', 'rgd_id', 'ensembl_id',
+                                   'entrez_human', 'entrez_mouse',
+                                   'custom'}:
             self.std_id = False
             self.id_type = self.dGW.columns[0]
         else:
             self.std_id = True
             self.id_type = self.dGW.columns[1]
+
+        self.name_namespace = 'custom' if self.id_type == 'custom' \
+            else 'hgnc_symbol'
+        self.id_namespace = 'custom' if self.id_type == 'custom' \
+            else 'hgnc_id'
 
     def generate_plots(self):
         """Wrapper that calls scatter and bar plot generating functions."""
@@ -100,7 +106,7 @@ class GW_Plotter(object):
         dreg = self.scatter_data[self.scatter_data[xvar] >= T_gcon]
         dreg = dreg[dreg[yvar] >= T_frac]
         for r in dreg.index:
-            gname = dreg['hgnc_symbol'][r]
+            gname = dreg[self.name_namespace][r]
             regulators.append(gname)
             x_txt = dreg[xvar][r]
             y_txt = dreg[yvar][r]+np.random.normal(0, 0.002)
@@ -118,8 +124,8 @@ class GW_Plotter(object):
         fig = px.scatter(self.scatter_data[~self.scatter_data[yvar].isna()],
                          x=xvar, y=yvar,
                          color=yvar, size='rel_go',
-                         hover_name='hgnc_symbol',
-                         hover_data=['hgnc_symbol', self.id_type],
+                         hover_name=self.name_namespace,
+                         hover_data=[self.name_namespace, self.id_type],
                          title=plot_title, labels={xvar: xlab, yvar: ylab},
                          log_x=True, range_x=[xmin, xmax])
         fig.add_shape(type='rect', x0=T_gcon, y0=T_frac, x1=xmax, y1=1,
@@ -184,7 +190,7 @@ class GW_Plotter(object):
         dmoon = self.scatter_data[self.scatter_data[xvar] >= T_gocon]
         dmoon = dmoon[(dmoon[yvar] < T_frac) & (dmoon[yvar] > 0)]
         for m in dmoon.index:
-            gname = dmoon['hgnc_symbol'][m]
+            gname = dmoon[self.name_namespace][m]
             moonlighters.append(gname)
             x_txt = dmoon[xvar][m]
             y_txt = dmoon[yvar][m]
@@ -203,8 +209,8 @@ class GW_Plotter(object):
         fig = px.scatter(self.scatter_data[~self.scatter_data[yvar].isna()],
                          x=xvar, y=yvar,
                          color=yvar, size='gene_con',
-                         hover_name='hgnc_symbol',
-                         hover_data=['hgnc_symbol', self.id_type],
+                         hover_name=self.name_namespace,
+                         hover_data=[self.name_namespace, self.id_type],
                          title=plot_title, labels={xvar: xlab, yvar: ylab},
                          log_x=True, range_x=[xmin, xmax])
         fig.add_shape(type='rect', x0=T_gocon, y0=0, x1=xmax, y1=T_frac,
@@ -235,7 +241,7 @@ class GW_Plotter(object):
                                      - self.dGW['mlog10padj']
         for gid in self.dGW[self.id_type].unique():
             df = self.dGW[self.dGW[self.id_type] == gid]
-            gsymbol = self.scatter_data['hgnc_symbol'][gid]
+            gsymbol = self.scatter_data[self.name_namespace][gid]
             self._barplot(df, gid, gsymbol, dom='GO')
             #Barplots separated by go domain
             #for go_dom in self.go_domains:
@@ -247,14 +253,14 @@ class GW_Plotter(object):
         """
         scd = dict()
         if not self.std_id:
-            scat_cols = [self.id_type, 'hgnc_symbol', 'hgnc_id', 'con',
-                         'go_con', 'gene_con', 'rel_go', 'frac_rel_go']
+            scat_cols = [self.id_type, self.name_namespace, self.id_namespace,
+                         'con', 'go_con', 'gene_con', 'rel_go', 'frac_rel_go']
         else:
-            scat_cols = [self.id_type, 'hgnc_symbol', 'con', 'go_con',
+            scat_cols = [self.id_type, self.name_namespace, 'con', 'go_con',
                          'gene_con', 'rel_go', 'frac_rel_go']
         for gid in self.dGW[self.id_type].unique():
             df = self.dGW[ self.dGW[self.id_type] == gid ]
-            gname = df['hgnc_symbol'].unique()[0]
+            gname = df[self.name_namespace].unique()[0]
             con = df['ncon_gene'].unique()[0]
             if pd.isna(df['go_id'].unique()[0]):  # no GO annotations
                 gocon = np.nan
@@ -272,8 +278,8 @@ class GW_Plotter(object):
                 scd[gid] = [gid, gname, con, gocon,
                             genecon, relgo, fracrelgo]
             else:
-                hid = str(df['hgnc_id'].unique()[0])
-                scd[gid] = [gid, gname, hid, con, gocon,
+                gid = str(df[self.id_namespace].unique()[0])
+                scd[gid] = [gid, gname, gid, con, gocon,
                             genecon, relgo, fracrelgo]
         self.scatter_data = pd.DataFrame.from_dict(scd, orient='index',
                                                    columns=scat_cols)
@@ -350,13 +356,18 @@ class GW_Plotter(object):
             try:
                 for _ in range(4):
                     gid = next(genes)
-                    gsymbol = self.scatter_data['hgnc_symbol'][gid]
+                    gsymbol = self.scatter_data[self.name_namespace][gid]
                     img_path = os.path.join('barplots',
                                ('barplot_%s_%s_x_mlog10%s_y_GO.png' %
                                 (gsymbol, gid, self.stat)))
                     # Skip any genes for which results were not generated
                     if not os.path.exists(os.path.join(self.path, img_path)):
                         continue
+                    # We only make proper links for non-custom gene symbols
+                    if self.id_type != 'custom':
+                        identifiers_href = 'https://identifiers.org/hgnc.symbol:%s' % gsymbol
+                    else:
+                        identifiers_href = '#'
                     gene_results_html += """
                     <div class="col-md-3">
                         <div class="thumbnail">
@@ -364,11 +375,12 @@ class GW_Plotter(object):
                                 <img src='{img_path}' style="width:100%">
                             </a>
                             <div class="caption">
-                                <a href="https://identifiers.org/hgnc.symbol:{symbol}">{symbol} ({gid})</a>
+                                <a href="{identifiers_href}">{symbol} ({gid})</a>
                             </div>
                         </div>
                     </div>
-                    """.format(symbol=gsymbol, gid=gid, img_path=img_path)
+                    """.format(symbol=gsymbol, gid=gid, img_path=img_path,
+                               identifiers_href=identifiers_href)
             except StopIteration:
                 break
             finally:
