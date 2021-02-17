@@ -396,11 +396,11 @@ class UserNxMgAssembler(NxMgAssembler):
                                              create_using=nx.MultiGraph)
         # If the GO annotations are not provided as part of the SIF
         # then we add those
-        if self.gwn_format == 'sif':
+        if self.gwn_format in {'sif', 'edge_list'}:
             self.add_go_annotations()
         # If the GO DAG is not provided as part of the SIF then we add
         # it
-        if self.gwn_format in {'sif', 'sif_annot'}:
+        if self.gwn_format in {'sif', 'sif_annot', 'edge_list'}:
             self.add_go_ontology()
         # If the SIF contains everything then we still have to add
         # some basic node meta-data to the GO nodes for later steps
