@@ -69,7 +69,7 @@ class GeneWalk(object):
             ncon_gene = np.nan
         hgnc_symbol = gene['HGNC_SYMBOL'] if self.gene_id_type != 'custom' \
             else None
-        hgnc_id = gene['HGNC_ID'] if self.gene_id_type != 'custom' else None
+        hgnc_id = gene['HGNC'] if self.gene_id_type != 'custom' else None
         custom_id = gene['ID'] if self.gene_id_type == 'custom' else None
         return {
             'hgnc_symbol': hgnc_symbol,
@@ -80,7 +80,7 @@ class GeneWalk(object):
 
     def get_go_attribs(self, gene_attribs, nv, alpha_fdr):
         """Return GO entries and their attributes for a given gene."""
-        gene_node_id = gene_attribs['gene_symbol'] \
+        gene_node_id = gene_attribs['hgnc_symbol'] \
             if self.gene_id_type != 'custom' else gene_attribs['custom_id']
         connected = set(self.graph[gene_node_id]) & self.go_nodes
         go_attribs = []
