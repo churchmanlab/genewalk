@@ -72,7 +72,9 @@ def main():
                         help='The type of gene IDs provided in the text file '
                              'in the genes argument. Possible values are: '
                              'hgnc_symbol, hgnc_id, ensembl_id, mgi_id,'
-                             'rgd_id, entrez_human, entrez_mouse, or custom.',
+                             'rgd_id, entrez_human, entrez_mouse, and custom. '
+                             'If custom, a network_source of sif_annot or '
+                             'sif_full must be used.',
                         choices=['hgnc_symbol', 'hgnc_id',
                                  'ensembl_id', 'mgi_id', 'rgd_id',
                                  'entrez_human', 'entrez_mouse', 'custom'],
