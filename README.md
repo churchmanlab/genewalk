@@ -151,6 +151,8 @@ row of the SIF file consists of three comma-separated entries representing
 source, relation type, and target. Genes in the SIF are assumed to be
 human gene symbols (e.g., KRAS), and GO terms in the SIF (only in the
 `sif_annot` and `sif_full` modes) use the GO: prefix (e.g., GO:0000186).
+The relation type is not explicitly used by GeneWalk, and can be set
+to an arbitrary label.
 
 The difference between the `sif`,
 `sif_annot`, and `sif_full` options are as follows:
@@ -165,6 +167,11 @@ The difference between the `sif`,
   relations including gene-gene relations, GO annotations for genes,
   and relations between GO terms. GeneWalk doesn't add any further
   edges.
+
+The `--network_source edge_list` option is a simplified version of the
+`--network_source sif` option. It requires a `--network_file` argument
+which contains rows with two columns each, a source and a target
+(i.e., it omits the relation type column from SIF).
 
 The `--network_source indra` option requires supplying the path to a Python
 pickle file containing a list of INDRA Statements as the `--network_file`
