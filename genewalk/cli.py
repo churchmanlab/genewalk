@@ -88,8 +88,9 @@ def main():
                              ' Default: %(default)s')
     parser.add_argument('--network_source', default='pc',
                         help='The source of the network to be used.'
-                             'Possible values are: pc, indra, edge_list, and '
-                             'sif. In case of indra, edge_list, and sif, '
+                             'Possible values are: pc, indra, edge_list, sif, '
+                             'sif_annot, and sif_full. In case of indra, '
+                             'edge_list, sif, sif_annot, and sif_full, '
                              'the network_file argument must be specified.'
                              ' Default: %(default)s',
                         choices=['pc', 'indra', 'edge_list', 'sif'])
@@ -98,7 +99,7 @@ def main():
                              'points to a Python pickle file in which a list '
                              'of INDRA Statements constituting the network '
                              'is contained. In case network_source is '
-                             'edge_list or sif, '
+                             'edge_list, sif, sif_annot or sif_full, '
                              'the network_file argument points to a text file '
                              'representing the network.')
     parser.add_argument('--nproc', default=1, type=int,
@@ -169,6 +170,13 @@ def run_main(args):
     if args.stage in ('all', 'node_vectors'):
         genes = read_gene_list(args.genes, args.id_type, rm)
         save_pickle(genes, project_folder, 'genes')
+        # Make sure a network file was provided
+        if args.network_source in {'indra', 'sif', 'sif_annot', 'sif_full',
+                                   'edge_list'}:
+            if not args.network_file:
+                raise ValueError('The --network_file argument must be provided'
+                                 ' when using --network_source %s.' %
+                                 args.network_source)
         MG = load_network(args.network_source, args.network_file, genes,
                           resource_manager=rm)
         save_pickle(MG.graph, project_folder, 'multi_graph')

@@ -1,0 +1,5 @@
+KRAS,activates,BRAF
+BRAF,activates,MAP2K2
+MAP2K2,activates,MAPK1
+PIK3CA,activates,AKT1
+KRAS,activates,PIK3CA
