@@ -253,8 +253,13 @@ class GW_Plotter(object):
         """
         scd = dict()
         if not self.std_id:
-            scat_cols = [self.id_type, self.name_namespace, self.id_namespace,
-                         'con', 'go_con', 'gene_con', 'rel_go', 'frac_rel_go']
+            if self.id_type == 'custom':
+                scat_cols = [self.id_type]
+            else:
+                scat_cols = [self.id_type, self.name_namespace,
+                             self.id_namespace]
+            scat_cols += ['con', 'go_con', 'gene_con', 'rel_go',
+                          'frac_rel_go']
         else:
             scat_cols = [self.id_type, self.name_namespace, 'con', 'go_con',
                          'gene_con', 'rel_go', 'frac_rel_go']
@@ -279,8 +284,11 @@ class GW_Plotter(object):
                             genecon, relgo, fracrelgo]
             else:
                 gid = str(df[self.id_namespace].unique()[0])
-                scd[gid] = [gid, gname, gid, con, gocon,
-                            genecon, relgo, fracrelgo]
+                if self.id_type == 'custom':
+                    scd[gid] = [gid]
+                else:
+                    scd[gid] = [gid, gname, gid]
+                scd[gid] += [con, gocon, genecon, relgo, fracrelgo]
         self.scatter_data = pd.DataFrame.from_dict(scd, orient='index',
                                                    columns=scat_cols)
         self.scatter_data.sort_values(by=['gene_con', 'frac_rel_go', 'rel_go'],
