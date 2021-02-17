@@ -283,11 +283,11 @@ class GW_Plotter(object):
                 scd[gid] = [gid, gname, con, gocon,
                             genecon, relgo, fracrelgo]
             else:
-                gid = str(df[self.id_namespace].unique()[0])
+                hid = str(df[self.id_namespace].unique()[0])
                 if self.id_type == 'custom':
                     scd[gid] = [gid]
                 else:
-                    scd[gid] = [gid, gname, gid]
+                    scd[gid] = [gid, gname, hid]
                 scd[gid] += [con, gocon, genecon, relgo, fracrelgo]
         self.scatter_data = pd.DataFrame.from_dict(scd, orient='index',
                                                    columns=scat_cols)
