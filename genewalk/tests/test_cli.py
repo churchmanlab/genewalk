@@ -139,8 +139,8 @@ def test_custom_genes():
                               'genewalk_results.csv')
     assert os.path.exists(result_csv)
     df = pandas.read_csv(result_csv)
-    assert 'MAP2K2' in set(df['hgnc_symbol']), df['hgnc_symbol']
-    assert 'GO:0005515' in set(df['go_id'])
+    assert 'CUSTOM:ABC' in set(df['custom']), df['custom']
+    assert 'GO:0000186' in set(df['go_id'])
     # In this case we don't have this annotation in the SIF file
     assert 'GO:0001934' not in set(df['go_id'])
     assert 'biological process' in set(df['go_domain'])
