@@ -372,14 +372,7 @@ class UserNxMgAssembler(NxMgAssembler):
         if self.gwn_format == 'edge_list':
             col_mapper[0] = 'source'
             col_mapper[1] = 'target'
-            if len(gwn_df.columns) > 2:
-                col_mapper[2] = 'rel_type'
-                if len(gwn_df.columns) > 3:
-                    for c in gwn_df.columns[3:]:
-                        col_mapper[c] = 'edge_attr'+str(c-1)
-                edge_attributes = True
-            else:
-                edge_attributes = None
+            edge_attributes = None
         elif self.gwn_format in {'sif', 'sif_annot', 'sif_full'}:
             col_mapper[0] = 'source'
             col_mapper[1] = 'rel_type'
