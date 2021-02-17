@@ -64,6 +64,25 @@ def test_sif():
     assert 'biological process' in set(df['go_domain'])
 
 
+def test_edge_list():
+    project_name = 'test_edge_list'
+    gene_list = os.path.join(TEST_RESOURCES, 'hgnc_symbols.txt')
+    el = os.path.join(TEST_RESOURCES, 'test_edge_list.txt')
+    args = ArgparseMock(project_name, gene_list, 'hgnc_symbol',
+                        network_source='edge_list', network_file=el)
+    place_resource_files()
+    run_main(args)
+    assert os.path.exists(TEST_BASE_FOLDER)
+    result_csv = os.path.join(TEST_BASE_FOLDER, project_name,
+                              'genewalk_results.csv')
+    assert os.path.exists(result_csv)
+    df = pandas.read_csv(result_csv)
+    assert 'MAP2K2' in set(df['hgnc_symbol']), df['hgnc_symbol']
+    assert 'GO:0005515' in set(df['go_id'])
+    assert 'GO:0001934' in set(df['go_id'])
+    assert 'biological process' in set(df['go_domain'])
+
+
 def test_sif_annot():
     project_name = 'test_sif'
     gene_list = os.path.join(TEST_RESOURCES, 'hgnc_symbols.txt')

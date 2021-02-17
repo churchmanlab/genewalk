@@ -379,7 +379,7 @@ class UserNxMgAssembler(NxMgAssembler):
                         col_mapper[c] = 'edge_attr'+str(c-1)
                 edge_attributes = True
             else:
-                edge_attributes = False
+                edge_attributes = None
         elif self.gwn_format in {'sif', 'sif_annot', 'sif_full'}:
             col_mapper[0] = 'source'
             col_mapper[1] = 'rel_type'
