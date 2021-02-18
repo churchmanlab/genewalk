@@ -259,6 +259,10 @@ class GeneWalk(object):
         return pval
 
     def global_fdr(self,df,alpha_fdr):
+        """Determine the global_padj values through FDR multiple testing 
+        correction over all gene - GO annotation pairs present in the output
+        file.
+        """
         global_stats = {'global_padj': [], 'cilow_global_padj': [],
                         'ciupp_global_padj': []}
         colloc = {'global_padj': 8, 'cilow_global_padj': 4,
