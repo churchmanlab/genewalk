@@ -93,6 +93,9 @@ def test_custom_sif():
     sif = os.path.join(TEST_RESOURCES, 'test_sif_custom.sif')
     mga = UserNxMgAssembler(custom_genes, resource_manager=rm,
                             filepath=sif, gwn_format='sif_annot')
+    # This is to make sure the network filtering works
+    assert 'CUSTOM:XXXX' not in mga.graph
+    assert 'CUSTOM:YYYY' not in mga.graph
 
     gene_nodes = {'CUSTOM:ABC', 'CUSTOM:XYZ', 'CUSTOM:ZZZ'}
     # We still have all the GO nodes that are in the test GO OBO
