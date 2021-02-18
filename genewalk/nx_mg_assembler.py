@@ -398,7 +398,8 @@ class UserNxMgAssembler(NxMgAssembler):
              and n not in gene_list_genes]
         if non_gene_list_non_go_nodes:
             logger.info('Removing %d gene nodes from input network '
-                        'since they are not in the input gene list.')
+                        'since they are not in the input gene list.' %
+                        len(non_gene_list_non_go_nodes))
         self.graph.remove_nodes_from(non_gene_list_non_go_nodes)
         # If the GO annotations are not provided as part of the SIF
         # then we add those
