@@ -38,11 +38,18 @@ interest relevant to the biological context. For example, differentially
 expressed genes from a sequencing experiment that compares an experimental
 versus control condition. GeneWalk supports gene list files containing HGNC
 human gene symbols, HGNC IDs, human Ensembl gene IDs, MGI mouse gene IDs, RGD
-rat gene IDs, or human or mouse entrez IDs. In case these ID types are used,
-GeneWalk internally maps the IDs to human genes. GeneWalk also allows
-using a custom gene ID type in the input gene file, in which case, the gene
-IDs are not attempted to be mapped to human genes. However, in this case
-the user must also supply a gene network with GO annotations as input.
+rat gene IDs, or human or mouse entrez IDs. GeneWalk internally maps these IDs 
+to human genes. 
+
+For organisms other than human, mouse or rat, there are two options. The first
+is to map the genes to human orthologs yourself and then input the human ortholog 
+list as described above. Use this strategy if you consider the organism 
+sufficiently related to human. The second option is to provide an input gene file
+with custom gene IDs. These are not mapped to human genes. Use custom gene IDs 
+for more divergent organisms, such as drosophila, worm, yeast, plants or bacteria. 
+In this case the user must also provide a custom gene network with GO annotations 
+as input. See section Custom input networks for more details.
+
 Each line in the gene input file contains a gene identifier of one of the
 above types.
 
@@ -50,7 +57,7 @@ above types.
 Once installed, GeneWalk can be run from the command line as `genewalk`, with
 a set of required and optional arguments. The required arguments include the
 project name, a path to a text file containing a list of genes, and an argument
-specifying the types of genes in the file.
+specifying the type of gene identifiers in the file.
 
 Example
 ```bash
@@ -105,7 +112,9 @@ optional arguments:
                         constituting the network is contained. In case
                         network_source is edge_list, sif, sif_annot, or
                         sif_full, the network_file argument points to a text
-                        file representing the network.
+                        file representing the network. See README section
+                        Custom input networks for full description of file
+                        format requirements.
   --nproc NPROC         The number of processors to use in a multiprocessing
                         environment. Default: 1
   --nreps_graph NREPS_GRAPH
@@ -271,46 +280,54 @@ run time.
 
 
 ### Custom input networks
-By default, GeneWalk uses the PathwayCommons network (`--network_source pc`)
+By default, GeneWalk uses the PathwayCommons resource (`--network_source pc`)
 to create a human gene network. It then automatically adds edges
-reprenting GO annotations for input genes as well as relations between
-GO terms. However, there are also options for supplying a custom network as
-input, as follows.
+representing GO annotations for input genes and ontology relations between
+GO terms. However, there are options to run GeneWalk with a custom network as
+an input. 
 
-The `--network_source sif/sif_annot/sif_full` options require supplying the
-path to a simple interaction file (SIF) as the `--network_file` argument. Each
-row of the SIF file consists of three comma-separated entries representing
-source, relation type, and target. Genes in the SIF are assumed to be
-human gene symbols (e.g., KRAS), and GO terms in the SIF (only in the
-`sif_annot` and `sif_full` modes) use the GO: prefix (e.g., GO:0000186).
+First, specify the `--network_source` argument as one of the alternative sources:
+`{indra, edge_list, sif, sif_annot, sif_full}`. 
+
+If custom gene IDs are used (`--id_type custom`) in the input gene list, for
+instance from a model organism: choose as network source `sif_annot` or `sif_full`.
+
+Then, include the argument `--network_file` with the path to the custom network 
+input file. The network file format has to correspond to the chosen
+`--network_source`, as follows. 
+
+The `sif/sif_annot/sif_full` options require the network file in a simple 
+interaction file (SIF) format. Each row of the SIF text file consists of 
+three comma-separated entries representing source, relation type, and target.
 The relation type is not explicitly used by GeneWalk, and can be set
 to an arbitrary label.
 
-The difference between the `sif`,
-`sif_annot`, and `sif_full` options are as follows:
-- `sif`: In this case, the input SIF is assumed to contain only gene-gene
-   relations. GO annotations for genes, as well as relations between
-   GO terms are added automatically by GeneWalk.
-- `sif_annot`: In this case, the input SIF is assumed to contain both
-  gene-gene relations, and GO annotations for genes (i.e., rows where the
-  source is a gene, and the target is a GO term). Relations between
-  GO terms are then added automatically by GeneWalk.
-- `sif_full`: In this case, the input SIF is assumed to contain all
-  relations including gene-gene relations, GO annotations for genes,
-  and relations between GO terms. GeneWalk doesn't add any further
-  edges.
+The difference between the `sif`, `sif_annot`, and `sif_full` options:
+- `sif`: the input SIF can contain only *human* gene-gene relations. 
+   Genes have to be encoded as human HGNC gene symbols (for example KRAS).
+   GO annotations for genes, as well as ontology relations 
+   between GO terms are added automatically by GeneWalk. 
+- `sif_annot`: the input SIF has to contain both
+  gene-gene relations, and GO annotations for genes: rows where the
+  source is a gene, and the target is a GO term. Use GO IDs with prefix 
+  (for example GO:0000186) to encode GO terms. Genes should be encoded the same
+  as in the gene input list and do not have to correspond to human genes. 
+  Ontology relations between GO terms are then added automatically by GeneWalk.
+- `sif_full`: the input SIF has to contain all GeneWalk network edges: 
+  gene-gene relations, GO annotations for genes, and ontology relations between
+  GO terms. GeneWalk does not add any more edges to the network. Encode genes and
+  GO terms in the same manner as for `sif_annot`.
 
-The `--network_source edge_list` option is a simplified version of the
-`--network_source sif` option. It requires a `--network_file` argument
-which contains rows with two columns each, a source and a target
-(i.e., it omits the relation type column from SIF).
+The `edge_list` option is a simplified version of the `sif` option. It requires 
+a network text file that contains rows with two columns each, a source and a target. 
+In other words, it omits the relation type column from the SIF format. Further file 
+preparation requirements are the same as for the `sif` option.
 
-The `--network_source indra` option requires supplying the path to a Python
-pickle file containing a list of INDRA Statements as the `--network_file`
-argument. These statements can represent gene-gene, as well as gene-GO
-relations from which network edges are derived. GO annotations, as well as
-relations between GO terms are then added automatically by GeneWalk during
-network construction.
+The `indra` option requires as custom network input file a Python pickle file 
+containing a list of INDRA Statements. These statements can represent human gene-gene, 
+as well as gene-GO relations from which network edges are derived. Human GO 
+annotations and ontology relations between GO terms are then added automatically 
+by GeneWalk during network construction.
 
 
 ### Further documentation

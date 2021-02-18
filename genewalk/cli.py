@@ -103,7 +103,9 @@ def main():
                              'is contained. In case network_source is '
                              'edge_list, sif, sif_annot or sif_full, '
                              'the network_file argument points to a text file '
-                             'representing the network.')
+                             'representing the network. See README section '
+                             'Custom input networks for full description of '
+                             'file format requirements.')
     parser.add_argument('--nproc', default=1, type=int,
                         help='The number of processors to use in a '
                              'multiprocessing environment. Default: '
