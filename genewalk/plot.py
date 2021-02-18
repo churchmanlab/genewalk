@@ -231,10 +231,8 @@ class GW_Plotter(object):
         return plotly_html
 
     def barplot_goanno(self):
-        """Visualize statistical significances of GO annotations for a given
-        gene of interest. Four separate plots are generated: one with all GO
-        annotations listed and 3 separated by each go domain: biological
-        process, cellular component and molecular function.
+        """Visualize statistical significances of all GO annotations in a barplot
+        for a given gene of interest.
         """
         self.dGW['mlog10padj'] = -np.log10(self.dGW[self.stat])
         self.dGW['mlog10padj_err'] = - np.log10(self.dGW[self.ci_stat]) \

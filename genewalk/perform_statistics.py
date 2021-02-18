@@ -16,13 +16,20 @@ class GeneWalk(object):
     If an input gene is not in the output file, this could have the following
     reasons:
     1) No corresponding HGNC gene symbol, HGNC:ID and/or UniProt:ID could be
-    identified. All are required to map genes and assemble their GO
-    annotations.  
+    identified (for all --id_type values except custom). All are required to map 
+    human genes and assemble their GO annotations. See the genewalk log 
+    file for all genes filtered out this way.
+    
     2) (if alpha_FDR set to < 1) no GO terms were significant at the
-    chosen significance level alpha_FDR.  
-    3) (in case of mouse genes) no mapped human ortholog was identified.  
-    If a gene is listed in the output file with NaN values in the columns ncon_go 
-    and ncon_gene, the gene was not included in the GeneWalk network. 
+    chosen significance level alpha_FDR.
+    
+    3) (in case of mouse or rat genes) no mapped human ortholog was identified.
+
+    See the genewalk log file to see all genes filtered out because of 1) or 3).
+    
+    If a gene is listed in the output file with NaN values in the column ncon_gene,
+    the gene was correctly mapped but could not be included in the GeneWalk network.
+    This scenario is uncommon and warrants further inspection.
 
     Parameters
     ----------
