@@ -27,9 +27,12 @@ class GeneWalk(object):
 
     See the genewalk log file to see all genes filtered out because of 1) or 3).
     
-    If a gene is listed in the output file with NaN values in the column ncon_gene,
-    the gene was correctly mapped but could not be included in the GeneWalk network.
-    This scenario is uncommon and warrants further inspection.
+    If a gene is listed in the output file with a value >= 0 in the column 
+    ncon_gene but without any listed GO annotations: no GO annotations (with the
+    right GO evidence codes) could be retrieved. If a gene is listed but has no
+    ncon_gene value (NaN) in the output file: the gene was correctly mapped but
+    could not be included in the GeneWalk network. This scenario is uncommon and
+    warrants further inspection.
 
     Parameters
     ----------
