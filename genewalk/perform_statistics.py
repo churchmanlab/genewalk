@@ -47,7 +47,9 @@ class GeneWalk(object):
     gene_id_type : Optional[str]
         The type of gene IDs that were the basis of doing the analysis.
         In case of mgi_id, rgd_id or ensembl_id, we prepend a column to
-        the table for MGI, RGD, or ENSEMBL IDs, respectively.
+        the table for MGI, RGD, or ENSEMBL IDs, respectively. If custom,
+        the input genes were not mapped to human genes, so the hgnc_symbol
+        and hgnc_id columns are not present in the output.
         Default: hgnc_symbol
     """
     def __init__(self, graph, genes, nvs, null_dist,
@@ -239,6 +241,8 @@ class GeneWalk(object):
         df = df.sort_values(by=[self.gene_id_type, 'global_padj', 'gene_padj',
                                 'sim', 'go_domain', 'go_name'],
                             ascending=[True, True, True, False, True, True])
+        if self.gene_id_type == 'custom':
+            df.drop(['hgnc_symbol','hgnc_id'],axis=1, inplace=True)
         return df
 
     def psim(self, sim):
