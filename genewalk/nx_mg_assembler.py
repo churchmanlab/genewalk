@@ -387,6 +387,20 @@ class UserNxMgAssembler(NxMgAssembler):
         self.graph = nx.from_pandas_edgelist(gwn_df, 'source', 'target',
                                              edge_attr=edge_attributes,
                                              create_using=nx.MultiGraph)
+        logger.info('The graph loaded from %s contains %d nodes'
+                    ' including %d GO terms' %
+                    (self.filepath, len(self.graph),
+                     len([n for n in self.graph if n.startswith('GO:')])))
+        gene_list_genes = \
+            {(g['ID'] if 'ID' in g else g['HGNC_SYMBOL']) for g in self.genes}
+        non_gene_list_non_go_nodes = \
+            [n for n in self.graph if not n.startswith('GO:')
+             and n not in gene_list_genes]
+        if non_gene_list_non_go_nodes:
+            logger.info('Removing %d gene nodes from input network '
+                        'since they are not in the input gene list.' %
+                        len(non_gene_list_non_go_nodes))
+        self.graph.remove_nodes_from(non_gene_list_non_go_nodes)
         # If the GO annotations are not provided as part of the SIF
         # then we add those
         if self.gwn_format in {'sif', 'edge_list'}:

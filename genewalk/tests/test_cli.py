@@ -126,6 +126,26 @@ def test_sif_full():
     assert 'biological process' in set(df['go_domain'])
 
 
+def test_custom_genes():
+    project_name = 'test_custom_genes'
+    gene_list = os.path.join(TEST_RESOURCES, 'custom_gene_list.txt')
+    sif = os.path.join(TEST_RESOURCES, 'test_sif_custom.sif')
+    args = ArgparseMock(project_name, gene_list, 'custom',
+                        network_source='sif_annot', network_file=sif)
+    place_resource_files()
+    run_main(args)
+    assert os.path.exists(TEST_BASE_FOLDER)
+    result_csv = os.path.join(TEST_BASE_FOLDER, project_name,
+                              'genewalk_results.csv')
+    assert os.path.exists(result_csv)
+    df = pandas.read_csv(result_csv)
+    assert 'CUSTOM:ABC' in set(df['custom']), df['custom']
+    assert 'GO:0000186' in set(df['go_id'])
+    # In this case we don't have this annotation in the SIF file
+    assert 'GO:0001934' not in set(df['go_id'])
+    assert 'biological process' in set(df['go_domain'])
+
+
 @raises(ValueError)
 def test_missing_network_file():
     project_name = 'test_missing_network_file'

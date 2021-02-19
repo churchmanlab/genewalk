@@ -72,10 +72,12 @@ def main():
                         help='The type of gene IDs provided in the text file '
                              'in the genes argument. Possible values are: '
                              'hgnc_symbol, hgnc_id, ensembl_id, mgi_id,'
-                             'rgd_id, entrez_human, and entrez_mouse.',
+                             'rgd_id, entrez_human, entrez_mouse, and custom. '
+                             'If custom, a network_source of sif_annot or '
+                             'sif_full must be used.',
                         choices=['hgnc_symbol', 'hgnc_id',
                                  'ensembl_id', 'mgi_id', 'rgd_id',
-                                 'entrez_human', 'entrez_mouse'],
+                                 'entrez_human', 'entrez_mouse', 'custom'],
                         required=True)
     parser.add_argument('--stage', default='all',
                         help='The stage of processing to run. Default: '
@@ -101,7 +103,9 @@ def main():
                              'is contained. In case network_source is '
                              'edge_list, sif, sif_annot or sif_full, '
                              'the network_file argument points to a text file '
-                             'representing the network.')
+                             'representing the network. See README section '
+                             'Custom input networks for full description of '
+                             'file format requirements.')
     parser.add_argument('--nproc', default=1, type=int,
                         help='The number of processors to use in a '
                              'multiprocessing environment. Default: '
@@ -160,6 +164,21 @@ def run_main(args):
     project_log_handler.setFormatter(formatter)
     root_logger.addHandler(project_log_handler)
 
+    # Make sure a network file was provided for custom network sources
+    if args.network_source in {'indra', 'sif', 'sif_annot', 'sif_full',
+                               'edge_list'}:
+        if not args.network_file:
+            raise ValueError('The --network_file argument must be provided'
+                             ' when using --network_source %s.' %
+                             args.network_source)
+    # Make sure SIF network is provided for custom gene ID type
+    if args.id_type == 'custom':
+        if args.network_source not in {'sif_annot', 'sif_full'}:
+            raise ValueError('When using --id_type custom, the --network_source'
+                             ' has to be either sif_annot or sif_full, with '
+                             'the --network_file argument pointing to a custom '
+                             'SIF file.')
+
     if args.random_seed:
         logger.info('Running with random seed %d' % args.random_seed)
         random.seed(a=int(args.random_seed))
@@ -170,13 +189,6 @@ def run_main(args):
     if args.stage in ('all', 'node_vectors'):
         genes = read_gene_list(args.genes, args.id_type, rm)
         save_pickle(genes, project_folder, 'genes')
-        # Make sure a network file was provided
-        if args.network_source in {'indra', 'sif', 'sif_annot', 'sif_full',
-                                   'edge_list'}:
-            if not args.network_file:
-                raise ValueError('The --network_file argument must be provided'
-                                 ' when using --network_source %s.' %
-                                 args.network_source)
         MG = load_network(args.network_source, args.network_file, genes,
                           resource_manager=rm)
         save_pickle(MG.graph, project_folder, 'multi_graph')
@@ -227,9 +239,8 @@ def run_main(args):
                            'deepwalk_node_vectors_%d' % (i + 1))
                for i in range(args.nreps_graph)]
         null_dist = load_pickle(project_folder, 'genewalk_rand_simdists')
-        GW = GeneWalk(MG, genes, nvs, null_dist)
-        df = GW.generate_output(alpha_fdr=args.alpha_fdr,
-                                base_id_type=args.id_type)
+        GW = GeneWalk(MG, genes, nvs, null_dist, gene_id_type=args.id_type)
+        df = GW.generate_output(alpha_fdr=args.alpha_fdr)
         fname = os.path.join(project_folder, 'genewalk_results.csv')
         logger.info('Saving final results into %s' % fname)
         df.to_csv(fname, index=False, float_format='%.3e')
