@@ -95,7 +95,8 @@ def main():
                              'edge_list, sif, sif_annot, and sif_full, '
                              'the network_file argument must be specified.'
                              ' Default: %(default)s',
-                        choices=['pc', 'indra', 'edge_list', 'sif'])
+                        choices=['pc', 'indra', 'edge_list',
+                                 'sif', 'sif_annot', 'sif_full'])
     parser.add_argument('--network_file', default=None,
                         help='If network_source is indra, this argument '
                              'points to a Python pickle file in which a list '
