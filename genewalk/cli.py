@@ -89,12 +89,12 @@ def main():
                              'temporary and result files for a given project.'
                              ' Default: %(default)s')
     parser.add_argument('--network_source', default='pc',
-                        help='The source of the network to be used.'
+                        help='The source of the network to be used. '
                              'Possible values are: pc, indra, edge_list, sif, '
                              'sif_annot, and sif_full. In case of indra, '
                              'edge_list, sif, sif_annot, and sif_full, '
-                             'the network_file argument must be specified.'
-                             ' Default: %(default)s',
+                             'the network_file argument must be specified. '
+                             'Default: %(default)s',
                         choices=['pc', 'indra', 'edge_list',
                                  'sif', 'sif_annot', 'sif_full'])
     parser.add_argument('--network_file', default=None,
@@ -126,6 +126,10 @@ def main():
                              'If 1 (default), all similarities are output, '
                              'otherwise only the ones whose false discovery '
                              'rate are below this parameter are included. '
+                             'For visualization a default value of 0.1 for '
+                             'both global and gene-specific plots is used. '
+                             'Lower this value to increase the stringency of '
+                             'the regulator gene selection procedure. '
                              'Default: %(default)s')
     parser.add_argument('--dim_rep', default=8, type=int,
                         help='Dimension of vector representations '
