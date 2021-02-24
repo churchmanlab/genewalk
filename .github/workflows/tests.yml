@@ -29,3 +29,6 @@ jobs:
         pip install .[indra]
     - name: Run unit tests again
       run: nosetests genewalk -v --with-coverage --cover-inclusive --cover-package=genewalk
+    - name: Run CLI smoke tests
+      run: |
+        genewalk --project test_custom_genes --genes genewalk/tests/resources/custom_gene_list.txt --id_type custom --network_source sif_annot --network_file genewalk/tests/resources/test_sif_custom.sif
