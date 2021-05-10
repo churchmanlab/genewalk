@@ -12,7 +12,7 @@ def main():
                     'scipy>=1.3.0', 'matplotlib', 'seaborn', 'plotly>=4.0.0']
 
     setup(name='genewalk',
-          version='1.5.2',
+          version='1.5.3',
           description='Determine gene function based on network embeddings.',
           long_description=long_description,
           long_description_content_type='text/markdown',
