@@ -155,7 +155,7 @@ class NxMgAssembler(object):
         goa_ec = {'EXP', 'IDA', 'IPI', 'IMP', 'IGI', 'IEP', 'HTP', 'HDA',
                   'HMP', 'HGI', 'HEP', 'IBA', 'IBD'}
         goa = pd.read_csv(self.resource_manager.get_goa_gaf(), sep='\t',
-                          skiprows=23, dtype=str,
+                          comment='!', dtype=str,
                           header=None,
                           names=['DB',
                                  'DB_ID',
