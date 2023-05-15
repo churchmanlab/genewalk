@@ -99,7 +99,7 @@ class GeneWalk(object):
         pvals = []
         for go_node_id in connected:
             go_attrib = {}
-            sim_score = nv.wv.similarity(gene_node_id, go_node_id)
+            sim_score = nv.similarity(gene_node_id, go_node_id)
             go_attrib['sim_score'] = sim_score
             go_attrib['go_id'] = go_node_id
             go_attrib['ncon_go'] = len(self.graph[go_node_id])
