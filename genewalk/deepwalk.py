@@ -95,7 +95,7 @@ class DeepWalk(object):
         end = time.time()
         logger.info('Running random walks done in %.2fs' % (end - start))
 
-    def word2vec(self, sg=1, size=8, window=1, min_count=1, negative=5,
+    def word2vec(self, sg=1, vector_size=8, window=1, min_count=1, negative=5,
                  workers=1, sample=0):
         """Set the model based on Word2Vec
         Source: https://radimrehurek.com/gensim/models/word2vec.html
@@ -108,7 +108,7 @@ class DeepWalk(object):
         sg : Optional[int] {1, 0}
             Defines the training algorithm. If 1, skip-gram is employed;
             otherwise, CBOW is used. For GeneWalk this is set to 1.
-        size : Optional[int]
+        vector_size : Optional[int]
             Dimensionality of the node vectors. Default for GeneWalk is 8.
         window : Optional[int]
             a.k.a. context size. Maximum distance between the current and
@@ -132,7 +132,8 @@ class DeepWalk(object):
         """
         logger.info('Generating node vectors...')
         start = time.time()
-        self.model = Word2Vec(sentences=self.walks, sg=sg, size=size,
+        self.model = Word2Vec(sentences=self.walks, sg=sg, 
+                              vector_size=vector_size,
                               window=window, min_count=min_count,
                               negative=negative, workers=workers,
                               sample=sample)

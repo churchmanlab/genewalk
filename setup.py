@@ -8,11 +8,11 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 
 def main():
-    install_list = ['numpy', 'pandas', 'networkx>=2.1', 'gensim<4', 'goatools',
+    install_list = ['numpy', 'pandas', 'networkx>=2.1', 'gensim>=4.0.0', 'goatools',
                     'scipy>=1.3.0', 'matplotlib', 'seaborn', 'plotly>=4.0.0']
 
     setup(name='genewalk',
-          version='1.5.3',
+          version='1.6.0',
           description='Determine gene function based on network embeddings.',
           long_description=long_description,
           long_description_content_type='text/markdown',
@@ -25,9 +25,10 @@ def main():
             'Intended Audience :: Science/Research',
             'License :: OSI Approved :: BSD License',
             'Operating System :: OS Independent',
-            'Programming Language :: Python :: 3.6',
-            'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
+            'Programming Language :: Python :: 3.9',
+            'Programming Language :: Python :: 3.10',
+            'Programming Language :: Python :: 3.11',
             'Topic :: Scientific/Engineering :: Bio-Informatics',
             ],
           keywords=['gene function', 'network', 'embedding'],

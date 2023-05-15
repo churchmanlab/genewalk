@@ -199,7 +199,8 @@ def run_main(args):
         save_pickle(MG.graph, project_folder, 'multi_graph')
         for i in range(args.nreps_graph):
             logger.info('%s/%s' % (i + 1, args.nreps_graph))
-            DW = run_walks(MG.graph, workers=args.nproc, size=args.dim_rep)
+            DW = run_walks(MG.graph, workers=args.nproc, 
+                           vector_size=args.dim_rep)
 
             # Pickle the node vectors (embeddings) and DW object
             if args.save_dw:
@@ -218,7 +219,7 @@ def run_main(args):
         for i in range(args.nreps_null):
             logger.info('%s/%s' % (i + 1, args.nreps_null))
             RG = get_rand_graph(MG)
-            DW = run_walks(RG, workers=args.nproc, size=args.dim_rep)
+            DW = run_walks(RG, workers=args.nproc, vector_size=args.dim_rep)
 
             # Pickle the node vectors (embeddings) and DW object
             if args.save_dw:
