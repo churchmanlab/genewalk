@@ -234,8 +234,8 @@ class GeneWalk(object):
         df.drop(['pval_rep'+str(i) for i in range(len(self.nvs))],
                 axis=1, inplace=True) 
         df[self.gene_id_type] = df[self.gene_id_type].astype('category')
-        df[self.gene_id_type].cat.set_categories(df[self.gene_id_type].unique(),
-                                            inplace=True)
+        df[self.gene_id_type] = \
+        df[self.gene_id_type].cat.set_categories(df[self.gene_id_type].unique())
         df[['ncon_gene', 'ncon_go']] = \
             df[['ncon_gene', 'ncon_go']].astype('str')
         df = df.sort_values(by=[self.gene_id_type, 'global_padj', 'gene_padj',
