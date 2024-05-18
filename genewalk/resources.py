@@ -20,14 +20,14 @@ class ResourceManager(object):
     def get_go_obo(self):
         fname = os.path.join(self.resource_folder, 'go.obo')
         if not os.path.exists(fname):
-            url = 'http://snapshot.geneontology.org/ontology/go.obo'
+            url = 'https://snapshot.geneontology.org/ontology/go.obo'
             download_url(url, fname)
         return fname
 
     def get_goa_gaf(self):
         fname = os.path.join(self.resource_folder, 'goa_human.gaf')
         if not os.path.exists(fname):
-            url_goa = ('http://geneontology.org/gene-associations/'
+            url_goa = ('https://geneontology.org/gene-associations/'
                        'goa_human.gaf.gz')
             download_gz(fname, url_goa)
         return fname
@@ -39,7 +39,7 @@ class ResourceManager(object):
             fname = os.path.join(self.resource_folder,
                                  'PathwayCommons12.All.hgnc.sif')
             if not os.path.exists(fname):
-                url_pc = ('http://www.pathwaycommons.org/archives/PC2/v12/'
+                url_pc = ('https://www.pathwaycommons.org/archives/PC2/v12/'
                           'PathwayCommons12.All.hgnc.sif.gz')
                 download_gz(fname, url_pc)
             self._replace_outdated_hgnc_symbols(fname,fname_current)
@@ -48,7 +48,7 @@ class ResourceManager(object):
     def get_mgi_entrez(self):
         fname = os.path.join(self.resource_folder, 'MGI_EntrezGene.rpt')
         if not os.path.exists(fname):
-            url = 'http://www.informatics.jax.org/downloads/reports/' \
+            url = 'https://www.informatics.jax.org/downloads/reports/' \
                   'MGI_EntrezGene.rpt'
             download_url(url, fname)
         return fname
