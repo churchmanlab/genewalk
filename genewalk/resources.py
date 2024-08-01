@@ -39,8 +39,8 @@ class ResourceManager(object):
             fname = os.path.join(self.resource_folder,
                                  'PathwayCommons12.All.hgnc.sif')
             if not os.path.exists(fname):
-                url_pc = ('https://www.pathwaycommons.org/archives/PC2/v12/'
-                          'PathwayCommons12.All.hgnc.sif.gz')
+                url_pc = ('https://download.baderlab.org/PathwayCommons/PC2/'
+                          'v12/PathwayCommons12.All.hgnc.sif.gz')
                 download_gz(fname, url_pc)
             self._replace_outdated_hgnc_symbols(fname,fname_current)
         return fname_current
